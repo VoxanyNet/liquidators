@@ -1,12 +1,13 @@
-use macroquad::math::Vec2;
+use macroquad::{color::RED, input::{self, MouseButton}, math::Vec2};
 
-use crate::game::{Collidable, Color, Controllable, Drawable, Friction, Game, Moveable, Rect, Tickable, Velocity};
+use crate::game::{Collidable, Color, Controllable, Damagable, Drawable, Friction, Game, Moveable, Rect, Tickable, Velocity};
 
 pub struct Player {
     pub rect: macroquad::math::Rect,
     pub color: macroquad::color::Color,
     pub velocity: macroquad::math::Vec2,
     pub friction_coefficient: f32,
+    pub health: i32,
     pub up_bind: macroquad::input::KeyCode,
     pub down_bind: macroquad::input::KeyCode,
     pub left_bind: macroquad::input::KeyCode,
@@ -16,19 +17,30 @@ pub struct Player {
 impl Player {
     fn attack(&mut self, game: &mut Game) {
         
-        let attack_line = geo::Line::<f32>::from(
-            [
-                (self.get_rect().x, self.get_rect().y),
-                (self.get_rect().x + 50.0, self.get_rect().y)
-            ]
-        );
+        let attack_hitbox = macroquad::math::Rect::new(self.get_rect().right(), self.get_rect().y, 30.0, 50.0);
 
-        
+        macroquad::shapes::draw_rectangle(attack_hitbox.x, attack_hitbox.y, attack_hitbox.w, attack_hitbox.h, RED);
 
         for player in game.players.iter_mut() {
+            if attack_hitbox.overlaps(&player.rect) {
+                player.damage(2);
+
+                println!("{}", player.get_health());
+            }
         }
     }
 }
+
+impl Damagable for Player {
+    fn get_health(&self) -> i32 {
+        self.health
+    }
+
+    fn set_health(&mut self, health: i32) {
+        self.health = health
+    }
+}
+
 impl Rect for Player {
     fn get_rect(&self) -> macroquad::math::Rect {
         self.rect
@@ -91,6 +103,10 @@ impl Tickable for Player {
             self.collide(player, game.dt);
         }
         
+        if input::is_mouse_button_pressed(MouseButton::Left) {
+            self.attack(game)
+        }
+
         self.move_by_velocity(game.dt);
 
         self.apply_friction(game.dt);

@@ -1,6 +1,5 @@
 use std::time::Duration;
 
-use geo::{Line, LineIntersection};
 use macroquad::math::Vec2;
 
 use crate::coin::Coin;
@@ -12,27 +11,11 @@ pub trait Velocity {
     fn set_velocity(&mut self, velocity: macroquad::math::Vec2);
 }
 
-// fn line_intersects_rect(line: geo::Line::<f32>, rect: macroquad::math::Rect) -> bool {
-    // // check if the rect contains the end or start points
-    // if rect.contains(Vec2::new(line.start_point().x(), line.start_point().y())) {
-    //     return true
-    // }
-
-    // if rect.contains(Vec2::new(line.end_point().x(), line.end_point().y())) {
-    //     return true
-    // }
-
-    // // check if the line intersects with any of the edges of the rect
-
-    // let left_line = LineIntersection
-    // if intersect2d::intersect(&line, )
-
-    // return false
-// }
-
 pub trait Damagable {
     fn damage(&mut self, damage: i32) {
-        self.set_health(damage)
+        self.set_health(
+            self.get_health() - damage
+        )
     }
 
     fn get_health(&self) -> i32;
