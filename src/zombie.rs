@@ -7,8 +7,11 @@ pub struct Zombie {
 }
 
 impl Rect for Zombie {
-    fn rect(&mut self) -> &mut macroquad::math::Rect {
-        &mut self.rect
+    fn get_rect(&self) -> macroquad::math::Rect {
+        self.rect
+    }
+    fn set_rect(&mut self, rect: macroquad::math::Rect) {
+        self.rect = rect;
     }
 }
 

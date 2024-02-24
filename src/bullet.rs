@@ -4,12 +4,16 @@ use crate::game::{Collidable, Color, Controllable, Drawable, Friction, Moveable,
 pub struct Bullet {
     pub rect: macroquad::math::Rect,
     pub color: macroquad::color::Color,
-    pub velocity: macroquad::math::Vec2
+    pub velocity: macroquad::math::Vec2,
+    pub friction_coefficient: f32
 }
 
 impl Rect for Bullet {
-    fn rect(&mut self) -> &mut macroquad::math::Rect {
-        &mut self.rect
+    fn get_rect(&self) -> macroquad::math::Rect {
+        self.rect
+    }
+    fn set_rect(&mut self, rect: macroquad::math::Rect) {
+        self.rect = rect
     }
 }
 
@@ -20,8 +24,11 @@ impl Color for Bullet {
 }
 
 impl Velocity for Bullet {
-    fn velocity(&mut self) -> &mut macroquad::math::Vec2 {
-        &mut self.velocity
+    fn get_velocity(&self) -> macroquad::math::Vec2 {
+        self.velocity
+    }
+    fn set_velocity(&mut self, velocity: macroquad::math::Vec2) {
+        self.velocity = velocity;
     }
 }
 
@@ -31,7 +38,11 @@ impl Moveable for Bullet {}
 
 impl Collidable for Bullet {}
 
-impl Friction for Bullet {}
+impl Friction for Bullet {
+    fn friction_coefficient(&self) -> f32 {
+        self.friction_coefficient
+    }
+}
 
 
 impl Tickable for Bullet {
