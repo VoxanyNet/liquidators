@@ -1,7 +1,7 @@
-use std::time::{Duration, Instant};
+use std::{collections::HashMap, time::{Duration, Instant}};
 
 use game::Game;
-use macroquad::{color::{RED, WHITE}, math::{Rect, Vec2}, miniquad::conf::Platform, window::{next_frame, Conf}};
+use macroquad::{math::{Rect, Vec2}, miniquad::conf::Platform, window::{next_frame, Conf}};
 use player::Player;
 use crate::coin::Coin;
 
@@ -13,10 +13,10 @@ mod coin;
 
 fn window_conf() -> Conf {
     let mut conf = Conf {
-        window_title: "App Template".to_owned(),
+        window_title: "Kruz's Epic Game".to_owned(),
         window_width: 1280,
         window_height: 720,
-        window_resizable: false,
+        window_resizable: true,
         platform: Platform::default(),
         ..Default::default()
     };
@@ -30,13 +30,16 @@ async fn main() {
     //macroquad::window::set_fullscreen(true);
     
     let mut game = Game {
+        textures: HashMap::new(),
         players: vec![
             Player {
-                rect: Rect {x: 30.0, y: 30.0, w: 30.0, h: 30.0},
-                color: WHITE,
+                rect: Rect {x: 30.0, y: 30.0, w: 65.0, h: 100.0},
+                scale: Vec2::new(5.0, 5.0),
+                acceleration: 0.01,
+                texture_path: "assets/player.png".to_string(),
                 velocity: Vec2{x: 0.0, y: 0.0},
                 health: 100,
-                friction_coefficient: 0.01,
+                friction_coefficient: 0.02,
                 up_bind: macroquad::input::KeyCode::W,
                 down_bind: macroquad::input::KeyCode::S,
                 left_bind: macroquad::input::KeyCode::A,
@@ -44,18 +47,19 @@ async fn main() {
             },
 
             Player {
-                rect: Rect {x: 90.0, y: 90.0, w: 30.0, h: 30.0},
-                color: RED,
+                rect: Rect {x: 300.0, y: 300.0, w: 65.0, h: 100.0},
+                scale: Vec2::new(5.0, 5.0),
+                acceleration: 0.01,
+                texture_path: "assets/player.png".to_string(),
                 velocity: Vec2{x: 0.0, y: 0.0},
                 health: 100,
-                friction_coefficient: 0.01,
+                friction_coefficient: 0.02,
                 up_bind: macroquad::input::KeyCode::Up,
                 down_bind: macroquad::input::KeyCode::Down,
                 left_bind: macroquad::input::KeyCode::Left,
                 right_bind: macroquad::input::KeyCode::Right
             }
         ],
-        
         zombies: vec![],
         coins: vec![Coin::new(500.0, 500.0)],
         dt: Duration::from_millis(1)
@@ -71,7 +75,7 @@ async fn main() {
 
         game.tick();
         
-        game.draw();
+        game.draw().await;
 
         next_frame().await;
 

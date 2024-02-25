@@ -1,4 +1,4 @@
-use crate::game::{Collidable, Color, Controllable, Drawable, Friction, Moveable, Rect, Tickable, Velocity};
+use crate::game::{Collidable, Color, Drawable, Friction, Moveable, Rect, Tickable, Velocity};
 
 #[derive(Clone)]
 pub struct Bullet {

@@ -1,13 +1,15 @@
 use macroquad::{color::RED, input::{self, MouseButton}, math::Vec2};
 
-use crate::game::{Collidable, Color, Controllable, Damagable, Drawable, Friction, Game, Moveable, Rect, Tickable, Velocity};
+use crate::game::{Collidable, Controllable, Damagable, Friction, Game, Moveable, Rect, Scale, Texture, Tickable, Velocity};
 
 pub struct Player {
     pub rect: macroquad::math::Rect,
-    pub color: macroquad::color::Color,
     pub velocity: macroquad::math::Vec2,
     pub friction_coefficient: f32,
     pub health: i32,
+    pub acceleration: f32,
+    pub texture_path: String,
+    pub scale: Vec2,
     pub up_bind: macroquad::input::KeyCode,
     pub down_bind: macroquad::input::KeyCode,
     pub left_bind: macroquad::input::KeyCode,
@@ -50,12 +52,6 @@ impl Rect for Player {
     }
 }
 
-impl Color for Player {
-    fn color(&self) -> macroquad::color::Color {
-        self.color
-    }
-}
-
 impl Velocity for Player {
     fn get_velocity(&self) -> macroquad::math::Vec2 {
         self.velocity
@@ -66,13 +62,26 @@ impl Velocity for Player {
     }
 }
 
-impl Drawable for Player {}
+impl Texture for Player {
+    fn get_texture_path(&self) -> String {
+        self.texture_path.clone()
+    }
+}
+
+impl Scale for Player {
+    fn get_scale(&self) -> macroquad::math::Vec2 {
+        self.scale
+    }
+}
 
 impl Moveable for Player {}
 
 impl Collidable for Player {}
 
 impl Controllable for Player {
+    fn get_acceleration(&self) -> f32 {
+        self.acceleration
+    }
     fn up_bind(&mut self) -> macroquad::input::KeyCode {
         self.up_bind
     }

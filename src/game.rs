@@ -1,6 +1,9 @@
+use std::collections::HashMap;
 use std::time::Duration;
 
+use macroquad::color::{RED, WHITE};
 use macroquad::math::Vec2;
+use macroquad::texture::{self, load_texture, Texture2D};
 
 use crate::coin::Coin;
 use crate::player::Player;
@@ -82,22 +85,23 @@ pub trait Controllable: Rect + Velocity {
     fn control(&mut self, dt: Duration) {
 
         let mut velocity = self.get_velocity();
+        let acceleration = self.get_acceleration();
 
         if macroquad::input::is_key_down(self.right_bind()) {
-            velocity.x += 0.01 * dt.as_millis() as f32;
+            velocity.x += acceleration * dt.as_millis() as f32;
         }
 
         if macroquad::input::is_key_down(self.left_bind()) {
-            velocity.x -= 0.01 * dt.as_millis() as f32
+            velocity.x -= acceleration * dt.as_millis() as f32
 
         }
 
         if macroquad::input::is_key_down(self.up_bind()) {
-            velocity.y -= 0.01 * dt.as_millis() as f32
+            velocity.y -= acceleration * dt.as_millis() as f32
         }
 
         if macroquad::input::is_key_down(self.down_bind()) {
-            velocity.y += 0.01 * dt.as_millis() as f32
+            velocity.y += acceleration * dt.as_millis() as f32
         }
 
         // update to the final velocity
@@ -106,6 +110,8 @@ pub trait Controllable: Rect + Velocity {
         );
 
     }
+
+    fn get_acceleration(&self) -> f32;
 
     fn up_bind(&mut self) -> macroquad::input::KeyCode;
     fn down_bind(&mut self) -> macroquad::input::KeyCode;
@@ -139,21 +145,69 @@ pub trait Drawable: Rect + Color {
     }
 }
 
+pub trait Texture: Rect + Scale {
+    async fn draw(&mut self, textures: &mut HashMap<String, Texture2D>) {
+
+        // load texture if not already
+        if !textures.contains_key(&self.get_texture_path()) {
+            let texture = load_texture(&self.get_texture_path()).await.unwrap();
+
+            textures.insert(self.get_texture_path(), texture);
+        }
+
+        let texture = textures.get(&self.get_texture_path()).unwrap();
+
+        texture.set_filter(texture::FilterMode::Nearest);
+
+        let scaled_texture_size = Vec2 {
+            x: texture.width() * self.get_scale().x,
+            y: texture.height() * self.get_scale().y
+        };
+
+        // macroquad::shapes::draw_rectangle(
+        //     self.get_rect().x,
+        //     self.get_rect().y,
+        //     self.get_rect().w, 
+        //     self.get_rect().h,
+        //     RED
+        // );
+
+        macroquad::texture::draw_texture_ex(
+            texture,
+            self.get_rect().x,
+            self.get_rect().y,
+            WHITE,
+            macroquad::texture::DrawTextureParams {
+                dest_size: Some(scaled_texture_size),
+                ..Default::default()
+            },
+         );
+
+    }
+
+    fn get_texture_path(&self) -> String;
+}
+
 pub trait Tickable {
     fn tick(&mut self, game: &mut Game);
+}
+
+pub trait Scale {
+    fn get_scale(&self) -> Vec2;
 }
 
 pub struct Game {
     pub players: Vec<Player>,
     pub zombies: Vec<Zombie>,
     pub dt: Duration,
-    pub coins: Vec<Coin>
+    pub coins: Vec<Coin>,
+    pub textures: HashMap<String, Texture2D>
 }
 
 impl Game {
-    pub fn draw(&mut self) {
+    pub async fn draw(&mut self) {
         for player in self.players.iter_mut() {
-            player.draw();
+            player.draw(&mut self.textures).await;
         }
 
         for coin in self.coins.iter_mut() {
