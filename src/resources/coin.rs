@@ -1,6 +1,6 @@
 use macroquad::math::Vec2;
 
-use crate::{game::{Color, Drawable, Friction, Moveable, Rect, Tickable, Velocity}, player::Player};
+use crate::{entities::{player::Player, Entity}, game::{Color, Drawable, Friction, Moveable, Rect, Tickable, Velocity}};
 
 pub struct Coin {
     color: macroquad::color::Color,
@@ -15,7 +15,7 @@ impl Coin {
             color: macroquad::color::YELLOW,
             rect: macroquad::math::Rect { x: x, y: y, w: 10.0, h: 10.0 },
             velocity: Vec2{x: 0.0, y: 0.0},
-            friction_coefficient: 0.01
+            friction_coefficient: 1.
         }
     }
 
@@ -27,7 +27,7 @@ impl Coin {
 
         if distance.length() <= 300.0 {
 
-            let exponential_factor = -0.0001 * distance.length();
+            let exponential_factor = -0.05 * distance.length();
 
             self.velocity += distance.normalize() * exponential_factor;
 
@@ -55,13 +55,16 @@ impl Velocity for Coin {
 
 impl Tickable for Coin {
     fn tick(&mut self, game: &mut crate::game::Game) {
-        for player in game.players.iter_mut() {
-            self.gravitate(player);
+        for entity in game.entities.iter_mut() {
+            
+            if let Entity::Player(player) = entity {
+                self.gravitate(player);
+            }
         }
 
-        self.move_by_velocity(game.dt);
+        self.move_by_velocity(game.last_tick.elapsed());
 
-        self.apply_friction(game.dt)
+        self.apply_friction(game.last_tick.elapsed())
     }
 }
 

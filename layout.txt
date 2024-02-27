@@ -1,0 +1,23 @@
+entities:
+    examples: 
+        - player
+        - zombie
+        - animal
+        - troop
+
+structures:
+    examples:
+        - tree
+        - building
+        - storage container
+
+resources:
+    examples:
+        - coin 
+        - wood
+        - coal
+
+tools:
+    examples:
+        - bow
+        - sword

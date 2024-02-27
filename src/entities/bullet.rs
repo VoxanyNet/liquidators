@@ -50,9 +50,9 @@ impl Tickable for Bullet {
         
         //println!("{}", self.velocity.x);
 
-        self.move_by_velocity(game.dt);
+        self.move_by_velocity(game.last_tick.elapsed());
 
-        self.apply_friction(game.dt)
+        self.apply_friction(game.last_tick.elapsed())
 
         // for player in game.players.iter_mut() {
         //     self.collide(player);

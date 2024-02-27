@@ -1,15 +1,16 @@
 use std::{collections::HashMap, time::{Duration, Instant}};
 
 use game::Game;
-use macroquad::{math::{Rect, Vec2}, miniquad::conf::Platform, window::{next_frame, Conf}};
-use player::Player;
-use crate::coin::Coin;
+use macroquad::{miniquad::conf::Platform, window::{next_frame, Conf}};
+use entities::player::Player;
+use entities::Entity;
+use resources::{coin::Coin, Resource};
 
-mod player;
+
 mod game;
-mod zombie;
-mod bullet;
-mod coin;
+mod resources;
+mod entities;
+
 
 fn window_conf() -> Conf {
     let mut conf = Conf {
@@ -20,7 +21,7 @@ fn window_conf() -> Conf {
         platform: Platform::default(),
         ..Default::default()
     };
-    conf.platform.swap_interval = Some(0);
+    conf.platform.swap_interval = Some(0); // disable vsync
     conf
 }
 
@@ -31,47 +32,20 @@ async fn main() {
     
     let mut game = Game {
         textures: HashMap::new(),
-        players: vec![
-            Player {
-                rect: Rect {x: 30.0, y: 30.0, w: 65.0, h: 100.0},
-                scale: Vec2::new(5.0, 5.0),
-                acceleration: 0.01,
-                texture_path: "assets/player.png".to_string(),
-                velocity: Vec2{x: 0.0, y: 0.0},
-                health: 100,
-                friction_coefficient: 0.02,
-                up_bind: macroquad::input::KeyCode::W,
-                down_bind: macroquad::input::KeyCode::S,
-                left_bind: macroquad::input::KeyCode::A,
-                right_bind: macroquad::input::KeyCode::D
-            },
-
-            Player {
-                rect: Rect {x: 300.0, y: 300.0, w: 65.0, h: 100.0},
-                scale: Vec2::new(5.0, 5.0),
-                acceleration: 0.01,
-                texture_path: "assets/player.png".to_string(),
-                velocity: Vec2{x: 0.0, y: 0.0},
-                health: 100,
-                friction_coefficient: 0.02,
-                up_bind: macroquad::input::KeyCode::Up,
-                down_bind: macroquad::input::KeyCode::Down,
-                left_bind: macroquad::input::KeyCode::Left,
-                right_bind: macroquad::input::KeyCode::Right
-            }
+        sounds: HashMap::new(),
+        entities: vec![
+            Entity::Player(Player::new())
         ],
-        zombies: vec![],
-        coins: vec![Coin::new(500.0, 500.0)],
-        dt: Duration::from_millis(1)
+        resources: vec![
+            Resource::Coin(Coin::new(500., 500.))
+        ],
+        last_tick: Instant::now()
     };
-
-    let mut last_tick = Instant::now();
 
     loop {
 
         
         macroquad::window::clear_background(macroquad::color::BLACK);
-        
 
         game.tick();
         
@@ -86,10 +60,6 @@ async fn main() {
         );
 
         //println!("{}",  macroquad::time::get_fps());
-
-        game.dt = last_tick.elapsed();
-
-        last_tick = Instant::now();
     }
     
 }

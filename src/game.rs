@@ -1,13 +1,14 @@
 use std::collections::HashMap;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
-use macroquad::color::{RED, WHITE};
+use macroquad::audio::{self, load_sound};
+use macroquad::color::WHITE;
+use macroquad::input::{self};
 use macroquad::math::Vec2;
 use macroquad::texture::{self, load_texture, Texture2D};
 
-use crate::coin::Coin;
-use crate::player::Player;
-use crate::zombie::Zombie;
+use crate::entities::{self, Entity};
+use crate::resources::Resource;
 
 pub trait Velocity {
     fn get_velocity(&self) -> macroquad::math::Vec2;
@@ -42,8 +43,8 @@ pub trait Breakable: Damagable + Rect {
     fn set_highlighted(&mut self, highlighted: bool) -> bool;
 }
 
-pub trait Item { 
-}
+pub trait Item {}
+
 pub trait Collidable: Rect + Velocity {
 
     fn collide(&mut self, collider: &mut dyn Collidable, dt: Duration) {
@@ -74,7 +75,7 @@ pub trait Friction: Rect + Velocity {
     fn apply_friction(&mut self, dt: Duration) {
 
         self.set_velocity(
-            self.get_velocity() + ((-self.get_velocity() * self.friction_coefficient()) * dt.as_millis() as f32)
+            self.get_velocity() + ((-self.get_velocity() * self.friction_coefficient()) * dt.as_secs_f32())
         );
     }
 
@@ -124,8 +125,8 @@ pub trait Moveable: Rect + Velocity {
 
         let mut rect = self.get_rect();
 
-        rect.x += self.get_velocity().x * dt.as_millis() as f32;
-        rect.y += self.get_velocity().y * dt.as_millis() as f32;
+        rect.x += self.get_velocity().x * dt.as_secs_f32();
+        rect.y += self.get_velocity().y * dt.as_secs_f32();
 
         self.set_rect(rect);
     }
@@ -146,18 +147,20 @@ pub trait Drawable: Rect + Color {
 }
 
 pub trait Texture: Rect + Scale {
-    async fn draw(&mut self, textures: &mut HashMap<String, Texture2D>) {
+    async fn draw(&self, textures: &mut HashMap<String, Texture2D>) {
 
         // load texture if not already
         if !textures.contains_key(&self.get_texture_path()) {
             let texture = load_texture(&self.get_texture_path()).await.unwrap();
+            
+            texture.set_filter(texture::FilterMode::Nearest);
 
             textures.insert(self.get_texture_path(), texture);
         }
 
         let texture = textures.get(&self.get_texture_path()).unwrap();
 
-        texture.set_filter(texture::FilterMode::Nearest);
+        
 
         let scaled_texture_size = Vec2 {
             x: texture.width() * self.get_scale().x,
@@ -186,6 +189,8 @@ pub trait Texture: Rect + Scale {
     }
 
     fn get_texture_path(&self) -> String;
+
+    fn set_texture_path(&mut self, texture_path: String);
 }
 
 pub trait Tickable {
@@ -196,47 +201,99 @@ pub trait Scale {
     fn get_scale(&self) -> Vec2;
 }
 
+pub trait Draggable: Rect + Velocity {
+    fn drag(&mut self) {
+
+        if input::is_mouse_button_down(input::MouseButton::Left) & self.get_rect().contains(Vec2::from(input::mouse_position())) {
+            self.set_dragging(true)
+        }
+
+        if input::is_mouse_button_released(input::MouseButton::Left) {
+            self.set_dragging(false)
+        }
+
+        if !self.get_dragging() {
+            return;
+        }
+
+        let mouse_pos = Vec2::from(macroquad::input::mouse_position());
+
+        let rect = self.get_rect();
+
+        let distance_to_mouse = Vec2::new(
+            mouse_pos.x - rect.x,
+            mouse_pos.y - rect.y
+        );
+        
+        self.set_velocity(
+            distance_to_mouse.normalize() * 1000.
+        );
+
+    }
+
+    fn get_dragging(&self) -> bool;
+
+    fn set_dragging(&mut self, dragging: bool);
+
+}
+
+pub trait Sound {
+    async fn play_sound(&self, sounds: &mut HashMap<String, macroquad::audio::Sound>) {
+        // load texture if not already
+        if !sounds.contains_key(&self.get_sound_path()) {
+            let sound = load_sound(&self.get_sound_path()).await.unwrap();
+
+            sounds.insert(self.get_sound_path(), sound);
+        }
+
+        let sound = sounds.get(&self.get_sound_path()).unwrap();
+
+        audio::play_sound_once(sound);
+    }
+
+    fn get_sound_path(&self) -> String;
+
+    fn set_sound_path(&mut self, sound_path: String);
+
+}
 pub struct Game {
-    pub players: Vec<Player>,
-    pub zombies: Vec<Zombie>,
-    pub dt: Duration,
-    pub coins: Vec<Coin>,
-    pub textures: HashMap<String, Texture2D>
+    pub entities: Vec<Entity>,
+    pub resources: Vec<Resource>,
+    pub textures: HashMap<String, Texture2D>,
+    pub sounds: HashMap<String, macroquad::audio::Sound>,
+    pub last_tick: Instant
 }
 
 impl Game {
     pub async fn draw(&mut self) {
-        for player in self.players.iter_mut() {
-            player.draw(&mut self.textures).await;
-        }
-
-        for coin in self.coins.iter_mut() {
-            coin.draw();
+        for entity in self.entities.iter_mut() {
+            match entity {
+                Entity::Player(player) => {player.draw(&mut self.textures).await}
+                Entity::Zombie(zombie) => {zombie.draw(&mut self.textures).await}
+                Entity::Bullet(bullet) => {bullet.draw()}
+            };
         }
     }
 
     pub fn tick(&mut self) {
-        for i in 0..self.players.len() {
+
+        for index in 0..self.entities.len() {
 
             // take the player out, tick it, then put it back in
-            let mut player = self.players.swap_remove(i);
+            let mut entity = self.entities.swap_remove(index);
 
-            player.tick(self);
-
-            self.players.push(player);
+            match entity {
+                Entity::Player(ref mut player) => {player.tick(self)}
+                Entity::Zombie(ref mut _zombie) => {} // zombie doesnt have a tick method yet
+                Entity::Bullet(ref mut bullet) => {bullet.tick(self)}
+            }
+            
+            // put the entity back
+            self.entities.push(entity);
 
         }
 
-        for i in 0..self.coins.len() {
+        self.last_tick = Instant::now();
 
-            // take the player out, tick it, then put it back in
-            let mut coin = self.coins.swap_remove(i);
-
-            coin.tick(self);
-
-            self.coins.push(coin);
-
-
-        }
     }
 }
