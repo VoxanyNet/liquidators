@@ -15,7 +15,7 @@ pub struct Player {
     pub texture_path: String,
     pub attacking: bool,
     pub attack_start: Instant,
-    pub scale: Vec2,
+    pub scale: u32,
     pub up_bind: macroquad::input::KeyCode,
     pub down_bind: macroquad::input::KeyCode,
     pub left_bind: macroquad::input::KeyCode,
@@ -28,7 +28,7 @@ impl Player {
     pub fn new() -> Self {
         Self {
             rect: macroquad::math::Rect {x: 30.0, y: 30.0, w: 85.0, h: 100.0},
-            scale: Vec2::new(5.0, 5.0),
+            scale: 5,
             acceleration: 30.0,
             texture_path: "assets/player.png".to_string(),
             velocity: Vec2{x: 0.0, y: 0.0},
@@ -46,7 +46,7 @@ impl Player {
     }
     fn attack(&mut self, game: &mut Game) {
         
-        let attack_hitbox = macroquad::math::Rect::new(self.get_rect().right(), self.get_rect().y, 30.0, 50.0);
+        let attack_hitbox = macroquad::math::Rect::new(self.get_rect().right(), self.get_rect().y, 50.0, 100.0);
 
         macroquad::shapes::draw_rectangle(attack_hitbox.x, attack_hitbox.y, attack_hitbox.w, attack_hitbox.h, RED);
 
@@ -58,13 +58,17 @@ impl Player {
         for entity in game.entities.iter_mut() {
 
             // only attack if entity is a player
-            if let Entity::Player(player) = entity {
-                if attack_hitbox.overlaps(&player.rect) {
-                    player.damage(2);
-
-                    println!("{}", player.get_health());
-                }
+            match entity {
+                Entity::Player(player) => {
+                    player.damage(10)
+                },
+                Entity::Tree(tree) => {
+                    tree.damage(10);
+                    println!("{} tree health", tree.get_health())
+                },
+                _ => {}
             }
+
         }
     }
 }
@@ -79,20 +83,21 @@ impl Tickable for Player {
         {
             for entity in game.entities.iter_mut() {
 
-                if let Entity::Player(player) = entity {
-                    self.collide(player, game.last_tick.elapsed());
+                match entity {
+                    Entity::Player(player) => {
+                        self.collide(player, game.last_tick.elapsed());
+                    }
+                    _ => {}
                 }
+
             }
         }
         
         {
             if input::is_mouse_button_down(MouseButton::Left) {
                 self.attack(game);
-
-                println!("attacking!");
             }
             else {
-                println!("Resetting texture!");
                 self.set_texture_path("assets/player.png".to_string());
             }
         }
@@ -173,7 +178,7 @@ impl Texture for Player {
 }
 
 impl Scale for Player {
-    fn get_scale(&self) -> macroquad::math::Vec2 {
+    fn get_scale(&self) -> u32 {
         self.scale
     }
 }

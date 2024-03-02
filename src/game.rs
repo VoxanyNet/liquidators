@@ -7,8 +7,56 @@ use macroquad::input::{self};
 use macroquad::math::Vec2;
 use macroquad::texture::{self, load_texture, Texture2D};
 
-use crate::entities::{self, Entity};
-use crate::resources::Resource;
+use crate::entities::{wood, Entity};
+
+pub struct Game {
+    pub entities: Vec<Entity>,
+    pub textures: HashMap<String, Texture2D>,
+    pub sounds: HashMap<String, macroquad::audio::Sound>,
+    pub last_tick: Instant
+}
+
+impl Game {
+    pub async fn draw(&mut self) {
+        for entity in self.entities.iter_mut() {
+
+            match entity {
+                Entity::Player(player) => {player.draw(&mut self.textures).await}
+                Entity::Zombie(zombie) => {zombie.draw(&mut self.textures).await}
+                Entity::Bullet(bullet) => {bullet.draw()},
+                Entity::Coin(coin) => {coin.draw()},
+                Entity::Tree(tree) => {tree.draw(&mut self.textures).await},
+                Entity::Wood(wood) => {wood.draw(&mut self.textures).await}
+            };
+        }
+    }
+
+    pub fn tick(&mut self) {
+
+        for index in 0..self.entities.len() {
+
+            // take the player out, tick it, then put it back in
+            let mut entity = self.entities.swap_remove(index);
+
+            match entity {
+                Entity::Player(ref mut player) => {player.tick(self)}
+                Entity::Zombie(ref mut _zombie) => {} // zombie doesnt have a tick method yet
+                Entity::Bullet(ref mut bullet) => {bullet.tick(self)},
+                Entity::Coin(ref mut coin) => {coin.tick(self)},
+                Entity::Wood(ref mut _wood) => {},
+                Entity::Tree(ref mut tree) => {tree.tick(self)},
+                
+            };
+            
+            // put the entity back
+            self.entities.push(entity);
+
+        }
+
+        self.last_tick = Instant::now(); 
+
+    }
+}
 
 pub trait Velocity {
     fn get_velocity(&self) -> macroquad::math::Vec2;
@@ -40,10 +88,8 @@ pub trait Breakable: Damagable + Rect {
     }
 
     fn get_highlighted(&self) -> bool;
-    fn set_highlighted(&mut self, highlighted: bool) -> bool;
+    fn set_highlighted(&mut self, highlighted: bool);
 }
-
-pub trait Item {}
 
 pub trait Collidable: Rect + Velocity {
 
@@ -148,7 +194,7 @@ pub trait Drawable: Rect + Color {
 
 pub trait Texture: Rect + Scale {
     async fn draw(&self, textures: &mut HashMap<String, Texture2D>) {
-
+        
         // load texture if not already
         if !textures.contains_key(&self.get_texture_path()) {
             let texture = load_texture(&self.get_texture_path()).await.unwrap();
@@ -160,11 +206,9 @@ pub trait Texture: Rect + Scale {
 
         let texture = textures.get(&self.get_texture_path()).unwrap();
 
-        
-
         let scaled_texture_size = Vec2 {
-            x: texture.width() * self.get_scale().x,
-            y: texture.height() * self.get_scale().y
+            x: texture.width() * self.get_scale() as f32,
+            y: texture.height() * self.get_scale() as f32
         };
 
         // macroquad::shapes::draw_rectangle(
@@ -172,7 +216,7 @@ pub trait Texture: Rect + Scale {
         //     self.get_rect().y,
         //     self.get_rect().w, 
         //     self.get_rect().h,
-        //     RED
+        //     color::RED
         // );
 
         macroquad::texture::draw_texture_ex(
@@ -198,7 +242,7 @@ pub trait Tickable {
 }
 
 pub trait Scale {
-    fn get_scale(&self) -> Vec2;
+    fn get_scale(&self) -> u32;
 }
 
 pub trait Draggable: Rect + Velocity {
@@ -255,45 +299,4 @@ pub trait Sound {
 
     fn set_sound_path(&mut self, sound_path: String);
 
-}
-pub struct Game {
-    pub entities: Vec<Entity>,
-    pub resources: Vec<Resource>,
-    pub textures: HashMap<String, Texture2D>,
-    pub sounds: HashMap<String, macroquad::audio::Sound>,
-    pub last_tick: Instant
-}
-
-impl Game {
-    pub async fn draw(&mut self) {
-        for entity in self.entities.iter_mut() {
-            match entity {
-                Entity::Player(player) => {player.draw(&mut self.textures).await}
-                Entity::Zombie(zombie) => {zombie.draw(&mut self.textures).await}
-                Entity::Bullet(bullet) => {bullet.draw()}
-            };
-        }
-    }
-
-    pub fn tick(&mut self) {
-
-        for index in 0..self.entities.len() {
-
-            // take the player out, tick it, then put it back in
-            let mut entity = self.entities.swap_remove(index);
-
-            match entity {
-                Entity::Player(ref mut player) => {player.tick(self)}
-                Entity::Zombie(ref mut _zombie) => {} // zombie doesnt have a tick method yet
-                Entity::Bullet(ref mut bullet) => {bullet.tick(self)}
-            }
-            
-            // put the entity back
-            self.entities.push(entity);
-
-        }
-
-        self.last_tick = Instant::now();
-
-    }
 }

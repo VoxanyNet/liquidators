@@ -1,16 +1,12 @@
 use std::{collections::HashMap, time::{Duration, Instant}};
 
 use game::Game;
-use macroquad::{miniquad::conf::Platform, window::{next_frame, Conf}};
-use entities::player::Player;
-use entities::Entity;
-use resources::{coin::Coin, Resource};
+use macroquad::{math, miniquad::conf::Platform, window::{next_frame, Conf}};
+use entities::{coin::Coin, player::Player, tree::Tree};
 
 
 mod game;
-mod resources;
 mod entities;
-
 
 fn window_conf() -> Conf {
     let mut conf = Conf {
@@ -28,22 +24,20 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    //macroquad::window::set_fullscreen(true);
+    macroquad::window::set_fullscreen(true);
     
     let mut game = Game {
         textures: HashMap::new(),
         sounds: HashMap::new(),
         entities: vec![
-            Entity::Player(Player::new())
-        ],
-        resources: vec![
-            Resource::Coin(Coin::new(500., 500.))
+            Player::new().into(),
+            Tree::new(math::Rect::new(400., 400., 100., 200.)).into(),
+            Coin::new(500., 500.).into()
         ],
         last_tick: Instant::now()
     };
 
     loop {
-
         
         macroquad::window::clear_background(macroquad::color::BLACK);
 

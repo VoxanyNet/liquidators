@@ -7,7 +7,7 @@ pub struct Wood {
     velocity: math::Vec2,
     rect: math::Rect,
     texture_path: String,
-    scale: math::Vec2
+    scale: u32
 }
 
 impl Wood {
@@ -17,7 +17,7 @@ impl Wood {
             velocity: Vec2::new(0., 0.),
             rect: rect,
             texture_path: "assets/wood.png".to_string(),
-            scale: Vec2::new(34., 40.)
+            scale: 2
         }
     }
 }
@@ -33,7 +33,7 @@ impl Texture for Wood {
 }
 
 impl Scale for Wood {
-    fn get_scale(&self) -> macroquad::prelude::Vec2 {
+    fn get_scale(&self) -> u32 {
         self.scale
     }
 }

@@ -1,4 +1,4 @@
-use macroquad::math::Vec2;
+
 
 use crate::game::{Rect, Scale, Texture};
 
@@ -6,7 +6,7 @@ pub struct Zombie {
     pub rect: macroquad::math::Rect,
     pub position: macroquad::math::Vec2,
     pub texture_path: String,
-    pub scale: Vec2
+    pub scale: u32
 }
 
 impl Rect for Zombie {
@@ -29,7 +29,7 @@ impl Texture for Zombie {
 }
 
 impl Scale for Zombie {
-    fn get_scale(&self) -> Vec2 {
+    fn get_scale(&self) -> u32 {
         self.scale
     }
 }
