@@ -24,6 +24,8 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
+    return;
+
     // macroquad::window::set_fullscreen(true);
 
     // download assets
