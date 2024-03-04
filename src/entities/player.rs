@@ -14,7 +14,7 @@ pub struct Player {
     pub acceleration: f32,
     pub texture_path: String,
     pub attacking: bool,
-    pub attack_start: Instant,
+    pub last_attack: Instant,
     pub scale: u32,
     pub up_bind: macroquad::input::KeyCode,
     pub down_bind: macroquad::input::KeyCode,
@@ -39,19 +39,45 @@ impl Player {
             left_bind: macroquad::input::KeyCode::A,
             right_bind: macroquad::input::KeyCode::D,
             attacking: false,
-            attack_start: Instant::now(),
+            last_attack: Instant::now(),
             sound_path: "assets/sounds/pickup.wav".to_string(),
             dragging: false
         }
     }
-    fn attack(&mut self, game: &mut Game) {
+
+    fn sneak(&mut self) {
+        if input::is_key_down(input::KeyCode::LeftShift) {
+            self.set_acceleration(5.0)
+        }
         
+        else {
+            self.set_acceleration(30.0)
+        }
+
+    }
+    
+    fn attack(&mut self, game: &mut Game) {
+
+        if !input::is_mouse_button_down(MouseButton::Left) {
+
+            self.set_texture_path("assets/player.png".to_string());
+
+            return
+        }
+
+        if self.last_attack.elapsed().as_secs() < 1 {
+            
+            return
+        }
+        
+        self.last_attack = Instant::now();
+
         let attack_hitbox = macroquad::math::Rect::new(self.get_rect().right(), self.get_rect().y, 50.0, 100.0);
 
         macroquad::shapes::draw_rectangle(attack_hitbox.x, attack_hitbox.y, attack_hitbox.w, attack_hitbox.h, RED);
 
         self.attacking = true;
-        self.attack_start = Instant::now();
+       
 
         self.set_texture_path("assets/player_attack.png".to_string());
 
@@ -63,8 +89,13 @@ impl Player {
                     player.damage(10)
                 },
                 Entity::Tree(tree) => {
-                    tree.damage(10);
-                    println!("{} tree health", tree.get_health())
+
+                    if self.get_rect().overlaps(&tree.get_rect()) {
+                        tree.damage(10);
+
+                        println!("{} tree health", tree.get_health())
+                    }
+                    
                 },
                 _ => {}
             }
@@ -92,14 +123,11 @@ impl Tickable for Player {
 
             }
         }
+
+        self.sneak();
         
         {
-            if input::is_mouse_button_down(MouseButton::Left) {
-                self.attack(game);
-            }
-            else {
-                self.set_texture_path("assets/player.png".to_string());
-            }
+            self.attack(game)
         }
 
         {
@@ -190,6 +218,10 @@ impl Collidable for Player {}
 impl Controllable for Player {
     fn get_acceleration(&self) -> f32 {
         self.acceleration
+    }
+
+    fn set_acceleration(&mut self, acceleration: f32) {
+        self.acceleration = acceleration;
     }
     fn up_bind(&mut self) -> macroquad::input::KeyCode {
         self.up_bind

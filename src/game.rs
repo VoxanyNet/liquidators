@@ -7,7 +7,7 @@ use macroquad::input::{self};
 use macroquad::math::Vec2;
 use macroquad::texture::{self, load_texture, Texture2D};
 
-use crate::entities::{wood, Entity};
+use crate::entities::Entity;
 
 pub struct Game {
     pub entities: Vec<Entity>,
@@ -159,6 +159,7 @@ pub trait Controllable: Rect + Velocity {
     }
 
     fn get_acceleration(&self) -> f32;
+    fn set_acceleration(&mut self, acceleration: f32);
 
     fn up_bind(&mut self) -> macroquad::input::KeyCode;
     fn down_bind(&mut self) -> macroquad::input::KeyCode;

@@ -24,7 +24,10 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    macroquad::window::set_fullscreen(true);
+    // macroquad::window::set_fullscreen(true);
+
+    // download assets
+    
     
     let mut game = Game {
         textures: HashMap::new(),
