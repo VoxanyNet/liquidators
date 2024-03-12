@@ -7,6 +7,8 @@ use entities::{coin::Coin, player::Player, tree::Tree};
 
 mod game;
 mod entities;
+mod timeline;
+mod game_state;
 
 fn window_conf() -> Conf {
     let mut conf = Conf {
@@ -23,8 +25,6 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-
-    return;
 
     // macroquad::window::set_fullscreen(true);
 
@@ -44,7 +44,7 @@ async fn main() {
 
     loop {
         
-        macroquad::window::clear_background(macroquad::color::BLACK);
+        //macroquad::window::clear_background(macroquad::color::BLACK);
 
         game.tick();
         
