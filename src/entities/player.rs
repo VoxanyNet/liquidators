@@ -81,7 +81,7 @@ impl Player {
 
         self.set_texture_path("assets/player_attack.png".to_string());
 
-        for entity in game.entities.iter_mut() {
+        for entity in game.game_state.entities.iter_mut() {
 
             // only attack if entity is a player
             match entity {
@@ -112,7 +112,7 @@ impl Tickable for Player {
         }
 
         {
-            for entity in game.entities.iter_mut() {
+            for entity in game.game_state.entities.iter_mut() {
 
                 match entity {
                     Entity::Player(player) => {

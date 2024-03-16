@@ -4,13 +4,14 @@ use std::time::{Duration, Instant};
 use macroquad::audio::{self, load_sound};
 use macroquad::color::WHITE;
 use macroquad::input::{self};
-use macroquad::math::Vec2;
+use macroquad::math::{self, Vec2};
 use macroquad::texture::{self, load_texture, Texture2D};
 
 use crate::entities::Entity;
+use crate::game_state::GameState;
 
 pub struct Game {
-    pub entities: Vec<Entity>,
+    pub game_state: GameState,
     pub textures: HashMap<String, Texture2D>,
     pub sounds: HashMap<String, macroquad::audio::Sound>,
     pub last_tick: Instant
@@ -18,7 +19,7 @@ pub struct Game {
 
 impl Game {
     pub async fn draw(&mut self) {
-        for entity in self.entities.iter_mut() {
+        for entity in self.game_state.entities.iter_mut() {
 
             match entity {
                 Entity::Player(player) => {player.draw(&mut self.textures).await}
@@ -33,10 +34,10 @@ impl Game {
 
     pub fn tick(&mut self) {
 
-        for index in 0..self.entities.len() {
+        for index in 0..self.game_state.entities.len() {
 
             // take the player out, tick it, then put it back in
-            let mut entity = self.entities.swap_remove(index);
+            let mut entity = self.game_state.entities.swap_remove(index);
 
             match entity {
                 Entity::Player(ref mut player) => {player.tick(self)}
@@ -49,7 +50,7 @@ impl Game {
             };
             
             // put the entity back
-            self.entities.push(entity);
+            self.game_state.entities.push(entity);
 
         }
 

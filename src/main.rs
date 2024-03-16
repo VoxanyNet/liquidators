@@ -1,6 +1,7 @@
 use std::{collections::HashMap, time::{Duration, Instant}};
 
 use game::Game;
+use game_state::GameState;
 use macroquad::{math, miniquad::conf::Platform, window::{next_frame, Conf}};
 use entities::{coin::Coin, player::Player, tree::Tree};
 
@@ -9,6 +10,7 @@ mod game;
 mod entities;
 mod timeline;
 mod game_state;
+mod proxies;
 
 fn window_conf() -> Conf {
     let mut conf = Conf {
@@ -19,7 +21,7 @@ fn window_conf() -> Conf {
         platform: Platform::default(),
         ..Default::default()
     };
-    conf.platform.swap_interval = Some(0); // disable vsync
+    conf.platform.swap_interval = Some(-1); // disable vsync
     conf
 }
 
@@ -27,18 +29,19 @@ fn window_conf() -> Conf {
 async fn main() {
 
     // macroquad::window::set_fullscreen(true);
-
-    // download assets
     
     
     let mut game = Game {
-        textures: HashMap::new(),
-        sounds: HashMap::new(),
-        entities: vec![
+        game_state: GameState {
+            entities: vec![
             Player::new().into(),
             Tree::new(math::Rect::new(400., 400., 100., 200.)).into(),
             Coin::new(500., 500.).into()
-        ],
+        ]
+        },
+        textures: HashMap::new(),
+        sounds: HashMap::new(),
+        
         last_tick: Instant::now()
     };
 

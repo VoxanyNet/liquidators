@@ -55,7 +55,7 @@ impl Velocity for Coin {
 
 impl Tickable for Coin {
     fn tick(&mut self, game: &mut crate::game::Game) {
-        for entity in game.entities.iter_mut() {
+        for entity in game.game_state.entities.iter_mut() {
             
             if let Entity::Player(player) = entity {
                 self.gravitate(player);
