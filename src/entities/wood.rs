@@ -1,17 +1,16 @@
-use macroquad::math::{self, Vec2};
-
-use crate::game::{Draggable, Rect, Scale, Texture, Velocity};
+use crate::game::{Draggable, HasRect, Scale, Texture, Velocity};
+use crate::proxies::macroquad::math::{vec2::Vec2, rect::Rect};
 
 pub struct Wood {
     dragging: bool,
-    velocity: math::Vec2,
-    rect: math::Rect,
+    velocity: Vec2,
+    rect: Rect,
     texture_path: String,
     scale: u32
 }
 
 impl Wood {
-    fn new(rect: math::Rect) -> Self {
+    fn new(rect: Rect) -> Self {
         Self {
             dragging: false,
             velocity: Vec2::new(0., 0.),
@@ -49,21 +48,21 @@ impl Draggable for Wood {
 }
 
 impl Velocity for Wood {
-    fn get_velocity(&self) -> macroquad::math::Vec2 {
+    fn get_velocity(&self) -> Vec2 {
         self.velocity
     }
     
-    fn set_velocity(&mut self, velocity: macroquad::math::Vec2) {
+    fn set_velocity(&mut self, velocity: Vec2) {
         self.velocity = velocity;
     }
 }
 
-impl Rect for Wood {
-    fn get_rect(&self) -> macroquad::math::Rect {
+impl HasRect for Wood {
+    fn get_rect(&self) -> Rect {
         self.rect
     }
 
-    fn set_rect(&mut self, rect: macroquad::math::Rect) {
+    fn set_rect(&mut self, rect: Rect) {
         self.rect = rect;
     }
 }

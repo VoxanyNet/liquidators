@@ -1,17 +1,17 @@
-use macroquad::math;
 
-use crate::game::{Breakable, Damagable, Rect, Scale, Texture, Tickable};
+use crate::game::{Breakable, Damagable, HasRect, Scale, Texture, Tickable};
+use crate::proxies::macroquad::math::rect::Rect;
 
 pub struct Tree {
     texture_path: String,
     scale: u32,
-    rect: math::Rect,
+    rect: Rect,
     highlighted: bool,
     health: i32
 }
 
 impl Tree {
-    pub fn new(rect: math::Rect) -> Self{
+    pub fn new(rect: Rect) -> Self{
         Self {
             texture_path: "assets/structure/tree.png".to_string(),
             scale: 2,
@@ -32,12 +32,12 @@ impl Texture for Tree {
     }
 }
 
-impl Rect for Tree {
-    fn get_rect(&self) -> macroquad::math::Rect {
+impl HasRect for Tree {
+    fn get_rect(&self) -> Rect {
         self.rect
     }
 
-    fn set_rect(&mut self, rect: macroquad::math::Rect) {
+    fn set_rect(&mut self, rect: Rect) {
         self.rect = rect;
     }
 }

@@ -1,2 +1,1 @@
-pub mod rect;
-pub mod vec2;
+pub mod macroquad;

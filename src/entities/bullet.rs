@@ -1,18 +1,18 @@
-use crate::game::{Collidable, Color, Drawable, Friction, Moveable, Rect, Tickable, Velocity};
+use crate::game::{Collidable, Color, Drawable, Friction, Moveable, HasRect, Tickable, Velocity};
+use crate::proxies::macroquad::math::{vec2::Vec2, rect::Rect};
 
-#[derive(Clone)]
 pub struct Bullet {
-    pub rect: macroquad::math::Rect,
+    pub rect: Rect,
     pub color: macroquad::color::Color,
-    pub velocity: macroquad::math::Vec2,
+    pub velocity: Vec2,
     pub friction_coefficient: f32
 }
 
-impl Rect for Bullet {
-    fn get_rect(&self) -> macroquad::math::Rect {
+impl HasRect for Bullet {
+    fn get_rect(&self) -> Rect {
         self.rect
     }
-    fn set_rect(&mut self, rect: macroquad::math::Rect) {
+    fn set_rect(&mut self, rect: Rect) {
         self.rect = rect
     }
 }
@@ -24,10 +24,10 @@ impl Color for Bullet {
 }
 
 impl Velocity for Bullet {
-    fn get_velocity(&self) -> macroquad::math::Vec2 {
+    fn get_velocity(&self) -> Vec2 {
         self.velocity
     }
-    fn set_velocity(&mut self, velocity: macroquad::math::Vec2) {
+    fn set_velocity(&mut self, velocity: Vec2) {
         self.velocity = velocity;
     }
 }

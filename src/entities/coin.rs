@@ -1,10 +1,9 @@
-use macroquad::math::Vec2;
-
-use crate::{entities::{player::Player, Entity}, game::{Color, Drawable, Friction, Moveable, Rect, Tickable, Velocity}};
+use crate::{entities::{player::Player, Entity}, game::{Color, Drawable, Friction, Moveable, HasRect, Tickable, Velocity}};
+use crate::proxies::macroquad::math::{vec2::Vec2, rect::Rect};
 
 pub struct Coin {
     color: macroquad::color::Color,
-    rect: macroquad::math::Rect,
+    rect: Rect,
     velocity: Vec2,
     friction_coefficient: f32
 }
@@ -13,7 +12,7 @@ impl Coin {
     pub fn new(x: f32, y: f32) -> Self {
         Coin {
             color: macroquad::color::YELLOW,
-            rect: macroquad::math::Rect { x: x, y: y, w: 10.0, h: 10.0 },
+            rect: Rect { x: x, y: y, w: 10.0, h: 10.0 },
             velocity: Vec2{x: 0.0, y: 0.0},
             friction_coefficient: 1.
         }
@@ -44,11 +43,11 @@ impl Friction for Coin {
 }
 
 impl Velocity for Coin {
-    fn get_velocity(&self) -> macroquad::math::Vec2 {
+    fn get_velocity(&self) -> Vec2 {
         self.velocity
     }
 
-    fn set_velocity(&mut self, velocity: macroquad::math::Vec2) {
+    fn set_velocity(&mut self, velocity: Vec2) {
         self.velocity = velocity
     }
 }
@@ -74,11 +73,11 @@ impl Color for Coin {
     }
 }
 
-impl Rect for Coin {
-    fn get_rect(&self) -> macroquad::math::Rect {
+impl HasRect for Coin {
+    fn get_rect(&self) -> Rect {
         self.rect
     }
-    fn set_rect(&mut self, rect: macroquad::math::Rect) {
+    fn set_rect(&mut self, rect: Rect) {
         self.rect = rect;
     }
 }

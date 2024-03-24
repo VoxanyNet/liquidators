@@ -1,25 +1,31 @@
-use std::time::Instant;
+use diff::Diff;
+use macroquad::{color::RED, input::{self, MouseButton}};
+use serde::{Deserialize, Serialize};
 
-use macroquad::{color::RED, input::{self, MouseButton}, math::Vec2};
-
-use crate::game::{Collidable, Controllable, Damagable, Draggable, Friction, Game, Moveable, Rect, Scale, Sound, Texture, Tickable, Velocity};
+use crate::game::{Collidable, Controllable, Damagable, Draggable, Friction, Game, Moveable, HasRect, Scale, Sound, Texture, Tickable, Velocity};
+use crate::time::Time;
+use crate::proxies::macroquad::{input::KeyCode, math::{vec2::Vec2, rect::Rect}};
 
 use super::Entity;
 
+#[derive(Serialize, Deserialize, Diff)]
+#[diff(attr(
+    #[derive(Serialize, Deserialize)]
+))]
 pub struct Player {
-    pub rect: macroquad::math::Rect,
-    pub velocity: macroquad::math::Vec2,
+    pub rect: Rect,
+    pub velocity: Vec2,
     pub friction_coefficient: f32,
     pub health: i32,
     pub acceleration: f32,
     pub texture_path: String,
     pub attacking: bool,
-    pub last_attack: Instant,
+    pub last_attack: Time,
     pub scale: u32,
-    pub up_bind: macroquad::input::KeyCode,
-    pub down_bind: macroquad::input::KeyCode,
-    pub left_bind: macroquad::input::KeyCode,
-    pub right_bind: macroquad::input::KeyCode,
+    pub up_bind: KeyCode,
+    pub down_bind: KeyCode,
+    pub left_bind: KeyCode,
+    pub right_bind: KeyCode,
     pub sound_path: String,
     pub dragging: bool
 }
@@ -27,19 +33,19 @@ pub struct Player {
 impl Player {
     pub fn new() -> Self {
         Self {
-            rect: macroquad::math::Rect {x: 30.0, y: 30.0, w: 85.0, h: 100.0},
+            rect: Rect {x: 30.0, y: 30.0, w: 85.0, h: 100.0},
             scale: 5,
             acceleration: 30.0,
             texture_path: "assets/player.png".to_string(),
             velocity: Vec2{x: 0.0, y: 0.0},
             health: 100,
             friction_coefficient: 20.,
-            up_bind: macroquad::input::KeyCode::W,
-            down_bind: macroquad::input::KeyCode::S,
-            left_bind: macroquad::input::KeyCode::A,
-            right_bind: macroquad::input::KeyCode::D,
+            up_bind: KeyCode::W,
+            down_bind: KeyCode::S,
+            left_bind: KeyCode::A,
+            right_bind: KeyCode::D,
             attacking: false,
-            last_attack: Instant::now(),
+            last_attack: Time::now(),
             sound_path: "assets/sounds/pickup.wav".to_string(),
             dragging: false
         }
@@ -65,14 +71,14 @@ impl Player {
             return
         }
 
-        if self.last_attack.elapsed().as_secs() < 1 {
+        if self.last_attack.elapsed().num_seconds() < 1 {
             
             return
         }
         
-        self.last_attack = Instant::now();
+        self.last_attack = Time::now();
 
-        let attack_hitbox = macroquad::math::Rect::new(self.get_rect().right(), self.get_rect().y, 50.0, 100.0);
+        let attack_hitbox = Rect::new(self.get_rect().right(), self.get_rect().y, 50.0, 100.0);
 
         macroquad::shapes::draw_rectangle(attack_hitbox.x, attack_hitbox.y, attack_hitbox.w, attack_hitbox.h, RED);
 
@@ -176,21 +182,21 @@ impl Damagable for Player {
     }
 }
 
-impl Rect for Player {
-    fn get_rect(&self) -> macroquad::math::Rect {
+impl HasRect for Player {
+    fn get_rect(&self) -> Rect {
         self.rect
     }
-    fn set_rect(&mut self, rect: macroquad::math::Rect) {
+    fn set_rect(&mut self, rect: Rect) {
         self.rect = rect;
     }
 }
 
 impl Velocity for Player {
-    fn get_velocity(&self) -> macroquad::math::Vec2 {
+    fn get_velocity(&self) -> Vec2 {
         self.velocity
     }
 
-    fn set_velocity(&mut self, velocity: macroquad::math::Vec2) {
+    fn set_velocity(&mut self, velocity: Vec2) {
         self.velocity = velocity
     }
 }
@@ -223,16 +229,16 @@ impl Controllable for Player {
     fn set_acceleration(&mut self, acceleration: f32) {
         self.acceleration = acceleration;
     }
-    fn up_bind(&mut self) -> macroquad::input::KeyCode {
+    fn up_bind(&mut self) -> KeyCode {
         self.up_bind
     }
-    fn down_bind(&mut self) -> macroquad::input::KeyCode {
+    fn down_bind(&mut self) -> KeyCode {
         self.down_bind
     }
-    fn left_bind(&mut self) -> macroquad::input::KeyCode {
+    fn left_bind(&mut self) -> KeyCode {
         self.left_bind
     }
-    fn right_bind(&mut self) -> macroquad::input::KeyCode {
+    fn right_bind(&mut self) -> KeyCode {
         self.right_bind
     }
 }

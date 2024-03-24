@@ -2,8 +2,9 @@ use std::{collections::HashMap, time::{Duration, Instant}};
 
 use game::Game;
 use game_state::GameState;
-use macroquad::{math, miniquad::conf::Platform, window::{next_frame, Conf}};
+use macroquad::{miniquad::conf::Platform, window::{next_frame, Conf}};
 use entities::{coin::Coin, player::Player, tree::Tree};
+use crate::proxies::macroquad::math::rect::Rect;
 
 
 mod game;
@@ -11,6 +12,7 @@ mod entities;
 mod timeline;
 mod game_state;
 mod proxies;
+mod time;
 
 fn window_conf() -> Conf {
     let mut conf = Conf {
@@ -35,7 +37,7 @@ async fn main() {
         game_state: GameState {
             entities: vec![
             Player::new().into(),
-            Tree::new(math::Rect::new(400., 400., 100., 200.)).into(),
+            Tree::new(Rect::new(400., 400., 100., 200.)).into(),
             Coin::new(500., 500.).into()
         ]
         },

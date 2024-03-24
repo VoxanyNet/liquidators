@@ -1,19 +1,20 @@
 
 
-use crate::game::{Rect, Scale, Texture};
+use crate::game::{HasRect, Scale, Texture};
+use crate::proxies::macroquad::math::rect::Rect;
 
 pub struct Zombie {
-    pub rect: macroquad::math::Rect,
+    pub rect: Rect,
     pub position: macroquad::math::Vec2,
     pub texture_path: String,
     pub scale: u32
 }
 
-impl Rect for Zombie {
-    fn get_rect(&self) -> macroquad::math::Rect {
+impl HasRect for Zombie {
+    fn get_rect(&self) -> Rect {
         self.rect
     }
-    fn set_rect(&mut self, rect: macroquad::math::Rect) {
+    fn set_rect(&mut self, rect: Rect) {
         self.rect = rect;
     }
 }

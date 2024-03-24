@@ -4,11 +4,11 @@ use std::time::{Duration, Instant};
 use macroquad::audio::{self, load_sound};
 use macroquad::color::WHITE;
 use macroquad::input::{self};
-use macroquad::math::{self, Vec2};
 use macroquad::texture::{self, load_texture, Texture2D};
 
 use crate::entities::Entity;
 use crate::game_state::GameState;
+use crate::proxies::macroquad::{input::KeyCode, math::{vec2::Vec2, rect::Rect}};
 
 pub struct Game {
     pub game_state: GameState,
@@ -60,8 +60,8 @@ impl Game {
 }
 
 pub trait Velocity {
-    fn get_velocity(&self) -> macroquad::math::Vec2;
-    fn set_velocity(&mut self, velocity: macroquad::math::Vec2);
+    fn get_velocity(&self) -> Vec2;
+    fn set_velocity(&mut self, velocity: Vec2);
 }
 
 pub trait Damagable {
@@ -75,9 +75,13 @@ pub trait Damagable {
     fn set_health(&mut self, health: i32);
 }
 
-pub trait Breakable: Damagable + Rect {
+pub trait Breakable: Damagable + HasRect {
     fn highlight(&mut self) {
-        let mouse_pos = Vec2::from(macroquad::input::mouse_position());
+
+        let mouse_pos = Vec2::new(
+            macroquad::input::mouse_position().0,
+            macroquad::input::mouse_position().1
+        );
 
         if self.get_rect().contains(mouse_pos) {
             self.set_highlighted(true);
@@ -92,7 +96,7 @@ pub trait Breakable: Damagable + Rect {
     fn set_highlighted(&mut self, highlighted: bool);
 }
 
-pub trait Collidable: Rect + Velocity {
+pub trait Collidable: HasRect + Velocity {
 
     fn collide(&mut self, collider: &mut dyn Collidable, dt: Duration) {
 
@@ -118,7 +122,7 @@ pub trait Collidable: Rect + Velocity {
 
     }
 }
-pub trait Friction: Rect + Velocity {
+pub trait Friction: HasRect + Velocity {
     fn apply_friction(&mut self, dt: Duration) {
 
         self.set_velocity(
@@ -129,26 +133,26 @@ pub trait Friction: Rect + Velocity {
     fn friction_coefficient(&self) -> f32;
 }
 
-pub trait Controllable: Rect + Velocity {
+pub trait Controllable: HasRect + Velocity {
     fn control(&mut self, dt: Duration) {
 
         let mut velocity = self.get_velocity();
         let acceleration = self.get_acceleration();
 
-        if macroquad::input::is_key_down(self.right_bind()) {
+        if macroquad::input::is_key_down(self.right_bind().into()) {
             velocity.x += acceleration * dt.as_millis() as f32;
         }
 
-        if macroquad::input::is_key_down(self.left_bind()) {
+        if macroquad::input::is_key_down(self.left_bind().into()) {
             velocity.x -= acceleration * dt.as_millis() as f32
 
         }
 
-        if macroquad::input::is_key_down(self.up_bind()) {
+        if macroquad::input::is_key_down(self.up_bind().into()) {
             velocity.y -= acceleration * dt.as_millis() as f32
         }
 
-        if macroquad::input::is_key_down(self.down_bind()) {
+        if macroquad::input::is_key_down(self.down_bind().into()) {
             velocity.y += acceleration * dt.as_millis() as f32
         }
 
@@ -162,13 +166,13 @@ pub trait Controllable: Rect + Velocity {
     fn get_acceleration(&self) -> f32;
     fn set_acceleration(&mut self, acceleration: f32);
 
-    fn up_bind(&mut self) -> macroquad::input::KeyCode;
-    fn down_bind(&mut self) -> macroquad::input::KeyCode;
-    fn left_bind(&mut self) -> macroquad::input::KeyCode;
-    fn right_bind(&mut self) -> macroquad::input::KeyCode;
+    fn up_bind(&mut self) -> KeyCode;
+    fn down_bind(&mut self) -> KeyCode;
+    fn left_bind(&mut self) -> KeyCode;
+    fn right_bind(&mut self) -> KeyCode;
 }
 
-pub trait Moveable: Rect + Velocity {
+pub trait Moveable: HasRect + Velocity {
     fn move_by_velocity(&mut self, dt: Duration) {
 
         let mut rect = self.get_rect();
@@ -179,22 +183,22 @@ pub trait Moveable: Rect + Velocity {
         self.set_rect(rect);
     }
 }
-pub trait Rect {
-    fn get_rect(&self) -> macroquad::math::Rect;
-    fn set_rect(&mut self, rect: macroquad::math::Rect);
+pub trait HasRect {
+    fn get_rect(&self) -> Rect;
+    fn set_rect(&mut self, rect: Rect);
 }
 
 pub trait Color {
     fn color(&self) -> macroquad::color::Color;
 }
 
-pub trait Drawable: Rect + Color {
+pub trait Drawable: HasRect + Color {
     fn draw(&mut self) {
         macroquad::shapes::draw_rectangle(self.get_rect().x, self.get_rect().y, self.get_rect().w, self.get_rect().h, self.color());
     }
 }
 
-pub trait Texture: Rect + Scale {
+pub trait Texture: HasRect + Scale {
     async fn draw(&self, textures: &mut HashMap<String, Texture2D>) {
         
         // load texture if not already
@@ -227,7 +231,7 @@ pub trait Texture: Rect + Scale {
             self.get_rect().y,
             WHITE,
             macroquad::texture::DrawTextureParams {
-                dest_size: Some(scaled_texture_size),
+                dest_size: Some(scaled_texture_size.into()),
                 ..Default::default()
             },
          );
@@ -247,10 +251,10 @@ pub trait Scale {
     fn get_scale(&self) -> u32;
 }
 
-pub trait Draggable: Rect + Velocity {
+pub trait Draggable: HasRect + Velocity {
     fn drag(&mut self) {
 
-        if input::is_mouse_button_down(input::MouseButton::Left) & self.get_rect().contains(Vec2::from(input::mouse_position())) {
+        if input::is_mouse_button_down(input::MouseButton::Left) & self.get_rect().contains(Vec2{x: input::mouse_position().0, y: input::mouse_position().1}) {
             self.set_dragging(true)
         }
 
@@ -262,7 +266,7 @@ pub trait Draggable: Rect + Velocity {
             return;
         }
 
-        let mouse_pos = Vec2::from(macroquad::input::mouse_position());
+        let mouse_pos = Vec2{x: macroquad::input::mouse_position().0, y: macroquad::input::mouse_position().1};
 
         let rect = self.get_rect();
 
