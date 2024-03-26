@@ -4,7 +4,7 @@ use diff::Diff;
 use serde::{Deserialize, Serialize};
 use macroquad::math::{BVec2, Vec3};
 
-#[derive(Serialize, Deserialize, Diff, Clone, Copy)]
+#[derive(Serialize, Deserialize, Diff, Clone, Copy, PartialEq)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]

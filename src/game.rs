@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
+use chrono::TimeDelta;
 use macroquad::audio::{self, load_sound};
 use macroquad::color::WHITE;
 use macroquad::input::{self};
@@ -9,12 +10,17 @@ use macroquad::texture::{self, load_texture, Texture2D};
 use crate::entities::Entity;
 use crate::game_state::GameState;
 use crate::proxies::macroquad::{input::KeyCode, math::{vec2::Vec2, rect::Rect}};
+use crate::proxies::uuid::lib::Uuid;
+use crate::time::Time;
 
 pub struct Game {
     pub game_state: GameState,
+    pub is_host: bool,
+    pub last_tick_game_state: GameState,
     pub textures: HashMap<String, Texture2D>,
     pub sounds: HashMap<String, macroquad::audio::Sound>,
-    pub last_tick: Instant
+    pub last_tick: Time,
+    pub uuid: Uuid
 }
 
 impl Game {
@@ -32,6 +38,20 @@ impl Game {
         }
     }
 
+    pub fn host() -> Self {
+
+        let uuid: Uuid = uuid::Uuid::new_v4().into();
+        Self {
+            game_state: GameState::host(uuid),
+            is_host: true,
+            last_tick_game_state: GameState::host(uuid),
+            textures: HashMap::new(),
+            sounds: HashMap::new(),
+            last_tick: Time::now(),
+            uuid: uuid
+        }
+    }
+
     pub fn tick(&mut self) {
 
         for index in 0..self.game_state.entities.len() {
@@ -39,22 +59,17 @@ impl Game {
             // take the player out, tick it, then put it back in
             let mut entity = self.game_state.entities.swap_remove(index);
 
-            match entity {
-                Entity::Player(ref mut player) => {player.tick(self)}
-                Entity::Zombie(ref mut _zombie) => {} // zombie doesnt have a tick method yet
-                Entity::Bullet(ref mut bullet) => {bullet.tick(self)},
-                Entity::Coin(ref mut coin) => {coin.tick(self)},
-                Entity::Wood(ref mut _wood) => {},
-                Entity::Tree(ref mut tree) => {tree.tick(self)},
-                
-            };
+            // we only tick the entity if we own it
+            if entity.get_owner() == self.uuid {
+                entity.tick(self);
+            }
             
             // put the entity back
             self.game_state.entities.push(entity);
 
         }
 
-        self.last_tick = Instant::now(); 
+        self.last_tick = Time::now(); 
 
     }
 }
@@ -98,13 +113,13 @@ pub trait Breakable: Damagable + HasRect {
 
 pub trait Collidable: HasRect + Velocity {
 
-    fn collide(&mut self, collider: &mut dyn Collidable, dt: Duration) {
+    fn collide(&mut self, collider: &mut dyn Collidable, dt: TimeDelta) {
 
         // check where our rect will be when it next moves
         let mut next_rect = self.get_rect().clone();
 
-        next_rect.x += self.get_velocity().x * dt.as_millis() as f32;
-        next_rect.y += self.get_velocity().y * dt.as_millis() as f32;
+        next_rect.x += self.get_velocity().x * dt.num_milliseconds() as f32;
+        next_rect.y += self.get_velocity().y * dt.num_milliseconds() as f32;
 
         if collider.get_rect().overlaps(&mut next_rect) {
             
@@ -123,10 +138,10 @@ pub trait Collidable: HasRect + Velocity {
     }
 }
 pub trait Friction: HasRect + Velocity {
-    fn apply_friction(&mut self, dt: Duration) {
+    fn apply_friction(&mut self, dt: TimeDelta) {
 
         self.set_velocity(
-            self.get_velocity() + ((-self.get_velocity() * self.friction_coefficient()) * dt.as_secs_f32())
+            self.get_velocity() + ((-self.get_velocity() * self.friction_coefficient()) * (dt.num_milliseconds() as f32 / 1000.))
         );
     }
 
@@ -134,26 +149,26 @@ pub trait Friction: HasRect + Velocity {
 }
 
 pub trait Controllable: HasRect + Velocity {
-    fn control(&mut self, dt: Duration) {
+    fn control(&mut self, dt: TimeDelta) {
 
         let mut velocity = self.get_velocity();
         let acceleration = self.get_acceleration();
 
         if macroquad::input::is_key_down(self.right_bind().into()) {
-            velocity.x += acceleration * dt.as_millis() as f32;
+            velocity.x += acceleration * dt.num_milliseconds() as f32;
         }
 
         if macroquad::input::is_key_down(self.left_bind().into()) {
-            velocity.x -= acceleration * dt.as_millis() as f32
+            velocity.x -= acceleration * dt.num_milliseconds() as f32
 
         }
 
         if macroquad::input::is_key_down(self.up_bind().into()) {
-            velocity.y -= acceleration * dt.as_millis() as f32
+            velocity.y -= acceleration * dt.num_milliseconds() as f32
         }
 
         if macroquad::input::is_key_down(self.down_bind().into()) {
-            velocity.y += acceleration * dt.as_millis() as f32
+            velocity.y += acceleration * dt.num_milliseconds() as f32
         }
 
         // update to the final velocity
@@ -173,12 +188,14 @@ pub trait Controllable: HasRect + Velocity {
 }
 
 pub trait Moveable: HasRect + Velocity {
-    fn move_by_velocity(&mut self, dt: Duration) {
+    fn move_by_velocity(&mut self, dt: TimeDelta) {
 
         let mut rect = self.get_rect();
 
-        rect.x += self.get_velocity().x * dt.as_secs_f32();
-        rect.y += self.get_velocity().y * dt.as_secs_f32();
+        println!("{}", self.get_velocity().x * (dt.num_milliseconds() as f32 / 1000.));
+
+        rect.x += self.get_velocity().x * (dt.num_milliseconds() as f32 / 1000.);
+        rect.y += self.get_velocity().y * (dt.num_milliseconds() as f32 / 1000.);
 
         self.set_rect(rect);
     }
@@ -189,12 +206,12 @@ pub trait HasRect {
 }
 
 pub trait Color {
-    fn color(&self) -> macroquad::color::Color;
+    fn color(&self) -> crate::proxies::macroquad::color::Color;
 }
 
 pub trait Drawable: HasRect + Color {
     fn draw(&mut self) {
-        macroquad::shapes::draw_rectangle(self.get_rect().x, self.get_rect().y, self.get_rect().w, self.get_rect().h, self.color());
+        macroquad::shapes::draw_rectangle(self.get_rect().x, self.get_rect().y, self.get_rect().w, self.get_rect().h, self.color().into());
     }
 }
 
@@ -243,8 +260,14 @@ pub trait Texture: HasRect + Scale {
     fn set_texture_path(&mut self, texture_path: String);
 }
 
-pub trait Tickable {
+pub trait Tickable: HasOwner {
     fn tick(&mut self, game: &mut Game);
+}
+
+pub trait HasOwner {
+    fn get_owner(&self) -> Uuid;
+
+    fn set_owner(&mut self, uuid: Uuid);
 }
 
 pub trait Scale {

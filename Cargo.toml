@@ -3,6 +3,7 @@ name = "rust-game"
 version = "0.1.0"
 edition = "2021"
 
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -21,4 +22,6 @@ serde = { version = "1.0.197", features = ["serde_derive"] }
 serde_millis = "0.1.1"
 time = { version = "0.3.34", features = ["serde"] }
 vector2d = "2.2.0"
+serde_json = "1.0.114"
+uuid = { version = "1.8.0", features = ["v4"] }
 

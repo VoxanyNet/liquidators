@@ -3,7 +3,7 @@ use chrono::Utc;
 use diff::Diff;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Diff)]
+#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]

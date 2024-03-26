@@ -1,20 +1,29 @@
-use crate::{entities::{player::Player, Entity}, game::{Color, Drawable, Friction, Moveable, HasRect, Tickable, Velocity}};
+use diff::Diff;
+use serde::{Deserialize, Serialize};
+
+use crate::{entities::{player::Player, Entity}, game::{Color, Drawable, Friction, HasOwner, HasRect, Moveable, Tickable, Velocity}, proxies::uuid::lib::Uuid};
 use crate::proxies::macroquad::math::{vec2::Vec2, rect::Rect};
 
+#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
+#[diff(attr(
+    #[derive(Serialize, Deserialize)]
+))]
 pub struct Coin {
-    color: macroquad::color::Color,
+    color: crate::proxies::macroquad::color::Color,
     rect: Rect,
     velocity: Vec2,
-    friction_coefficient: f32
+    friction_coefficient: f32,
+    pub owner: Uuid
 }
 
 impl Coin {
-    pub fn new(x: f32, y: f32) -> Self {
+    pub fn new(x: f32, y: f32, owner_uuid: Uuid) -> Self {
         Coin {
-            color: macroquad::color::YELLOW,
-            rect: Rect { x: x, y: y, w: 10.0, h: 10.0 },
+            color: macroquad::color::GOLD.into(),
+            rect: Rect { x, y, w: 10.0, h: 10.0 },
             velocity: Vec2{x: 0.0, y: 0.0},
-            friction_coefficient: 1.
+            friction_coefficient: 1.,
+            owner: owner_uuid
         }
     }
 
@@ -51,6 +60,15 @@ impl Velocity for Coin {
         self.velocity = velocity
     }
 }
+impl HasOwner for Coin {
+    fn get_owner(&self) -> Uuid {
+        self.owner
+    }
+
+    fn set_owner(&mut self, uuid: Uuid) {
+        self.owner = uuid
+    }
+}
 
 impl Tickable for Coin {
     fn tick(&mut self, game: &mut crate::game::Game) {
@@ -68,7 +86,7 @@ impl Tickable for Coin {
 }
 
 impl Color for Coin {
-    fn color(&self) -> macroquad::color::Color {  
+    fn color(&self) -> crate::proxies::macroquad::color::Color {  
         self.color
     }
 }

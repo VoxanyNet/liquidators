@@ -2,7 +2,7 @@ use diff::Diff;
 use serde::{Deserialize, Serialize};
 use crate::proxies::macroquad::math::vec2::Vec2;
 
-#[derive(Serialize, Deserialize, Diff, Clone, Copy)]
+#[derive(Serialize, Deserialize, Diff, Clone, Copy, PartialEq)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]
@@ -34,28 +34,6 @@ impl From<&macroquad::math::Rect> for Rect {
         }
     }
 }
-
-// impl From<&macroquad::math::Rect> for &Rect {
-//     fn from(value: &macroquad::math::Rect) -> Self {
-//         &Rect {
-//             x: value.x,
-//             y: value.y,
-//             w: value.w,
-//             h: value.h
-//         }
-//     }
-// }
-
-// impl From<&mut macroquad::math::Rect> for &mut Rect {
-//     fn from(value: &mut macroquad::math::Rect) -> Self {
-//         &mut Rect {
-//             x: value.x,
-//             y: value.y,
-//             w: value.w,
-//             h: value.h
-//         }
-//     }
-// }
 
 impl From<&mut macroquad::math::Rect> for Rect {
     fn from(value: &mut macroquad::math::Rect) -> Self {

@@ -2,13 +2,14 @@ use diff::Diff;
 use macroquad::{color::RED, input::{self, MouseButton}};
 use serde::{Deserialize, Serialize};
 
-use crate::game::{Collidable, Controllable, Damagable, Draggable, Friction, Game, Moveable, HasRect, Scale, Sound, Texture, Tickable, Velocity};
+use crate::game::{Collidable, Controllable, Damagable, Draggable, Friction, Game, HasOwner, HasRect, Moveable, Scale, Sound, Texture, Tickable, Velocity};
 use crate::time::Time;
 use crate::proxies::macroquad::{input::KeyCode, math::{vec2::Vec2, rect::Rect}};
+use crate::proxies::uuid::lib::Uuid;
 
 use super::Entity;
 
-#[derive(Serialize, Deserialize, Diff)]
+#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]
@@ -27,11 +28,12 @@ pub struct Player {
     pub left_bind: KeyCode,
     pub right_bind: KeyCode,
     pub sound_path: String,
-    pub dragging: bool
+    pub dragging: bool,
+    pub owner: Uuid
 }
 
 impl Player {
-    pub fn new() -> Self {
+    pub fn new(owner: Uuid) -> Self {
         Self {
             rect: Rect {x: 30.0, y: 30.0, w: 85.0, h: 100.0},
             scale: 5,
@@ -47,7 +49,8 @@ impl Player {
             attacking: false,
             last_attack: Time::now(),
             sound_path: "assets/sounds/pickup.wav".to_string(),
-            dragging: false
+            dragging: false,
+            owner: owner
         }
     }
 
@@ -110,11 +113,22 @@ impl Player {
     }
 }
 
+impl HasOwner for Player {
+    fn get_owner(&self) -> Uuid {
+        self.owner
+    }
+
+    fn set_owner(&mut self, uuid: Uuid) {
+        self.owner = uuid
+    }
+}
+
 impl Tickable for Player {
     fn tick(&mut self, game: &mut crate::game::Game) {
 
         {
             self.control(game.last_tick.elapsed());
+
         }
 
         {

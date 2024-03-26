@@ -1,11 +1,20 @@
-use crate::game::{Collidable, Color, Drawable, Friction, Moveable, HasRect, Tickable, Velocity};
-use crate::proxies::macroquad::math::{vec2::Vec2, rect::Rect};
+use diff::Diff;
+use serde::{Deserialize, Serialize};
 
+use crate::game::{Collidable, Color, Drawable, Friction, HasOwner, HasRect, Moveable, Tickable, Velocity};
+use crate::proxies::macroquad::math::{vec2::Vec2, rect::Rect};
+use crate::proxies::uuid::lib::Uuid;
+
+#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
+#[diff(attr(
+    #[derive(Serialize, Deserialize)]
+))]
 pub struct Bullet {
     pub rect: Rect,
-    pub color: macroquad::color::Color,
+    pub color: crate::proxies::macroquad::color::Color,
     pub velocity: Vec2,
-    pub friction_coefficient: f32
+    pub friction_coefficient: f32,
+    pub owner: Uuid
 }
 
 impl HasRect for Bullet {
@@ -18,7 +27,7 @@ impl HasRect for Bullet {
 }
 
 impl Color for Bullet {
-    fn color(&self) -> macroquad::color::Color {
+    fn color(&self) -> crate::proxies::macroquad::color::Color {
         self.color
     }
 }
@@ -44,7 +53,14 @@ impl Friction for Bullet {
     }
 }
 
-
+impl HasOwner for Bullet {
+    fn get_owner(&self) -> Uuid {
+        self.owner
+    }
+    fn set_owner(&mut self, uuid: Uuid) {
+        self.owner = uuid
+    }
+}
 impl Tickable for Bullet {
     fn tick(&mut self, game: &mut crate::game::Game) {
         
