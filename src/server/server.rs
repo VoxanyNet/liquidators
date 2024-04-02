@@ -1,4 +1,4 @@
-use std::{io::{Error, Read, Write}, net::{SocketAddr, TcpListener, TcpStream}};
+use std::{io::{Error, Read, Write}, net::{SocketAddr, TcpListener, TcpStream}, time::Duration};
 
 use diff::Diff;
 use game::{game_state::{GameState, GameStateDiff}, networking::{receive_headered, send_headered}};
@@ -39,6 +39,9 @@ impl Server {
             self.accept_new_client();
 
             self.receive_updates();
+
+            // slow the loop down a bit so that it doesnt use so much cpu
+            std::thread::sleep(Duration::from_micros(100));
             
         }
     }

@@ -46,7 +46,7 @@ impl Client {
             // cap framerate at 200fps (or 5 ms per frame)
             // TODO: this needs to take into account the time it took to draw the last frame
             std::thread::sleep(
-                Duration::from_millis(7)
+                Duration::from_millis(5)
             );
     
             println!("{}",  macroquad::time::get_fps());

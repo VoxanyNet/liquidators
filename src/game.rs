@@ -85,7 +85,7 @@ pub trait Collidable: HasRect + Velocity {
 }
 
 fn round(x: f32) -> f32 {
-    (x * 10.0).round() / 10.0
+    f32::trunc(x  * 10.0) / 10.0 // or f32::trunc
 }
 
 pub trait Friction: HasRect + Velocity {
