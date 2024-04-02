@@ -83,11 +83,20 @@ pub trait Collidable: HasRect + Velocity {
 
     }
 }
+
+fn round(x: f32) -> f32 {
+    (x * 10.0).round() / 10.0
+}
+
 pub trait Friction: HasRect + Velocity {
     fn apply_friction(&mut self, dt: TimeDelta) {
 
         self.set_velocity(
             self.get_velocity() + ((-self.get_velocity() * self.friction_coefficient()) * (dt.num_milliseconds() as f32 / 1000.))
+        );
+
+        self.set_velocity(
+            Vec2::new(round(self.get_velocity().x), round(self.get_velocity().y))
         );
     }
 

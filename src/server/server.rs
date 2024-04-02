@@ -45,15 +45,32 @@ impl Server {
 
     pub fn receive_updates(&mut self) {
 
-        for index in 0..self.clients.len() {
+        for client_index in 0..self.clients.len() {
 
             // take the client out, receive updates, then put it back in
-            let mut client = self.clients.swap_remove(index);
+            let mut client = self.clients.swap_remove(client_index);
             
             let mut game_state_diff_string_bytes = match receive_headered(&mut client) {
-                Ok(game_state_diff_string_bytes) => game_state_diff_string_bytes,
+                Ok(game_state_diff_string_bytes) => {
+                    println!("Received an update from a client!");
+                    game_state_diff_string_bytes
+                },
                 Err(error) => {
-                    println!("failed to receive game state update from client: {}", error);
+                    match error.kind() {
+                        std::io::ErrorKind::WouldBlock => {
+                            //println!("skipping client because they would have blocked");
+
+                            self.clients.push(client);
+
+                        },
+                        _ => {
+                            println!("something went wrong trying to receive update from client: {}", error);
+                            
+                            // DONT put client back in. we want to disconnect them
+                            self.clients.push(client);
+                        }
+                    }
+
                     continue; // skip to next client if fail
                 },
             };
@@ -62,30 +79,49 @@ impl Server {
                 Ok(game_state_diff_string) => game_state_diff_string,
                 Err(error) => {
                     println!("failed to decode game state diff as string {}", error);
+
+                    self.clients.push(client);
                     continue;
                 },
             };
+
+            println!("{}", game_state_diff_string);
 
             let game_state_diff: GameStateDiff = match serde_json::from_str(&game_state_diff_string) {
                 Ok(game_state_diff) => game_state_diff,
                 Err(error) => {
                     println!("failed to deserialize game state diff: {}", error);
+
+                    self.clients.push(client);
+
                     continue;
                 },
             };
 
             // relay this update to other clients
-            for client in self.clients.iter_mut() {
-                match send_headered(game_state_diff_string_bytes.as_mut_slice(), client) {
+            for other_client_index in 0..self.clients.len() {
+
+                let mut other_client = self.clients.swap_remove(other_client_index);
+
+                match send_headered(game_state_diff_string_bytes.as_mut_slice(), &mut other_client) {
                     Ok(_) => {},
                     Err(error) => {
-                        println!("failed to relay update data to client: {}", error)
+                        println!("failed to relay update data to client: {}", error);
+
+                        self.clients.push(other_client);
+
+                        continue;
+
                     },
                 }
+
+                self.clients.push(other_client);
             }
             
             // apply it to our own game state
             self.game_state.apply(&game_state_diff);
+
+            self.clients.push(client);
 
         }
     }
@@ -124,6 +160,8 @@ impl Server {
                     },
                 }
                 
+                println!("pushing new client");
+
                 self.clients.push(stream);
 
                 Some(())

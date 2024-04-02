@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::entities::Entity;
 
-#[derive(Serialize, Deserialize, Diff, Clone)]
+#[derive(Serialize, Deserialize, Diff, Clone, PartialEq)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]

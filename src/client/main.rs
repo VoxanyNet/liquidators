@@ -1,3 +1,4 @@
+use game::entities::player::Player;
 use macroquad::{miniquad::conf::Platform, window::Conf};
 use client::Client;
 
@@ -20,6 +21,15 @@ fn window_conf() -> Conf {
 async fn main() {
 
     let mut client = Client::connect("127.0.0.1:5556");
+
+    client.game_state.entities.push(
+        game::entities::Entity::Player(Player::new(client.uuid))
+    );
+
+    match serde_json::to_string_pretty(&client.game_state) {
+        Ok(string) => println!("{}", string),
+        Err(_) => panic!()
+    }
 
     client.run().await;
 
