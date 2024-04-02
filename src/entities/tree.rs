@@ -90,7 +90,7 @@ impl HasOwner for Tree {
 }
 
 impl Tickable for Tree {
-    fn tick(&mut self, game: &mut crate::game::Game) {
+    fn tick(&mut self, game: &mut crate::game::TickContext) {
 
         self.highlight()
         

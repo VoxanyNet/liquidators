@@ -42,7 +42,7 @@ impl HasOwner for Wood {
 }
 
 impl Tickable for Wood {
-    fn tick(&mut self, game: &mut crate::game::Game) {
+    fn tick(&mut self, game: &mut crate::game::TickContext) {
         
     }
 }

@@ -2,7 +2,7 @@ use diff::Diff;
 use macroquad::{color::RED, input::{self, MouseButton}};
 use serde::{Deserialize, Serialize};
 
-use crate::game::{Collidable, Controllable, Damagable, Draggable, Friction, Game, HasOwner, HasRect, Moveable, Scale, Sound, Texture, Tickable, Velocity};
+use crate::game::{Collidable, Controllable, Damagable, Draggable, Friction, TickContext, HasOwner, HasRect, Moveable, Scale, Sound, Texture, Tickable, Velocity};
 use crate::time::Time;
 use crate::proxies::macroquad::{input::KeyCode, math::{vec2::Vec2, rect::Rect}};
 use crate::proxies::uuid::lib::Uuid;
@@ -65,7 +65,7 @@ impl Player {
 
     }
     
-    fn attack(&mut self, game: &mut Game) {
+    fn attack(&mut self, game: &mut TickContext) {
 
         if !input::is_mouse_button_down(MouseButton::Left) {
 
@@ -124,7 +124,7 @@ impl HasOwner for Player {
 }
 
 impl Tickable for Player {
-    fn tick(&mut self, game: &mut crate::game::Game) {
+    fn tick(&mut self, game: &mut crate::game::TickContext) {
 
         {
             self.control(game.last_tick.elapsed());

@@ -1,9 +1,8 @@
 use std::{io::{Error, Read, Write}, net::{SocketAddr, TcpListener, TcpStream}};
 
 use diff::Diff;
+use game::{game_state::{GameState, GameStateDiff}, networking::{receive_headered, send_headered}};
 use macroquad::{color::WHITE, time::get_fps};
-
-use crate::{game_state::{GameState, GameStateDiff}, networking::{receive_headered, send_headered}, proxies::uuid::lib::Uuid};
 
 pub struct Server {
     pub listener: TcpListener,

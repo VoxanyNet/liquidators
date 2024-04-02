@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::game::{Collidable, Color, Drawable, Friction, HasOwner, HasRect, Moveable, Tickable, Velocity};
 use crate::proxies::macroquad::math::{vec2::Vec2, rect::Rect};
 use crate::proxies::uuid::lib::Uuid;
+use crate::game::TickContext;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -62,7 +63,7 @@ impl HasOwner for Bullet {
     }
 }
 impl Tickable for Bullet {
-    fn tick(&mut self, game: &mut crate::game::Game) {
+    fn tick(&mut self, game: &mut TickContext) {
         
         //println!("{}", self.velocity.x);
 

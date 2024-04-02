@@ -38,7 +38,7 @@ impl HasOwner for Zombie {
     }
 }
 impl Tickable for Zombie {
-    fn tick(&mut self, game: &mut crate::game::Game) {
+    fn tick(&mut self, game: &mut crate::game::TickContext) {
         
     }
 }

@@ -51,7 +51,7 @@ impl HasOwner for Entity {
 }
 
 impl Tickable for Entity {
-    fn tick(&mut self, game: &mut crate::game::Game) {
+    fn tick(&mut self, game: &mut crate::game::TickContext) {
         match self {
             Entity::Bullet(bullet) => bullet.tick(game),
             Entity::Player(player) => player.tick(game),

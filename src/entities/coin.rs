@@ -71,7 +71,7 @@ impl HasOwner for Coin {
 }
 
 impl Tickable for Coin {
-    fn tick(&mut self, game: &mut crate::game::Game) {
+    fn tick(&mut self, game: &mut crate::game::TickContext) {
         for entity in game.game_state.entities.iter_mut() {
             
             if let Entity::Player(player) = entity {
