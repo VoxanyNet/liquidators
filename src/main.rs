@@ -1,13 +1,10 @@
 #![feature(const_trait_impl)]
 #![feature(effects)]
-use core::panic;
-use std::{collections::HashMap, os::linux::raw::stat, time::{Duration, Instant}};
+
+use std::{net::{Ipv4Addr, SocketAddr}, str::FromStr};
 
 use game::Game;
-use game_state::GameState;
-use macroquad::{miniquad::conf::Platform, window::{next_frame, Conf}};
-use entities::{coin::Coin, player::Player, tree::Tree};
-use crate::proxies::macroquad::math::rect::Rect;
+use macroquad::{color::WHITE, miniquad::conf::Platform, window::Conf};
 
 
 mod game;
@@ -16,6 +13,8 @@ mod timeline;
 mod game_state;
 mod proxies;
 mod time;
+mod server;
+mod networking;
 
 fn window_conf() -> Conf {
     let mut conf = Conf {
@@ -33,33 +32,24 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    // macroquad::window::set_fullscreen(true);
-    
-    let mut game = Game::host();
+    let arguments: Vec<String> = std::env::args().collect();
 
-    loop {
+    if arguments[1] == "client" {
+
+        // macroquad::window::set_fullscreen(true);
         
-        //macroquad::window::clear_background(macroquad::color::BLACK);
+        let mut game = Game::connect("127.0.0.1:5556");
 
-        game.tick();
-        
-        game.draw().await;
+        game.run().await;
+    }
 
-        next_frame().await;
+    if arguments[1] == "server" {
 
-        if macroquad::input::is_key_down(macroquad::input::KeyCode::F4) {
-            let state_string = serde_json::to_string(&game.game_state).unwrap();
-
-            std::fs::write("state.json", state_string).expect("failed to write current state to state.json")
-        }
-
-        // cap framerate at 200fps (or 5 ms per frame)
-        // TODO: this needs to take into account the time it took to draw the last frame
-        std::thread::sleep(
-            Duration::from_millis(5)
+        let mut server = server::Server::new(
+            SocketAddr::new(std::net::IpAddr::from_str("0.0.0.0").expect("failed to parse ip"), 5556)
         );
 
-        //println!("{}",  macroquad::time::get_fps());
+        server.run();
     }
     
 }
