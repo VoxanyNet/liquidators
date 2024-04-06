@@ -1,7 +1,7 @@
 use diff::Diff;
 use serde::{Deserialize, Serialize};
 
-use crate::{entities::{player::Player, Entity}, game::{Color, Drawable, Friction, HasOwner, HasRect, Moveable, Tickable, Velocity}, proxies::uuid::lib::Uuid};
+use crate::{entities::{player::Player, Entity}, game::{Color, Drawable, Friction, HasOwner, HasRect, Moveable, Tickable, Velocity}};
 use crate::proxies::macroquad::math::{vec2::Vec2, rect::Rect};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -13,11 +13,11 @@ pub struct Coin {
     rect: Rect,
     velocity: Vec2,
     friction_coefficient: f32,
-    pub owner: Uuid
+    pub owner: String
 }
 
 impl Coin {
-    pub fn new(x: f32, y: f32, owner_uuid: Uuid) -> Self {
+    pub fn new(x: f32, y: f32, owner_uuid: String) -> Self {
         Coin {
             color: macroquad::color::GOLD.into(),
             rect: Rect { x, y, w: 10.0, h: 10.0 },
@@ -61,11 +61,11 @@ impl Velocity for Coin {
     }
 }
 impl HasOwner for Coin {
-    fn get_owner(&self) -> Uuid {
-        self.owner
+    fn get_owner(&self) -> String {
+        self.owner.clone()
     }
 
-    fn set_owner(&mut self, uuid: Uuid) {
+    fn set_owner(&mut self, uuid: String) {
         self.owner = uuid
     }
 }

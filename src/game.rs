@@ -8,7 +8,6 @@ use macroquad::texture::{self, load_texture, Texture2D};
 
 use crate::game_state::GameState;
 use crate::proxies::macroquad::{input::KeyCode, math::{vec2::Vec2, rect::Rect}};
-use crate::proxies::uuid::lib::Uuid;
 use crate::time::Time;
 
 pub struct TickContext<'a> {
@@ -17,7 +16,7 @@ pub struct TickContext<'a> {
     pub textures: &'a mut HashMap<String, Texture2D>,
     pub sounds: &'a mut HashMap<String, macroquad::audio::Sound>,
     pub last_tick: &'a mut Time,
-    pub uuid: &'a mut Uuid
+    pub uuid: &'a mut String
 }
 
 pub trait Velocity {
@@ -220,9 +219,9 @@ pub trait Tickable: HasOwner {
 }
 
 pub trait HasOwner {
-    fn get_owner(&self) -> Uuid;
+    fn get_owner(&self) -> String;
 
-    fn set_owner(&mut self, uuid: Uuid);
+    fn set_owner(&mut self, uuid: String);
 }
 
 pub trait Scale {

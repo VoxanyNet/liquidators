@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::game::{Breakable, Damagable, HasOwner, HasRect, Scale, Texture, Tickable};
 use crate::proxies::macroquad::math::rect::Rect;
-use crate::proxies::uuid::lib::{Uuid, UuidDiff};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -16,11 +15,11 @@ pub struct Tree {
     rect: Rect,
     highlighted: bool,
     health: i32,
-    pub owner: Uuid
+    pub owner: String
 }
 
 impl Tree {
-    pub fn new(rect: Rect, owner_uuid: Uuid) -> Self{
+    pub fn new(rect: Rect, owner_uuid: String) -> Self{
         Self {
             texture_path: "assets/structure/tree.png".to_string(),
             scale: 2,
@@ -80,11 +79,11 @@ impl Breakable for Tree {
 }
 
 impl HasOwner for Tree {
-    fn get_owner(&self) -> Uuid {
-        self.owner
+    fn get_owner(&self) -> String {
+        self.owner.clone()
     }
 
-    fn set_owner(&mut self, uuid: Uuid) {
+    fn set_owner(&mut self, uuid: String) {
         self.owner = uuid
     }
 }

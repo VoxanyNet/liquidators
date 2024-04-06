@@ -26,7 +26,7 @@ pub enum Entity {
 }
 
 impl HasOwner for Entity {
-    fn get_owner(&self) -> crate::proxies::uuid::lib::Uuid {
+    fn get_owner(&self) -> String {
 
         match self {
             Entity::Bullet(bullet) => bullet.get_owner(),
@@ -38,7 +38,7 @@ impl HasOwner for Entity {
         }
     }
 
-    fn set_owner(&mut self, uuid: crate::proxies::uuid::lib::Uuid) {
+    fn set_owner(&mut self, uuid: String) {
         match self {
             Entity::Bullet(bullet) => bullet.owner = uuid,
             Entity::Player(player) => player.owner = uuid,

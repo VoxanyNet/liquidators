@@ -23,7 +23,7 @@ async fn main() {
     let mut client = Client::connect("127.0.0.1:5556");
 
     client.game_state.entities.push(
-        game::entities::Entity::Player(Player::new(client.uuid))
+        game::entities::Entity::Player(Player::new(client.uuid.clone()))
     );
 
     match serde_json::to_string_pretty(&client.game_state) {

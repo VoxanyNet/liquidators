@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::game::{HasOwner, HasRect, Scale, Texture, Tickable};
 use crate::proxies::macroquad::math::rect::Rect;
-use crate::proxies::uuid::lib::Uuid;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -16,7 +15,7 @@ pub struct Zombie {
     pub position: crate::proxies::macroquad::math::vec2::Vec2,
     pub texture_path: String,
     pub scale: u32,
-    pub owner: Uuid
+    pub owner: String
 }
 
 impl HasRect for Zombie {
@@ -29,11 +28,11 @@ impl HasRect for Zombie {
 }
 
 impl HasOwner for Zombie {
-    fn get_owner(&self) -> crate::proxies::uuid::lib::Uuid {
-        self.owner
+    fn get_owner(&self) -> String {
+        self.owner.clone()
     }
     
-    fn set_owner(&mut self, uuid: Uuid) {
+    fn set_owner(&mut self, uuid: String) {
         self.owner = uuid
     }
 }

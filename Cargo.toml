@@ -8,22 +8,11 @@ edition = "2021"
 
 [dependencies]
 chrono = "0.4.35"
-deriving_via = "1.6.1"
 diff-struct = "0.5.3"
-glam = "0.26.0"
 macroquad = "0.4.5"
-deranged = { version = "0.3.9", default-features = false, features = [
-    "powerfmt",
-] }
-time-core = "0.1.2"
-rand = "0.8.5"
-reqwest = { version = "0.11.24", features = ["blocking"] }
 serde = { version = "1.0.197", features = ["serde_derive"] }
-serde_millis = "0.1.1"
-time = { version = "0.3.34", features = ["serde"] }
-vector2d = "2.2.0"
 serde_json = "1.0.114"
-uuid = { version = "1.8.0", features = ["v4"] }
+termion = "3.0.0"
 
 [[bin]]
 name = "client"

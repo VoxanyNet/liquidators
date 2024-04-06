@@ -1,7 +1,7 @@
 use std::{collections::HashMap, net::TcpStream, time::Duration};
 
 use diff::Diff;
-use game::{entities::Entity, game::{Drawable, HasOwner, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, networking::{self, receive_headered}, proxies::uuid::lib::Uuid, time::Time};
+use game::{entities::Entity, game::{Drawable, HasOwner, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, networking::{self, receive_headered}, time::Time, uuid};
 use macroquad::texture::Texture2D;
 
 pub struct Client {
@@ -11,7 +11,7 @@ pub struct Client {
     pub textures: HashMap<String, Texture2D>,
     pub sounds: HashMap<String, macroquad::audio::Sound>,
     pub last_tick: Time,
-    pub uuid: Uuid,
+    pub uuid: String,
     pub server: TcpStream
 }
 
@@ -143,7 +143,7 @@ impl Client {
 
     pub fn connect(address: &str) -> Self {
 
-        let uuid = uuid::Uuid::new_v4();
+        let uuid = uuid();
 
         println!("{}", uuid);
 
@@ -186,7 +186,7 @@ impl Client {
             textures: HashMap::new(),
             sounds: HashMap::new(),
             last_tick: Time::now(),
-            uuid: uuid.into(),
+            uuid: uuid,
             server: server
         }
     }
@@ -195,15 +195,6 @@ impl Client {
     pub fn connect_as_master() {
 
     }
-
-    // pub fn connect(ip: &str) -> Self {
-    //     let server = match TcpStream::connect(ip) {
-    //         Ok(server) => server,
-    //         Err(error) => panic!("failed to connect to server address {}: {}", ip, error),
-    //     };
-
-    //     Self {}
-    // }
 
     pub fn tick(&mut self) {
 

@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::game::{Draggable, HasOwner, HasRect, Scale, Texture, Tickable, Velocity};
 use crate::proxies::macroquad::math::{vec2::Vec2, rect::Rect};
-use crate::proxies::uuid::lib::Uuid;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -15,11 +14,11 @@ pub struct Wood {
     rect: Rect,
     texture_path: String,
     scale: u32,
-    pub owner: Uuid
+    pub owner: String
 }
 
 impl Wood {
-    fn new(rect: Rect, owner_uuid: Uuid) -> Self {
+    fn new(rect: Rect, owner_uuid: String) -> Self {
         Self {
             dragging: false,
             velocity: Vec2::new(0., 0.),
@@ -32,11 +31,11 @@ impl Wood {
 }
 
 impl HasOwner for Wood {
-    fn get_owner(&self) -> crate::proxies::uuid::lib::Uuid {
-        self.owner
+    fn get_owner(&self) -> String {
+        self.owner.clone()
     }
 
-    fn set_owner(&mut self, uuid: Uuid) {
+    fn set_owner(&mut self, uuid: String) {
         self.owner = uuid
     }
 }

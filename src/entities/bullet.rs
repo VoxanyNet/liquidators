@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::game::{Collidable, Color, Drawable, Friction, HasOwner, HasRect, Moveable, Tickable, Velocity};
 use crate::proxies::macroquad::math::{vec2::Vec2, rect::Rect};
-use crate::proxies::uuid::lib::Uuid;
 use crate::game::TickContext;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -15,7 +14,7 @@ pub struct Bullet {
     pub color: crate::proxies::macroquad::color::Color,
     pub velocity: Vec2,
     pub friction_coefficient: f32,
-    pub owner: Uuid
+    pub owner: String
 }
 
 impl HasRect for Bullet {
@@ -55,10 +54,10 @@ impl Friction for Bullet {
 }
 
 impl HasOwner for Bullet {
-    fn get_owner(&self) -> Uuid {
-        self.owner
+    fn get_owner(&self) -> String {
+        self.owner.clone()
     }
-    fn set_owner(&mut self, uuid: Uuid) {
+    fn set_owner(&mut self, uuid: String) {
         self.owner = uuid
     }
 }

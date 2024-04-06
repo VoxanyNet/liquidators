@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 use crate::game::{Collidable, Controllable, Damagable, Draggable, Friction, TickContext, HasOwner, HasRect, Moveable, Scale, Sound, Texture, Tickable, Velocity};
 use crate::time::Time;
 use crate::proxies::macroquad::{input::KeyCode, math::{vec2::Vec2, rect::Rect}};
-use crate::proxies::uuid::lib::Uuid;
 
 use super::Entity;
 
@@ -29,11 +28,11 @@ pub struct Player {
     pub right_bind: KeyCode,
     pub sound_path: String,
     pub dragging: bool,
-    pub owner: Uuid
+    pub owner: String
 }
 
 impl Player {
-    pub fn new(owner: Uuid) -> Self {
+    pub fn new(owner: String) -> Self {
         Self {
             rect: Rect {x: 30.0, y: 30.0, w: 85.0, h: 100.0},
             scale: 5,
@@ -114,11 +113,11 @@ impl Player {
 }
 
 impl HasOwner for Player {
-    fn get_owner(&self) -> Uuid {
-        self.owner
+    fn get_owner(&self) -> String {
+        self.owner.clone()
     }
 
-    fn set_owner(&mut self, uuid: Uuid) {
+    fn set_owner(&mut self, uuid: String) {
         self.owner = uuid
     }
 }
