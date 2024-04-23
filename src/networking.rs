@@ -33,15 +33,27 @@ pub fn receive_headered(stream: &mut TcpStream) -> Result<Vec<u8>, Error> {
     // allocate a vector with zeroes equal to size of payload
     let mut payload_buffer = vec![0u8; payload_length as usize];
 
+    let mut count: i64 = 0;
+
     loop {
         // read socket buffer into vector passed as mutable slice
-        match stream.read(payload_buffer.as_mut_slice()) {
-            Ok(_) => {
+        match stream.read_exact(payload_buffer.as_mut_slice()) {
+            Ok(_bytes_read) => {
+
+                println!("waited this many cycles: {}", count);
+
+                //println!("bytes read: {}", bytes_read);
+                println!("bytes expected: {}", payload_length);
+
                 return Ok(payload_buffer)
             },
             Err(error) => {
                 match error.kind() {
-                    std::io::ErrorKind::WouldBlock => continue, // we dont want to block if we know we are supposed to be getting data
+                    std::io::ErrorKind::WouldBlock => {
+                        count += 1;
+
+                        continue;
+                    }, // we dont want to block if we know we are supposed to be getting data
                     _ => return Err(error)
                 }
             },

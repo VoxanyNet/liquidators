@@ -1,7 +1,7 @@
 use std::{net::{SocketAddr, TcpListener, TcpStream}, time::Duration};
 
 use diff::Diff;
-use game::{game_state::{GameState, GameStateDiff}, networking::{receive_headered, send_headered}};
+use game::{game::HasOwner, game_state::{GameState, GameStateDiff}, networking::{receive_headered, send_headered}};
 
 pub struct Server {
     pub listener: TcpListener,
@@ -42,8 +42,16 @@ impl Server {
             self.receive_updates();
 
             // slow the loop down a bit so that it doesnt use so much cpu
-            std::thread::sleep(Duration::from_secs(1));
+            std::thread::sleep(Duration::from_millis(1));
             
+        }
+    }
+
+    pub fn disconnect_client(&mut self, client_uuid: String) {
+        for entity_index in 0..self.game_state.entities.len() {
+            if self.game_state.entities[entity_index].get_owner() == client_uuid {
+                self.game_state.entities.remove(entity_index);
+            }
         }
     }
 
