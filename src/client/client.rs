@@ -1,8 +1,8 @@
 use std::{collections::HashMap, net::TcpStream, time::Duration};
 
 use diff::Diff;
-use game::{entities::Entity, game::{Drawable, HasOwner, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, networking::{self, receive_headered}, time::Time, uuid};
-use macroquad::texture::Texture2D;
+use game::{entities::Entity, game::{Drawable, HasOwner, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, networking::{self, receive_headered}, proxies::macroquad::math::vec2::Vec2, time::Time, uuid};
+use macroquad::{input::is_key_down, texture::Texture2D};
 
 pub struct Client {
     pub game_state: GameState,
@@ -12,7 +12,8 @@ pub struct Client {
     pub sounds: HashMap<String, macroquad::audio::Sound>,
     pub last_tick: Time,
     pub uuid: String,
-    pub server: TcpStream
+    pub server: TcpStream,
+    pub camera_offset: Vec2
 }
 
 impl Client {
@@ -49,7 +50,7 @@ impl Client {
                 Duration::from_millis(5)
             );
     
-            println!("{}",  macroquad::time::get_fps());
+            //println!("{}",  macroquad::time::get_fps());
         }
     }
 
@@ -57,7 +58,7 @@ impl Client {
     pub fn send_updates(&mut self) {
 
         if self.last_tick_game_state == self.game_state {
-            println!("no changes in game state, not sending update");
+            //println!("no changes in game state, not sending update");
             return;
         }
         let diff = self.last_tick_game_state.diff(&self.game_state);
@@ -70,7 +71,7 @@ impl Client {
         let diff_string_bytes = diff_string.as_bytes();
 
         match networking::send_headered(diff_string_bytes, &mut self.server) {
-            Ok(_) => println!("sent updates to the server!"),
+            Ok(_) => {}//println!("sent updates to the server!"),
             Err(error) => {
                 match error.kind() {
                     std::io::ErrorKind::WouldBlock => {
@@ -96,7 +97,7 @@ impl Client {
             Err(error) => {
                 match error.kind() {
                     std::io::ErrorKind::WouldBlock => {
-                        println!("tried to receive update from server but it would have blocked");
+                        //println!("tried to receive update from server but it would have blocked");
                         return;
                         
                     },
@@ -131,12 +132,14 @@ impl Client {
         for entity in self.game_state.entities.iter_mut() {
 
             match entity {
-                Entity::Player(player) => {player.draw(&mut self.textures).await}
-                Entity::Zombie(zombie) => {zombie.draw(&mut self.textures).await}
-                Entity::Bullet(bullet) => {bullet.draw()},
-                Entity::Coin(coin) => {coin.draw()},
-                Entity::Tree(tree) => {tree.draw(&mut self.textures).await},
-                Entity::Wood(wood) => {wood.draw(&mut self.textures).await}
+                Entity::Player(player) => {player.draw(&mut self.textures, &self.camera_offset).await}
+                Entity::Zombie(zombie) => {zombie.draw(&mut self.textures, &self.camera_offset).await}
+                Entity::Bullet(bullet) => {bullet.draw(&self.camera_offset)},
+                Entity::Coin(coin) => {coin.draw(&self.camera_offset)},
+                Entity::Tree(tree) => {tree.draw(&mut self.textures, &self.camera_offset).await},
+                Entity::Wood(wood) => {wood.draw(&mut self.textures, &self.camera_offset).await},
+                Entity::Raft(raft) => {raft.draw(&self.camera_offset)},
+                Entity::RaftComponent(raft_component) => {raft_component.draw(&self.camera_offset)}
             };
         }
     }
@@ -187,7 +190,8 @@ impl Client {
             sounds: HashMap::new(),
             last_tick: Time::now(),
             uuid: uuid,
-            server: server
+            server: server,
+            camera_offset: Vec2::new(0., 0.)
         }
     }
 
@@ -196,7 +200,27 @@ impl Client {
 
     }
 
+    pub fn control_camera(&mut self) {
+        if is_key_down(macroquad::input::KeyCode::Right) {
+            self.camera_offset.x += 1.0 * self.last_tick.elapsed().num_milliseconds() as f32;
+        }
+
+        if is_key_down(macroquad::input::KeyCode::Left) {
+            self.camera_offset.x -= 1.0 * self.last_tick.elapsed().num_milliseconds() as f32;
+        }
+
+        if is_key_down(macroquad::input::KeyCode::Down) {
+            self.camera_offset.y -= 1.0 * self.last_tick.elapsed().num_milliseconds() as f32;
+        }
+
+        if is_key_down(macroquad::input::KeyCode::Up) {
+            self.camera_offset.y += 1.0 * self.last_tick.elapsed().num_milliseconds() as f32;
+        }
+    }
+
     pub fn tick(&mut self) {
+
+        self.control_camera();
 
         // we create a tick context because we cannot pass Client directly
         // we want others to be able to create their own client structs so TickContext is the middle man

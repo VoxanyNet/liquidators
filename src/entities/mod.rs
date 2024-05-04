@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::game::{HasOwner, Tickable};
 
-use self::{bullet::Bullet, coin::Coin, player::Player, tree::Tree, wood::Wood, zombie::Zombie};
+use self::{bullet::Bullet, coin::Coin, player::Player, raft::Raft, raft_component::RaftComponent, tree::Tree, wood::Wood, zombie::Zombie};
 
 pub mod bullet;
 pub mod player;
@@ -11,6 +11,8 @@ pub mod zombie;
 pub mod coin;
 pub mod wood;
 pub mod tree;
+pub mod raft;
+pub mod raft_component;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -22,7 +24,9 @@ pub enum Entity {
     Zombie(Zombie),
     Coin(Coin),
     Wood(Wood),
-    Tree(Tree)
+    Tree(Tree),
+    Raft(Raft),
+    RaftComponent(RaftComponent)
 }
 
 impl HasOwner for Entity {
@@ -35,6 +39,8 @@ impl HasOwner for Entity {
             Entity::Coin(coin) => coin.get_owner(),
             Entity::Wood(wood) => wood.get_owner(),
             Entity::Tree(tree) => tree.get_owner(),
+            Entity::Raft(raft) => raft.get_owner(),
+            Entity::RaftComponent(raft_component) => raft_component.get_owner()
         }
     }
 
@@ -46,19 +52,23 @@ impl HasOwner for Entity {
             Entity::Coin(coin) => coin.owner = uuid,
             Entity::Wood(wood) => wood.owner = uuid,
             Entity::Tree(tree) => tree.owner = uuid,
+            Entity::Raft(raft) => raft.owner = uuid,
+            Entity::RaftComponent(raft_component) => raft_component.owner = uuid
         }
     }
 }
 
 impl Tickable for Entity {
-    fn tick(&mut self, game: &mut crate::game::TickContext) {
+    fn tick(&mut self, tick_context: &mut crate::game::TickContext) {
         match self {
-            Entity::Bullet(bullet) => bullet.tick(game),
-            Entity::Player(player) => player.tick(game),
-            Entity::Zombie(zombie) => zombie.tick(game),
-            Entity::Coin(coin) => coin.tick(game),
-            Entity::Wood(wood) => wood.tick(game),
-            Entity::Tree(tree) => tree.tick(game),
+            Entity::Bullet(bullet) => bullet.tick(tick_context),
+            Entity::Player(player) => player.tick(tick_context),
+            Entity::Zombie(zombie) => zombie.tick(tick_context),
+            Entity::Coin(coin) => coin.tick(tick_context),
+            Entity::Wood(wood) => wood.tick(tick_context),
+            Entity::Tree(tree) => tree.tick(tick_context),
+            Entity::Raft(raft) => raft.tick(tick_context),
+            Entity::RaftComponent(raft_component) => raft_component.tick(tick_context)
         }
     }
 }

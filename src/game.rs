@@ -146,7 +146,7 @@ pub trait Moveable: HasRect + Velocity {
 
         let mut rect = self.get_rect();
 
-        println!("{}", self.get_velocity().x * (dt.num_milliseconds() as f32 / 1000.));
+        //println!("{}", self.get_velocity().x * (dt.num_milliseconds() as f32 / 1000.));
 
         rect.x += self.get_velocity().x * (dt.num_milliseconds() as f32 / 1000.);
         rect.y += self.get_velocity().y * (dt.num_milliseconds() as f32 / 1000.);
@@ -164,13 +164,13 @@ pub trait Color {
 }
 
 pub trait Drawable: HasRect + Color {
-    fn draw(&mut self) {
+    fn draw(&mut self, camera_offset: &Vec2) {
         macroquad::shapes::draw_rectangle(self.get_rect().x, self.get_rect().y, self.get_rect().w, self.get_rect().h, self.color().into());
     }
 }
 
 pub trait Texture: HasRect + Scale {
-    async fn draw(&self, textures: &mut HashMap<String, Texture2D>) {
+    async fn draw(&self, textures: &mut HashMap<String, Texture2D>, camera_offset: &Vec2) {
         
         // load texture if not already
         if !textures.contains_key(&self.get_texture_path()) {
@@ -198,8 +198,8 @@ pub trait Texture: HasRect + Scale {
 
         macroquad::texture::draw_texture_ex(
             texture,
-            self.get_rect().x,
-            self.get_rect().y,
+            self.get_rect().x + camera_offset.x,
+            self.get_rect().y + camera_offset.y,
             WHITE,
             macroquad::texture::DrawTextureParams {
                 dest_size: Some(scaled_texture_size.into()),
