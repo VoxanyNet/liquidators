@@ -1,6 +1,5 @@
 use std::{collections::HashMap, time::{Duration, Instant}};
 
-
 // entity -> hashmap -> json -> diffed -> network -> json -> hashmap -> loaded
 struct Timeline {
     frames: HashMap<Duration, String>,

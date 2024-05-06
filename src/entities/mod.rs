@@ -13,6 +13,7 @@ pub mod wood;
 pub mod tree;
 pub mod raft;
 pub mod raft_component;
+pub mod physics_square;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(

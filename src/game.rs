@@ -1,10 +1,12 @@
 use std::collections::HashMap;
 
 use chrono::TimeDelta;
+use diff::Diff;
 use macroquad::audio::{self, load_sound};
 use macroquad::color::WHITE;
 use macroquad::input::{self};
 use macroquad::texture::{self, load_texture, Texture2D};
+use serde::{Deserialize, Serialize};
 
 use crate::game_state::GameState;
 use crate::proxies::macroquad::{input::KeyCode, math::{vec2::Vec2, rect::Rect}};
@@ -158,6 +160,13 @@ pub trait HasRect {
     fn get_rect(&self) -> Rect;
     fn set_rect(&mut self, rect: Rect);
 }
+
+// pub trait HasCollider {
+//     fn get_collider(&self) -> Collider;
+//     fn set_collider(&mut self, collider: Collider);
+// }
+
+
 
 pub trait Color {
     fn color(&self) -> crate::proxies::macroquad::color::Color;

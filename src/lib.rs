@@ -7,6 +7,9 @@ pub mod game_state;
 pub mod proxies;
 pub mod time;
 pub mod networking;
+pub mod rigid_body;
+pub mod collider;
+pub mod space;
 
 pub fn uuid() -> String {
     // AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
