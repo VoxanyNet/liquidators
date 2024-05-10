@@ -31,31 +31,32 @@ impl From<rapier2d::dynamics::RigidBodyType> for RigidBodyType {
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct RigidBody {
-    position: Vec2,
-    velocity: Vec2,
-    body_type: RigidBodyType
+    pub position: Vec2,
+    pub velocity: Vec2,
+    pub body_type: RigidBodyType,
+    pub owner: String
 }
 
-impl From<rapier2d::dynamics::RigidBody> for RigidBody {
-    fn from(value: rapier2d::dynamics::RigidBody) -> Self {
+impl RigidBody {
+    pub fn from_rigid_body(value: rapier2d::dynamics::RigidBody, owner: String) -> Self {
         Self {
             position: Vec2::new(value.position().translation.x, value.position().translation.y),
             velocity: Vec2::new(value.linvel().x, value.linvel().y),
-            body_type: value.body_type().into()
+            body_type: value.body_type().into(),
+            owner
         }
     }
-}
 
-impl From<&mut rapier2d::dynamics::RigidBody> for RigidBody {
-    fn from(value: &mut rapier2d::dynamics::RigidBody) -> Self {
+
+    pub fn from_rigid_body_mut(value: &mut rapier2d::dynamics::RigidBody, owner: String) -> Self {
         Self {
             position: Vec2::new(value.position().translation.x, value.position().translation.y),
             velocity: Vec2::new(value.linvel().x, value.linvel().y),
-            body_type: value.body_type().into()
+            body_type: value.body_type().into(),
+            owner
         }
     }
 }
-
 
 impl Into<rapier2d::dynamics::RigidBody> for RigidBody {
     fn into(self) -> rapier2d::dynamics::RigidBody {

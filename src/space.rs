@@ -2,17 +2,113 @@ use std::collections::HashMap;
 
 
 
+use diff::Diff;
+use nalgebra::vector;
+use rapier2d::{dynamics::{CCDSolver, ImpulseJointSet, IntegrationParameters, IslandManager, MultibodyJointSet, RigidBodySet}, geometry::{BroadPhase, ColliderSet, NarrowPhase}, pipeline::{PhysicsPipeline, QueryPipeline}};
+use serde::{Deserialize, Serialize};
+
 use crate::{collider::Collider, rigid_body::{self, RigidBody}};
 
 pub type RigidBodyHandle = String;
 pub type ColliderHandle = String;
 
-struct Space {
+#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
+#[diff(attr(
+    #[derive(Serialize, Deserialize)]
+))]
+pub struct Space {
     rigid_bodies: HashMap<RigidBodyHandle, RigidBody>,
     colliders: HashMap<ColliderHandle, Collider>
 }
 
 impl Space {
+
+    pub fn new() -> Self {
+        Self {
+            rigid_bodies: HashMap::new(),
+            colliders: HashMap::new()
+        }
+    }
+
+    pub fn step(&mut self, owner: &String) {
+
+        // convert all of the rigid bodies proxies to the actual rapier rigid body, step them all, then convert them back into the proxy type
+
+        // this maps all of the real rigid bodies to their proxy types, so the proxy types can be updated
+        let mut rigid_body_map: HashMap<rapier2d::dynamics::RigidBodyHandle, RigidBodyHandle> = HashMap::new();
+        // this maps all of the real colliders to their proxy types, so that the proxy types can be updated
+        let mut collider_map: HashMap<rapier2d::geometry::ColliderHandle, ColliderHandle> = HashMap::new();
+
+        // create all of the temporary structs needed to step the rigid bodies
+        let gravity = vector![0., -981.];
+        let integration_parameters = IntegrationParameters::default();
+        let mut island_manager = IslandManager::default();
+        let mut broad_phase = BroadPhase::new();
+        let mut narrow_phase = NarrowPhase::new();
+        let mut rigid_body_set = RigidBodySet::new();
+        let mut collider_set = ColliderSet::new();
+        let mut impulse_joint_set = ImpulseJointSet::new();
+        let mut multibody_joint_set = MultibodyJointSet::new();
+        let mut ccd_solver = CCDSolver::new();
+        let mut query_pipeline = QueryPipeline::new();
+        let physics_hooks = ();
+        let event_handler = ();
+
+        let mut physics_pipeline = PhysicsPipeline::new();
+        
+        
+        for (rigid_body_proxy_handle, rigid_body_proxy) in self.rigid_bodies.iter_mut() {
+            let mut rigid_body: rapier2d::dynamics::RigidBody = rigid_body_proxy.into();
+
+            let rigid_body_handle = rigid_body_set.insert(rigid_body);
+
+            rigid_body_map.insert(rigid_body_handle, rigid_body_proxy_handle.clone());
+        }
+        
+        for (collider_proxy_handle, collider_proxy) in self.colliders.iter_mut() {
+            let mut collider: rapier2d::geometry::Collider = collider_proxy.into();
+
+            let collider_handle = collider_set.insert(collider);
+
+            collider_map.insert(collider_handle, collider_proxy_handle.clone());
+        }
+
+        physics_pipeline.step(
+            &gravity,
+            &integration_parameters,
+            &mut island_manager,
+            &mut broad_phase,
+            &mut narrow_phase,
+            &mut rigid_body_set,
+            &mut collider_set,
+            &mut impulse_joint_set,
+            &mut multibody_joint_set,
+            &mut ccd_solver,
+            Some(&mut query_pipeline),
+            &physics_hooks,
+            &event_handler
+        );
+
+        for (rigid_body_handle, rigid_body_proxy_handle ) in rigid_body_map {
+            // we only update the proxy rigid type if we own it
+            match self.rigid_bodies.get(&rigid_body_proxy_handle) {
+                Some(rigid_body_proxy) => {
+                    if rigid_body_proxy.owner != *owner {
+                        continue; // continue to the next body if we don't own this one
+                    }
+                },
+                None => panic!("Invalid rigid body proxy handle!"),
+            }
+
+            self.rigid_bodies.insert(
+                rigid_body_proxy_handle,
+                RigidBody::from_rigid_body_mut(rigid_body_set.get_mut(rigid_body_handle).expect("Invalid rigid body handle!"), owner.clone())
+            );
+        }
+
+
+
+    }
     pub fn insert_rigid_body(&mut self, rigid_body: RigidBody) -> RigidBodyHandle {
         let handle: RigidBodyHandle = uuid::Uuid::new_v4().to_string();
 

@@ -1,21 +1,23 @@
 use diff::Diff;
 use serde::{Deserialize, Serialize};
 
-use crate::entities::Entity;
+use crate::{entities::Entity, space::Space};
 
 #[derive(Serialize, Deserialize, Diff, Clone, PartialEq)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct GameState {
-    pub entities: Vec<Entity>
+    pub entities: Vec<Entity>,
+    pub space: Space
 }
 
 impl GameState {
 
     pub fn empty() -> Self {
         Self {
-            entities: vec![]
+            entities: vec![],
+            space: Space::new()
         }
     }
 
