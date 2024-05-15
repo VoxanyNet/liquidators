@@ -16,7 +16,7 @@ pub struct Collider {
 }
 
 impl Collider {
-    fn update(&mut self, value: &rapier2d::geometry::Collider) {
+    pub fn update_from_collider(&mut self, value: &rapier2d::geometry::Collider) {
         
         self.hx = value.shape().as_cuboid().unwrap().half_extents.x;
         self.hy = value.shape().as_cuboid().unwrap().half_extents.y;
@@ -24,7 +24,7 @@ impl Collider {
         self.mass = value.mass();
     }
 
-    fn update_mut(&mut self, value: &mut rapier2d::geometry::Collider) {
+    pub fn update_from_collider_mut(&mut self, value: &mut rapier2d::geometry::Collider) {
         
         self.hx = value.shape().as_cuboid().unwrap().half_extents.x;
         self.hy = value.shape().as_cuboid().unwrap().half_extents.y;
