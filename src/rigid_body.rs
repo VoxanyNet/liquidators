@@ -2,7 +2,7 @@ use diff::Diff;
 use rapier2d::{dynamics::RigidBodyBuilder, na::vector};
 use serde::{Deserialize, Serialize};
 
-use crate::proxies::macroquad::math::vec2::Vec2;
+use crate::{proxies::macroquad::math::vec2::Vec2, space::ColliderHandle};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -34,27 +34,23 @@ pub struct RigidBody {
     pub position: Vec2,
     pub velocity: Vec2,
     pub body_type: RigidBodyType,
-    pub owner: String
+    pub owner: String,
+    pub collider: ColliderHandle
 }
 
 impl RigidBody {
-    pub fn from_rigid_body(value: rapier2d::dynamics::RigidBody, owner: String) -> Self {
-        Self {
-            position: Vec2::new(value.position().translation.x, value.position().translation.y),
-            velocity: Vec2::new(value.linvel().x, value.linvel().y),
-            body_type: value.body_type().into(),
-            owner
-        }
+    pub fn update_from_rigid_body(&mut self, value: &rapier2d::dynamics::RigidBody) {
+        
+        self.position = Vec2::new(value.position().translation.x, value.position().translation.y);
+        self.velocity = Vec2::new(value.linvel().x, value.linvel().y);
+        self.body_type = value.body_type().into();
     }
 
 
-    pub fn from_rigid_body_mut(value: &mut rapier2d::dynamics::RigidBody, owner: String) -> Self {
-        Self {
-            position: Vec2::new(value.position().translation.x, value.position().translation.y),
-            velocity: Vec2::new(value.linvel().x, value.linvel().y),
-            body_type: value.body_type().into(),
-            owner
-        }
+    pub fn update_from_rigid_body_mut(&mut self, value: &mut rapier2d::dynamics::RigidBody) {
+        self.position = Vec2::new(value.position().translation.x, value.position().translation.y);
+        self.velocity = Vec2::new(value.linvel().x, value.linvel().y);
+        self.body_type = value.body_type().into();
     }
 }
 

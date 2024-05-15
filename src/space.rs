@@ -40,7 +40,7 @@ impl Space {
         let mut collider_map: HashMap<rapier2d::geometry::ColliderHandle, ColliderHandle> = HashMap::new();
 
         // create all of the temporary structs needed to step the rigid bodies
-        let gravity = vector![0., -981.];
+        let gravity = vector![0., 0.];
         let integration_parameters = IntegrationParameters::default();
         let mut island_manager = IslandManager::default();
         let mut broad_phase = BroadPhase::new();
@@ -89,21 +89,30 @@ impl Space {
             &event_handler
         );
 
+        // update the proxies
         for (rigid_body_handle, rigid_body_proxy_handle ) in rigid_body_map {
+            
+            let rigid_body_proxy = self.rigid_bodies.get_mut(&rigid_body_proxy_handle)
+                .expect("Invalid rigid body proxy handle");
+
             // we only update the proxy rigid type if we own it
-            match self.rigid_bodies.get(&rigid_body_proxy_handle) {
-                Some(rigid_body_proxy) => {
-                    if rigid_body_proxy.owner != *owner {
-                        continue; // continue to the next body if we don't own this one
-                    }
-                },
-                None => panic!("Invalid rigid body proxy handle!"),
+            if rigid_body_proxy.owner != *owner {
+                continue;
             }
 
-            self.rigid_bodies.insert(
-                rigid_body_proxy_handle,
-                RigidBody::from_rigid_body_mut(rigid_body_set.get_mut(rigid_body_handle).expect("Invalid rigid body handle!"), owner.clone())
-            );
+            // fetch the corresponding rigid body
+            let rigid_body = rigid_body_set.get(rigid_body_handle)
+                .expect("Invalid rigid body handle");
+
+            // update the rigid body proxy with the actual rigid body
+            rigid_body_proxy.update_from_rigid_body(rigid_body);
+        }
+
+        for (collider_handle, collider_proxy_handle) in collider_map {
+            let collider_proxy = self.colliders.get_mut(&collider_proxy_handle)
+                .expect("Invalid collider proxy handle");
+            
+            
         }
 
 
@@ -118,9 +127,9 @@ impl Space {
 
     }
 
-    pub fn get_rigid_body(&mut self, rigid_body_handle: RigidBodyHandle) -> Option<&mut RigidBody> {
+    pub fn get_rigid_body(&mut self, rigid_body_handle: &RigidBodyHandle) -> Option<&mut RigidBody> {
 
-        let rigid_body = self.rigid_bodies.get_mut(&rigid_body_handle);
+        let rigid_body = self.rigid_bodies.get_mut(rigid_body_handle);
 
         rigid_body
     }
