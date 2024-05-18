@@ -113,9 +113,15 @@ impl Space {
 
     }
 
-    pub fn get_rigid_body(&mut self, rigid_body_handle: &RigidBodyHandle) -> Option<&mut RigidBody> {
+    pub fn get_rigid_body_mut(&mut self, rigid_body_handle: &RigidBodyHandle) -> Option<&mut RigidBody> {
 
         let rigid_body = self.rigid_bodies.get_mut(rigid_body_handle);
+
+        rigid_body
+    }
+
+    pub fn get_rigid_body(&self, rigid_body_handle: &RigidBodyHandle) -> Option<&RigidBody> {
+        let rigid_body = self.rigid_bodies.get(rigid_body_handle);
 
         rigid_body
     }

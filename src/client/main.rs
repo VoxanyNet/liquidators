@@ -89,8 +89,10 @@ async fn main() {
         game::entities::Entity::Player(Player::new(client.uuid.clone()))
     );
 
+    
+
     match serde_json::to_string_pretty(&client.game_state) {
-        Ok(string) => println!("{}", string),
+        Ok(string) => println!("state just after connecting: {}", string),
         Err(_) => panic!()
     }
 

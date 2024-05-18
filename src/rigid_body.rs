@@ -32,6 +32,7 @@ impl From<rapier2d::dynamics::RigidBodyType> for RigidBodyType {
 ))]
 pub struct RigidBody {
     pub position: Vec2,
+    //pub rotation: f32,
     pub velocity: Vec2,
     pub body_type: RigidBodyType,
     pub owner: String,
@@ -43,6 +44,7 @@ impl RigidBody {
         
         self.position = Vec2::new(value.position().translation.x, value.position().translation.y);
         self.velocity = Vec2::new(value.linvel().x, value.linvel().y);
+        //self.rotation = value.rotation().angle();
         self.body_type = value.body_type().into();
     }
 

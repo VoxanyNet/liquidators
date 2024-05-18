@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::game::{HasOwner, Tickable};
 
-use self::{bullet::Bullet, coin::Coin, player::Player, raft::Raft, raft_component::RaftComponent, tree::Tree, wood::Wood, zombie::Zombie};
+use self::{bullet::Bullet, coin::Coin, physics_square::PhysicsSquare, player::Player, raft::Raft, raft_component::RaftComponent, tree::Tree, wood::Wood, zombie::Zombie};
 
 pub mod bullet;
 pub mod player;
@@ -27,7 +27,8 @@ pub enum Entity {
     Wood(Wood),
     Tree(Tree),
     Raft(Raft),
-    RaftComponent(RaftComponent)
+    RaftComponent(RaftComponent),
+    PhysicsSquare(PhysicsSquare)
 }
 
 impl HasOwner for Entity {
@@ -41,7 +42,8 @@ impl HasOwner for Entity {
             Entity::Wood(wood) => wood.get_owner(),
             Entity::Tree(tree) => tree.get_owner(),
             Entity::Raft(raft) => raft.get_owner(),
-            Entity::RaftComponent(raft_component) => raft_component.get_owner()
+            Entity::RaftComponent(raft_component) => raft_component.get_owner(),
+            Entity::PhysicsSquare(physics_square) => physics_square.get_owner()
         }
     }
 
@@ -54,7 +56,8 @@ impl HasOwner for Entity {
             Entity::Wood(wood) => wood.owner = uuid,
             Entity::Tree(tree) => tree.owner = uuid,
             Entity::Raft(raft) => raft.owner = uuid,
-            Entity::RaftComponent(raft_component) => raft_component.owner = uuid
+            Entity::RaftComponent(raft_component) => raft_component.owner = uuid,
+            Entity::PhysicsSquare(physics_square) => physics_square.owner = uuid
         }
     }
 }
@@ -69,7 +72,9 @@ impl Tickable for Entity {
             Entity::Wood(wood) => wood.tick(tick_context),
             Entity::Tree(tree) => tree.tick(tick_context),
             Entity::Raft(raft) => raft.tick(tick_context),
-            Entity::RaftComponent(raft_component) => raft_component.tick(tick_context)
+            Entity::RaftComponent(raft_component) => raft_component.tick(tick_context),
+            Entity::PhysicsSquare(physics_square) => physics_square.tick(tick_context)
+            
         }
     }
 }

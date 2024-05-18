@@ -1,8 +1,9 @@
 use std::{collections::HashMap, net::TcpStream, time::Duration};
 
 use diff::Diff;
-use game::{entities::Entity, game::{Drawable, HasOwner, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, networking::{self, receive_headered}, proxies::macroquad::math::vec2::Vec2, time::Time, uuid};
+use game::{entities::{physics_square, Entity}, game::{Drawable, HasOwner, HasRigidBody, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, networking::{self, receive_headered}, proxies::macroquad::math::vec2::Vec2, time::Time, uuid};
 use macroquad::{input::is_key_down, texture::Texture2D};
+use serde_json::to_string_pretty;
 
 pub struct Client {
     pub game_state: GameState,
@@ -118,6 +119,8 @@ impl Client {
             },
         };
 
+        
+
         let game_state_diff: GameStateDiff = match serde_json::from_str(&game_state_diff_string) {
             Ok(game_state_diff) => game_state_diff,
             Err(error) => {
@@ -125,6 +128,8 @@ impl Client {
                 return;
             },
         };
+
+        println!("new update: {}", serde_json::to_string_pretty(&game_state_diff).expect("sex"));
 
         self.game_state.apply(&game_state_diff);
     } 
@@ -139,7 +144,8 @@ impl Client {
                 Entity::Tree(tree) => {tree.draw(&mut self.textures, &self.camera_offset).await},
                 Entity::Wood(wood) => {wood.draw(&mut self.textures, &self.camera_offset).await},
                 Entity::Raft(raft) => {raft.draw(&self.camera_offset)},
-                Entity::RaftComponent(raft_component) => {raft_component.draw(&self.camera_offset)}
+                Entity::RaftComponent(raft_component) => {raft_component.draw(&self.camera_offset)},
+                Entity::PhysicsSquare(physics_square) => {physics_square.draw(&self.camera_offset, &self.game_state.space).await}
             };
         }
     }
@@ -171,7 +177,7 @@ impl Client {
             },
         };
 
-        println!("Initial state: {}", game_state_string);
+        
 
         let game_state: GameState = match serde_json::from_str(&game_state_string) {
             Ok(game_state_diff) => game_state_diff,
@@ -179,6 +185,9 @@ impl Client {
                 panic!("failed to deserialize game state diff: {}", error);
             },
         };
+
+        println!("Initial state: {}", serde_json::to_string_pretty(&game_state).expect("sex"));
+        println!("end initial state");
 
         server.set_nonblocking(true).expect("failed to set socket as non blocking");
         

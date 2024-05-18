@@ -6,10 +6,14 @@ use macroquad::audio::{self, load_sound};
 use macroquad::color::WHITE;
 use macroquad::input::{self};
 use macroquad::texture::{self, load_texture, Texture2D};
+use macroquad::window::screen_height;
 use serde::{Deserialize, Serialize};
 
+use crate::collider::Collider;
 use crate::game_state::GameState;
 use crate::proxies::macroquad::{input::KeyCode, math::{vec2::Vec2, rect::Rect}};
+use crate::rigid_body::RigidBody;
+use crate::space::{RigidBodyHandle, Space};
 use crate::time::Time;
 
 pub struct TickContext<'a> {
@@ -175,6 +179,23 @@ pub trait Color {
 pub trait Drawable: HasRect + Color {
     fn draw(&mut self, camera_offset: &Vec2) {
         macroquad::shapes::draw_rectangle(self.get_rect().x, self.get_rect().y, self.get_rect().w, self.get_rect().h, self.color().into());
+    }
+}
+
+pub trait HasRigidBody {
+    fn get_rigid_body_handle(&self) -> &RigidBodyHandle;
+
+    async fn draw(&mut self, camera_offset: &Vec2, space: &Space) {
+        let rigid_body_handle = self.get_rigid_body_handle();
+        let rigid_body = space.get_rigid_body(rigid_body_handle).expect("Invalid rigid body handle");
+
+        macroquad::shapes::draw_rectangle(
+            rigid_body.position.x + rigid_body.collider.hx, 
+            ((rigid_body.position.y + rigid_body.collider.hy) * -1.) + screen_height(), 
+            rigid_body.collider.hx * 2., 
+            rigid_body.collider.hy * 2., 
+            WHITE
+        )
     }
 }
 
