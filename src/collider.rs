@@ -1,5 +1,4 @@
 use diff::Diff;
-use rapier2d::{dynamics::RigidBodyBuilder};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]

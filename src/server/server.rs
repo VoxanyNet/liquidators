@@ -60,7 +60,7 @@ impl Server {
         'outer: for client_index in 0..self.clients.len() {
 
             // take the client out, receive all updates, then put it back in
-            let mut client = self.clients.swap_remove(client_index);
+            let mut client = self.clients.remove(client_index);
             
             // keep trying to receive updates until there are none
             loop {
@@ -73,14 +73,14 @@ impl Server {
                         match error.kind() {
                             std::io::ErrorKind::WouldBlock => {
                                 // this just means the client hasnt sent an update
-                                self.clients.push(client);
+                                self.clients.insert(client_index, client);
 
                                 continue 'outer;
                             },
                             _ => {
                                 println!("something went wrong trying to receive update from client: {}", error);
                                 
-                                self.clients.push(client);
+                                self.clients.insert(client_index, client);
 
                                 continue 'outer;
                                 // call client disconnect code
@@ -95,7 +95,7 @@ impl Server {
                     Err(error) => {
                         println!("failed to decode game state diff as string {}", error);
     
-                        self.clients.push(client);
+                        self.clients.insert(client_index, client);
 
                         // call client disconnect code
                         continue 'outer;
@@ -109,7 +109,7 @@ impl Server {
                     Err(error) => {
                         println!("failed to deserialize game state diff: {}", error);
     
-                        self.clients.push(client);
+                        self.clients.insert(client_index, client);
 
                         // call client disconnect code
     
@@ -120,11 +120,11 @@ impl Server {
                 // relay this update to other clients
                 'relay: for other_client_index in 0..self.clients.len() {
     
-                    let mut other_client = self.clients.swap_remove(other_client_index);
+                    let mut other_client = self.clients.remove(other_client_index);
     
                     match send_headered(game_state_diff_string_bytes.as_mut_slice(), &mut other_client) {
                         Ok(_) => {
-                            self.clients.push(other_client);
+                            self.clients.insert(other_client_index, other_client);
 
                             continue 'relay;
 
@@ -132,7 +132,7 @@ impl Server {
                         Err(error) => {
                             println!("failed to relay update data to client: {}", error);
     
-                            self.clients.push(other_client);
+                            self.clients.insert(other_client_index, other_client);
 
                             // call client disconnect code on OTHER client
     

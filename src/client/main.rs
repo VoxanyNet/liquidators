@@ -1,9 +1,7 @@
-use std::time::Duration;
 
-use game::{collider::Collider, entities::player::Player, proxies::macroquad::math::vec2::Vec2, rigid_body::RigidBody, space::Space};
+use game::entities::player::Player;
 use macroquad::{miniquad::conf::Platform, window::Conf};
 use client::Client;
-use rapier2d::dynamics::RigidBodyBuilder;
 
 pub mod client;
 

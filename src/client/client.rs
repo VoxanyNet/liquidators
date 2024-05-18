@@ -1,9 +1,9 @@
 use std::{collections::HashMap, net::TcpStream, time::Duration};
 
 use diff::Diff;
-use game::{entities::{physics_square, Entity}, game::{Drawable, HasOwner, HasRigidBody, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, networking::{self, receive_headered}, proxies::macroquad::math::vec2::Vec2, time::Time, uuid};
+use game::{entities::Entity, game::{Drawable, HasOwner, HasRigidBody, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, networking::{self, receive_headered}, proxies::macroquad::math::vec2::Vec2, time::Time, uuid};
 use macroquad::{input::is_key_down, texture::Texture2D};
-use serde_json::to_string_pretty;
+
 
 pub struct Client {
     pub game_state: GameState,

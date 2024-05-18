@@ -7,7 +7,7 @@ use nalgebra::vector;
 use rapier2d::{dynamics::{CCDSolver, ImpulseJointSet, IntegrationParameters, IslandManager, MultibodyJointSet, RigidBodySet}, geometry::{BroadPhase, ColliderSet, NarrowPhase}, pipeline::{PhysicsPipeline, QueryPipeline}};
 use serde::{Deserialize, Serialize};
 
-use crate::{collider::Collider, rigid_body::{self, RigidBody}};
+use crate::rigid_body::RigidBody;
 
 pub type RigidBodyHandle = String;
 pub type ColliderHandle = String;

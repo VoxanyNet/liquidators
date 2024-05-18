@@ -1,6 +1,5 @@
 use std::{net::SocketAddr, str::FromStr};
 
-use game::collider::Collider;
 
 pub mod server;
 
