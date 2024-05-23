@@ -17,14 +17,16 @@ pub type ColliderHandle = String;
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct Space {
-    rigid_bodies: HashMap<RigidBodyHandle, RigidBody>
+    rigid_bodies: HashMap<RigidBodyHandle, RigidBody>,
+    gravity: f32
 }
 
 impl Space {
 
-    pub fn new() -> Self {
+    pub fn new(gravity: f32) -> Self {
         Self {
-            rigid_bodies: HashMap::new()
+            rigid_bodies: HashMap::new(),
+            gravity: gravity
         }
     }
 
@@ -35,7 +37,7 @@ impl Space {
         let mut rigid_body_map: HashMap<RigidBodyHandle, (rapier2d::dynamics::RigidBodyHandle, rapier2d::geometry::ColliderHandle)> = HashMap::new();
 
         // create all of the temporary structs needed to step the rigid bodies
-        let gravity = vector![0., 0.];
+        let gravity = vector![0., self.gravity];
         let integration_parameters = IntegrationParameters::default();
         let mut island_manager = IslandManager::default();
         let mut broad_phase = BroadPhase::new();

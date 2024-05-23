@@ -14,7 +14,9 @@ pub struct Client {
     pub last_tick: Time,
     pub uuid: String,
     pub server: TcpStream,
-    pub camera_offset: Vec2
+    pub camera_offset: Vec2,
+    pub update_count: i32,
+    pub start_time: Time
 }
 
 impl Client {
@@ -26,9 +28,16 @@ impl Client {
     
             self.tick();
             
+            self.game_state.space.step(&self.uuid);
+            
             self.draw().await;
 
             self.send_updates();
+
+            if self.start_time.elapsed().num_seconds() > 0 {
+                println!("updates per second: {}", self.update_count / self.start_time.elapsed().num_seconds() as i32);
+            }
+            
 
             self.receive_updates();
 
@@ -72,7 +81,7 @@ impl Client {
         let diff_string_bytes = diff_string.as_bytes();
 
         match networking::send_headered(diff_string_bytes, &mut self.server) {
-            Ok(_) => {}//println!("sent updates to the server!"),
+            Ok(_) => {self.update_count += 1}//println!("sent updates to the server!"),
             Err(error) => {
                 match error.kind() {
                     std::io::ErrorKind::WouldBlock => {
@@ -92,7 +101,6 @@ impl Client {
 
         let game_state_diff_string_bytes = match receive_headered(&mut self.server) {
             Ok(game_state_diff_string_bytes) => {
-                println!("Received an update from the server!");
                 game_state_diff_string_bytes
             },
             Err(error) => {
@@ -128,8 +136,6 @@ impl Client {
                 return;
             },
         };
-
-        println!("new update: {}", serde_json::to_string_pretty(&game_state_diff).expect("sex"));
 
         self.game_state.apply(&game_state_diff);
     } 
@@ -186,9 +192,6 @@ impl Client {
             },
         };
 
-        println!("Initial state: {}", serde_json::to_string_pretty(&game_state).expect("sex"));
-        println!("end initial state");
-
         server.set_nonblocking(true).expect("failed to set socket as non blocking");
         
         Self {
@@ -200,7 +203,9 @@ impl Client {
             last_tick: Time::now(),
             uuid: uuid,
             server: server,
-            camera_offset: Vec2::new(0., 0.)
+            camera_offset: Vec2::new(0., 0.),
+            update_count: 0,
+            start_time: Time::now()
         }
     }
 

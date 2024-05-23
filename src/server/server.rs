@@ -1,7 +1,8 @@
 use std::{net::{SocketAddr, TcpListener, TcpStream}, time::Duration};
 
 use diff::Diff;
-use game::{game::HasOwner, game_state::{GameState, GameStateDiff}, networking::{receive_headered, send_headered}};
+use game::{game::HasOwner, game_state::{GameState, GameStateDiff}, networking::{receive_headered, send_headered}, proxies::macroquad::math::vec2::Vec2};
+use macroquad::color::{RED, WHITE};
 
 pub struct Server {
     pub listener: TcpListener,
@@ -27,22 +28,38 @@ impl Server {
             listener,
             clients: vec![],
             game_state: GameState::empty(),
-            update_history: vec![]
+            update_history: vec![],
         }
 
         
     }
 
-    pub fn run(&mut self) {
+    pub async fn run(&mut self) {
 
         loop {
             
             self.accept_new_client();
 
             self.receive_updates();
+            
+            for (client_index, client) in self.clients.iter().enumerate() {
+
+                let top_left = Vec2::new(60., 100. * (client_index + 1) as f32);
+                
+                macroquad::shapes::draw_rectangle(top_left.x, top_left.y, 50., 50., WHITE);
+
+                let ip = client.peer_addr().expect("failed to retrieve address").ip().to_string();
+                let port = client.peer_addr().expect("failed to retrieve address").port().to_string();
+
+                macroquad::text::draw_text(&format!("{}:{}", ip, port), top_left.x, top_left.y, 20., RED);
+
+                
+            }
+
+            macroquad::window::next_frame().await;
 
             // slow the loop down a bit so that it doesnt use so much cpu
-            std::thread::sleep(Duration::from_millis(1));
+            //std::thread::sleep(Duration::from_millis(1));
             
         }
     }
@@ -66,7 +83,6 @@ impl Server {
             loop {
                 let mut game_state_diff_string_bytes = match receive_headered(&mut client) {
                     Ok(game_state_diff_string_bytes) => {
-                        println!("Received an update from a client!");
                         game_state_diff_string_bytes
                     },
                     Err(error) => {
@@ -101,8 +117,6 @@ impl Server {
                         continue 'outer;
                     },
                 };
-    
-                println!("{}", game_state_diff_string);
     
                 let game_state_diff: GameStateDiff = match serde_json::from_str(&game_state_diff_string) {
                     Ok(game_state_diff) => game_state_diff,

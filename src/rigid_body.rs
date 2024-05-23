@@ -2,7 +2,7 @@ use diff::Diff;
 use rapier2d::{dynamics::RigidBodyBuilder, na::vector};
 use serde::{Deserialize, Serialize};
 
-use crate::{collider::Collider, proxies::macroquad::math::vec2::Vec2};
+use crate::{collider::Collider, proxies::macroquad::math::vec2::Vec2, space::Space};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -40,6 +40,7 @@ pub struct RigidBody {
 }
 
 impl RigidBody {
+
     pub fn update_from_rigid_body(&mut self, value: &rapier2d::dynamics::RigidBody) {
         
         self.position = Vec2::new(value.position().translation.x, value.position().translation.y);
