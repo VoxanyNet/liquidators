@@ -17,7 +17,7 @@ impl GameState {
     pub fn empty() -> Self {
         Self {
             entities: vec![],
-            space: Space::new(1000.)
+            space: Space::new(0.)
         }
     }
 

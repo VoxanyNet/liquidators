@@ -33,10 +33,6 @@ impl Client {
             self.draw().await;
 
             self.send_updates();
-
-            if self.start_time.elapsed().num_seconds() > 0 {
-                println!("updates per second: {}", self.update_count / self.start_time.elapsed().num_seconds() as i32);
-            }
             
 
             self.receive_updates();
@@ -98,46 +94,56 @@ impl Client {
     }
 
     pub fn receive_updates(&mut self) {
+        let mut update_count = 0;
+        
+        // we loop until there are no new updates
+        loop {
+            let game_state_diff_string_bytes = match receive_headered(&mut self.server) {
+                Ok(game_state_diff_string_bytes) => {
+                    game_state_diff_string_bytes
+                },
+                Err(error) => {
+                    match error.kind() {
+                        std::io::ErrorKind::WouldBlock => {
+                            //println!("tried to receive update from server but it would have blocked");
+                            return;
+                            
+                        },
+                        _ => {
+                            println!("something went wrong trying to receive update from server: {}", error);
+                            return;
+                        }
 
-        let game_state_diff_string_bytes = match receive_headered(&mut self.server) {
-            Ok(game_state_diff_string_bytes) => {
-                game_state_diff_string_bytes
-            },
-            Err(error) => {
-                match error.kind() {
-                    std::io::ErrorKind::WouldBlock => {
-                        //println!("tried to receive update from server but it would have blocked");
-                        return;
-                        
-                    },
-                    _ => {
-                        println!("something went wrong trying to receive update from server: {}", error);
-                        return;
                     }
+                },
+            };
+            
+            let game_state_diff_string = match String::from_utf8(game_state_diff_string_bytes.clone()) {
+                Ok(game_state_diff_string) => game_state_diff_string,
+                Err(error) => {
+                    println!("failed to decode game state diff as string {}", error);
+                    return;
+                },
+            };
 
-                }
-            },
-        };
-        
-        let game_state_diff_string = match String::from_utf8(game_state_diff_string_bytes.clone()) {
-            Ok(game_state_diff_string) => game_state_diff_string,
-            Err(error) => {
-                println!("failed to decode game state diff as string {}", error);
-                return;
-            },
-        };
+            
 
-        
+            let game_state_diff: GameStateDiff = match serde_json::from_str(&game_state_diff_string) {
+                Ok(game_state_diff) => game_state_diff,
+                Err(error) => {
+                    println!("failed to deserialize game state diff: {}", error);
+                    return;
+                },
+            };
 
-        let game_state_diff: GameStateDiff = match serde_json::from_str(&game_state_diff_string) {
-            Ok(game_state_diff) => game_state_diff,
-            Err(error) => {
-                println!("failed to deserialize game state diff: {}", error);
-                return;
-            },
-        };
+            self.game_state.apply(&game_state_diff);
 
-        self.game_state.apply(&game_state_diff);
+            update_count += 1;
+
+            println!("update count: {}", update_count);
+
+        }
+
     } 
     pub async fn draw(&mut self) {
         for entity in self.game_state.entities.iter_mut() {
