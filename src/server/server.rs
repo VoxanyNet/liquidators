@@ -34,29 +34,13 @@ impl Server {
         
     }
 
-    pub async fn run(&mut self) {
+    pub fn run(&mut self) {
 
         loop {
             
             self.accept_new_client();
 
             self.receive_updates();
-            
-            for (client_index, client) in self.clients.iter().enumerate() {
-
-                let top_left = Vec2::new(60., 100. * (client_index + 1) as f32);
-                
-                macroquad::shapes::draw_rectangle(top_left.x, top_left.y, 50., 50., WHITE);
-
-                let ip = client.peer_addr().expect("failed to retrieve address").ip().to_string();
-                let port = client.peer_addr().expect("failed to retrieve address").port().to_string();
-
-                macroquad::text::draw_text(&format!("{}:{}", ip, port), top_left.x, top_left.y, 20., RED);
-
-                
-            }
-
-            macroquad::window::next_frame().await;
 
             // slow the loop down a bit so that it doesnt use so much cpu
             //std::thread::sleep(Duration::from_millis(1));
