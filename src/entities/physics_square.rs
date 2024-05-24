@@ -27,6 +27,8 @@ impl PhysicsSquare {
         let rigid_body_handle = space.insert_rigid_body(
             RigidBody { 
                 position: position, 
+                rotation: 0.,
+                angular_velocity: 0.,
                 velocity: Vec2::new(0., 0.), 
                 body_type: body_type, 
                 owner: owner.clone(), 

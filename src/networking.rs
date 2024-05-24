@@ -10,6 +10,8 @@ pub fn send_headered(data: &[u8], stream: &mut TcpStream) -> Result<(), Error> {
     // make sure we measure the length of the compressed data, not the uncompressed data
     let data_length = compressed_data.len() as u64;
 
+    println!("{}", data_length);
+
     match stream.write_all(&data_length.to_be_bytes()) {
         Ok(_) => {},
         Err(error) => return Err(error),

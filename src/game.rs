@@ -2,8 +2,9 @@ use std::collections::HashMap;
 
 use chrono::TimeDelta;
 use macroquad::audio::{self, load_sound};
-use macroquad::color::WHITE;
+use macroquad::color::{BLUE, RED, WHITE};
 use macroquad::input::{self};
+use macroquad::shapes::DrawRectangleParams;
 use macroquad::texture::{self, load_texture, Texture2D};
 use macroquad::window::screen_height;
 
@@ -185,12 +186,12 @@ pub trait HasRigidBody {
         let rigid_body_handle = self.get_rigid_body_handle();
         let rigid_body = space.get_rigid_body(rigid_body_handle).expect("Invalid rigid body handle");
 
-        macroquad::shapes::draw_rectangle(
+        macroquad::shapes::draw_rectangle_ex(
             rigid_body.position.x + rigid_body.collider.hx, 
             ((rigid_body.position.y + rigid_body.collider.hy) * -1.) + screen_height(), 
             rigid_body.collider.hx * 2., 
             rigid_body.collider.hy * 2., 
-            WHITE
+            DrawRectangleParams { offset: macroquad::math::Vec2::new(0.5, 0.5), rotation: rigid_body.rotation * -1., color: RED }
         )
     }
 }

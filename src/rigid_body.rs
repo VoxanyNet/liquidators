@@ -32,7 +32,8 @@ impl From<rapier2d::dynamics::RigidBodyType> for RigidBodyType {
 ))]
 pub struct RigidBody {
     pub position: Vec2,
-    //pub rotation: f32,
+    pub rotation: f32,
+    pub angular_velocity: f32,
     pub velocity: Vec2,
     pub body_type: RigidBodyType,
     pub owner: String,
@@ -45,7 +46,8 @@ impl RigidBody {
         
         self.position = Vec2::new(value.position().translation.x, value.position().translation.y);
         self.velocity = Vec2::new(value.linvel().x, value.linvel().y);
-        //self.rotation = value.rotation().angle();
+        self.rotation = value.rotation().angle();
+        self.angular_velocity = value.angvel();
         self.body_type = value.body_type().into();
     }
 
@@ -53,6 +55,8 @@ impl RigidBody {
     pub fn update_from_rigid_body_mut(&mut self, value: &mut rapier2d::dynamics::RigidBody) {
         self.position = Vec2::new(value.position().translation.x, value.position().translation.y);
         self.velocity = Vec2::new(value.linvel().x, value.linvel().y);
+        self.rotation = value.rotation().angle();
+        self.angular_velocity = value.angvel();
         self.body_type = value.body_type().into();
     }
 }
@@ -63,24 +67,32 @@ impl Into<rapier2d::dynamics::RigidBody> for RigidBody {
         match self.body_type {
             RigidBodyType::Dynamic => {
                 RigidBodyBuilder::dynamic()
+                    .rotation(self.rotation)
+                    .angvel(self.angular_velocity)
                     .translation(vector![self.position.x, self.position.y])
                     .linvel(vector![self.velocity.x, self.velocity.y])
                     .build()
             },
             RigidBodyType::Fixed => {
                 RigidBodyBuilder::fixed()
+                    .rotation(self.rotation)
+                    .angvel(self.angular_velocity)
                     .translation(vector![self.position.x, self.position.y])
                     .linvel(vector![self.velocity.x, self.velocity.y])
                     .build()
             },
             RigidBodyType::KinematicPositionBased => {
                 RigidBodyBuilder::kinematic_position_based()
+                    .rotation(self.rotation)
+                    .angvel(self.angular_velocity)
                     .translation(vector![self.position.x, self.position.y])
                     .linvel(vector![self.velocity.x, self.velocity.y])
                     .build()
             },
             RigidBodyType::KinematicVelocityBased => {
                 RigidBodyBuilder::kinematic_velocity_based()
+                    .rotation(self.rotation)
+                    .angvel(self.angular_velocity)
                     .translation(vector![self.position.x, self.position.y])
                     .linvel(vector![self.velocity.x, self.velocity.y])
                     .build()
@@ -94,24 +106,32 @@ impl Into<rapier2d::dynamics::RigidBody> for &RigidBody {
         match self.body_type {
             RigidBodyType::Dynamic => {
                 RigidBodyBuilder::dynamic()
+                    .rotation(self.rotation)
+                    .angvel(self.angular_velocity)
                     .translation(vector![self.position.x, self.position.y])
                     .linvel(vector![self.velocity.x, self.velocity.y])
                     .build()
             },
             RigidBodyType::Fixed => {
                 RigidBodyBuilder::fixed()
+                    .rotation(self.rotation)
+                    .angvel(self.angular_velocity)
                     .translation(vector![self.position.x, self.position.y])
                     .linvel(vector![self.velocity.x, self.velocity.y])
                     .build()
             },
             RigidBodyType::KinematicPositionBased => {
                 RigidBodyBuilder::kinematic_position_based()
+                    .rotation(self.rotation)
+                    .angvel(self.angular_velocity)
                     .translation(vector![self.position.x, self.position.y])
                     .linvel(vector![self.velocity.x, self.velocity.y])
                     .build()
             },
             RigidBodyType::KinematicVelocityBased => {
                 RigidBodyBuilder::kinematic_velocity_based()
+                    .rotation(self.rotation)
+                    .angvel(self.angular_velocity)
                     .translation(vector![self.position.x, self.position.y])
                     .linvel(vector![self.velocity.x, self.velocity.y])
                     .build()
@@ -125,24 +145,32 @@ impl Into<rapier2d::dynamics::RigidBody> for &mut RigidBody {
         match self.body_type {
             RigidBodyType::Dynamic => {
                 RigidBodyBuilder::dynamic()
+                    .rotation(self.rotation)
+                    .angvel(self.angular_velocity)
                     .translation(vector![self.position.x, self.position.y])
                     .linvel(vector![self.velocity.x, self.velocity.y])
                     .build()
             },
             RigidBodyType::Fixed => {
                 RigidBodyBuilder::fixed()
+                    .rotation(self.rotation)
+                    .angvel(self.angular_velocity)
                     .translation(vector![self.position.x, self.position.y])
                     .linvel(vector![self.velocity.x, self.velocity.y])
                     .build()
             },
             RigidBodyType::KinematicPositionBased => {
                 RigidBodyBuilder::kinematic_position_based()
+                    .rotation(self.rotation)
+                    .angvel(self.angular_velocity)
                     .translation(vector![self.position.x, self.position.y])
                     .linvel(vector![self.velocity.x, self.velocity.y])
                     .build()
             },
             RigidBodyType::KinematicVelocityBased => {
                 RigidBodyBuilder::kinematic_velocity_based()
+                    .rotation(self.rotation)
+                    .angvel(self.angular_velocity)
                     .translation(vector![self.position.x, self.position.y])
                     .linvel(vector![self.velocity.x, self.velocity.y])
                     .build()

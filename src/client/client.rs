@@ -2,7 +2,7 @@ use std::{collections::HashMap, net::TcpStream, time::Duration};
 
 use diff::Diff;
 use game::{entities::Entity, game::{Drawable, HasOwner, HasRigidBody, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, networking::{self, receive_headered}, proxies::macroquad::math::vec2::Vec2, time::Time, uuid};
-use macroquad::{input::is_key_down, texture::Texture2D};
+use macroquad::{color::WHITE, input::is_key_down, shapes::DrawRectangleParams, texture::Texture2D};
 
 
 pub struct Client {
@@ -22,7 +22,11 @@ pub struct Client {
 impl Client {
 
     pub async fn run(&mut self) {
+
+        let mut angle = 0.;
         loop {
+
+            angle += 0.1;
         
             //macroquad::window::clear_background(macroquad::color::BLACK);
     
