@@ -3,10 +3,11 @@ use std::{net::{SocketAddr, TcpListener, TcpStream}, time::Duration};
 use diff::Diff;
 use game::{game::HasOwner, game_state::{GameState, GameStateDiff}, networking::{receive_headered, send_headered}, proxies::macroquad::math::vec2::Vec2};
 use macroquad::color::{RED, WHITE};
+use tungstenite::{Message, WebSocket};
 
 pub struct Server {
     pub listener: TcpListener,
-    pub clients: Vec<TcpStream>,
+    pub clients: Vec<WebSocket<TcpStream>>,
     pub game_state: GameState,
     pub update_history: Vec<GameState>
 }
@@ -58,60 +59,53 @@ impl Server {
 
     pub fn receive_updates(&mut self) {
 
-        'outer: for client_index in 0..self.clients.len() {
+        'client_loop: for client_index in 0..self.clients.len() {
 
             // take the client out, receive all updates, then put it back in
             let mut client = self.clients.remove(client_index);
             
             // keep trying to receive updates until there are none
             loop {
-                let mut game_state_diff_string_bytes = match receive_headered(&mut client) {
-                    Ok(game_state_diff_string_bytes) => {
-                        game_state_diff_string_bytes
+
+                let mut game_state_diff_string_bytes = match client.read() {
+                    Ok(message) => {
+                        match message {
+                            Message::Binary(game_state_diff_bytes) => {
+                                game_state_diff_bytes
+                            },
+                            _ => todo!("client tried to send non binary message")
+                        }
                     },
                     Err(error) => {
-                        match error.kind() {
-                            std::io::ErrorKind::WouldBlock => {
-                                // this just means the client hasnt sent an update
-                                self.clients.insert(client_index, client);
+                        match error {
 
-                                continue 'outer;
+                            tungstenite::Error::Io(io_error) => {
+                                match io_error.kind() {
+                                    std::io::ErrorKind::WouldBlock => {
+                                        // this means that there was no update to read
+                                        self.clients.insert(client_index, client);
+                                        
+                                        continue 'client_loop // move to the next client
+                                    },
+                                    _ => todo!("unhandled io error: {}", io_error),
+                                }
                             },
-                            _ => {
-                                println!("something went wrong trying to receive update from client: {}", error);
-                                
-                                self.clients.insert(client_index, client);
-
-                                continue 'outer;
-                                // call client disconnect code
-                            }
+                            _ => todo!("unhandled websocket message read error: {}", error)
                         }
-
                     },
                 };
                 
                 let game_state_diff_string = match String::from_utf8(game_state_diff_string_bytes.clone()) {
                     Ok(game_state_diff_string) => game_state_diff_string,
                     Err(error) => {
-                        println!("failed to decode game state diff as string {}", error);
-    
-                        self.clients.insert(client_index, client);
-
-                        // call client disconnect code
-                        continue 'outer;
+                        todo!("unhandled game state byte decoding error {}", error);
                     },
                 };
     
                 let game_state_diff: GameStateDiff = match serde_json::from_str(&game_state_diff_string) {
                     Ok(game_state_diff) => game_state_diff,
                     Err(error) => {
-                        println!("failed to deserialize game state diff: {}", error);
-    
-                        self.clients.insert(client_index, client);
-
-                        // call client disconnect code
-    
-                        continue 'outer;
+                        todo!("unhandled game state diff deserialization error: {}", error);
                     },
                 };
     
@@ -120,7 +114,7 @@ impl Server {
     
                     let mut other_client = self.clients.remove(other_client_index);
     
-                    match send_headered(game_state_diff_string_bytes.as_mut_slice(), &mut other_client) {
+                    match other_client.send(Message::Binary(game_state_diff_string_bytes.clone())) {
                         Ok(_) => {
                             self.clients.insert(other_client_index, other_client);
 
@@ -128,13 +122,7 @@ impl Server {
 
                         },
                         Err(error) => {
-                            println!("failed to relay update data to client: {}", error);
-    
-                            self.clients.insert(other_client_index, other_client);
-
-                            // call client disconnect code on OTHER client
-    
-                            continue 'relay;
+                            todo!("unhandled error when relaying update data to client: {}", error);
     
                         },
                     }
@@ -153,46 +141,52 @@ impl Server {
             Ok((mut stream, address)) => {
                 println!("received new connection from address: {}", address);
 
+                stream.set_nonblocking(true).expect("Failed to set new client as non blocking");
+
+                let mut websocket_stream = tungstenite::accept(stream).expect("Failed to accept new connection as websocket");
+
                 // send client current state
-                let game_state_string = match serde_json::to_string(&self.game_state) {
-                    Ok(game_state_bytes) => game_state_bytes,
-                    Err(error) => {
-                        println!("failed serialize initial state to string: {}", error);
-                        return None
-                    },
-                };
+                let game_state_string = serde_json::to_string(&self.game_state).expect("Failed to serialize current game state");
 
-                let game_state_bytes = game_state_string.as_bytes();
+                let game_state_bytes = game_state_string.as_bytes().to_vec();
 
-                match send_headered(game_state_bytes, &mut stream) {
-                    Ok(_) => {},
-                    Err(error) => {
-                        println!("failed to send initial state: {}", error);
-                        return None
+                // keep attempting to send initial state to client
+                loop {
+                    match websocket_stream.send(
+                        Message::Binary(game_state_bytes.clone())
+                    ) {
+                        Ok(_) => break,
+                        Err(error) => {
+                            match error {
+                                tungstenite::Error::Io(io_error) => {
+                                    match io_error.kind() {
+                                        std::io::ErrorKind::WouldBlock => {
+                                            continue; // try again if the socket blocked
+                                        },
+                                        _ => panic!("Something went wrong trying to send initial state: {}", io_error)
+                                    }
+                                },
+                                _ => panic!("Something went wrong trying to send initial state: {}", error)
+                            }
+                        },
                     }
                 }
-                
-                // only set as non blocking once the initial state has been sent
-                match stream.set_nonblocking(true) {
-                    Ok(_) => {},
-                    Err(error) => {
-                        println!("failed to set new client as non blocking: {}", error);
-                        return None
-                    },
-                }
-                
+
                 println!("pushing new client");
 
-                self.clients.push(stream);
+                self.clients.push(websocket_stream);
 
-                Some(())
+                return Some(())
 
             },
             Err(error) => {
                 match error.kind() {
-                    std::io::ErrorKind::WouldBlock => None, //  no new clients
+                    std::io::ErrorKind::WouldBlock => return None, // no new clients
 
-                    _ => None
+                    _ => {
+                        println!("Something went wrong trying to accept a new client");
+                        return None
+                    }
                 }
             },
         }
