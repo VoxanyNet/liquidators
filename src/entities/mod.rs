@@ -112,3 +112,9 @@ impl From<Wood> for Entity {
         Self::Wood(value)
     }
 }
+
+impl From<PhysicsSquare> for Entity {
+    fn from(value: PhysicsSquare) -> Self {
+        Self::PhysicsSquare(value)
+    }
+}

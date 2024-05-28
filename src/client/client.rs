@@ -1,8 +1,8 @@
 use std::{collections::HashMap, net::TcpStream, thread::sleep, time::Duration};
 
 use diff::Diff;
-use game::{entities::Entity, game::{Drawable, HasOwner, HasRigidBody, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, networking::{self, receive_headered}, proxies::macroquad::math::vec2::Vec2, time::Time, uuid};
-use macroquad::{color::WHITE, input::is_key_down, shapes::DrawRectangleParams, texture::Texture2D};
+use game::{entities::{physics_square::PhysicsSquare, Entity}, game::{Drawable, HasOwner, HasRigidBody, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, networking::{self, receive_headered}, proxies::macroquad::math::vec2::Vec2, time::Time, uuid};
+use macroquad::{color::WHITE, input::{is_key_down, is_mouse_button_down, is_mouse_button_pressed, is_mouse_button_released}, shapes::DrawRectangleParams, texture::Texture2D};
 
 
 pub struct Client {
@@ -258,6 +258,23 @@ impl Client {
     pub fn tick(&mut self) {
 
         self.control_camera();
+
+        if is_mouse_button_released(macroquad::input::MouseButton::Left) {
+
+            let mouse_pos = macroquad::input::mouse_position();
+
+            self.game_state.entities.push( 
+                PhysicsSquare::new(
+                    &mut self.game_state.space,
+                    Vec2::new(mouse_pos.0 + 20., mouse_pos.1 + 20.),
+                    game::rigid_body::RigidBodyType::Dynamic,
+                    20., 
+                    20., 
+                    &self.uuid,
+                    false
+                ).into()
+            );
+        }
 
         // we create a tick context because we cannot pass Client directly
         // we want others to be able to create their own client structs so TickContext is the middle man
