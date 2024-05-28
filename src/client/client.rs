@@ -1,4 +1,4 @@
-use std::{collections::HashMap, net::TcpStream, time::Duration};
+use std::{collections::HashMap, net::TcpStream, thread::sleep, time::Duration};
 
 use diff::Diff;
 use game::{entities::Entity, game::{Drawable, HasOwner, HasRigidBody, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, networking::{self, receive_headered}, proxies::macroquad::math::vec2::Vec2, time::Time, uuid};
@@ -13,7 +13,8 @@ pub struct Client {
     pub sounds: HashMap<String, macroquad::audio::Sound>,
     pub last_tick: Time,
     pub uuid: String,
-    pub server: TcpStream,
+    pub server_receive: ewebsock::WsReceiver,
+    pub server_send: ewebsock::WsSender,
     pub camera_offset: Vec2,
     pub update_count: i32,
     pub start_time: Time
@@ -23,10 +24,7 @@ impl Client {
 
     pub async fn run(&mut self) {
 
-        let mut angle = 0.;
         loop {
-
-            angle += 0.1;
         
             //macroquad::window::clear_background(macroquad::color::BLACK);
     
@@ -38,7 +36,6 @@ impl Client {
 
             self.send_updates();
             
-
             self.receive_updates();
 
             // we dont want to track the changes that happen to the game state when we receive updates
@@ -80,20 +77,7 @@ impl Client {
 
         let diff_string_bytes = diff_string.as_bytes();
 
-        match networking::send_headered(diff_string_bytes, &mut self.server) {
-            Ok(_) => {self.update_count += 1}//println!("sent updates to the server!"),
-            Err(error) => {
-                match error.kind() {
-                    std::io::ErrorKind::WouldBlock => {
-                        todo!("tried to send update to server but it blocked: {}", error);
-                    }
-
-                    _ => {
-                        println!("failed to send update to server: {}", error)
-                    }
-                }
-            },
-        }
+        self.server_send.send(ewebsock::WsMessage::Binary(diff_string_bytes.to_vec()));
 
     }
 
@@ -102,41 +86,35 @@ impl Client {
         
         // we loop until there are no new updates
         loop {
-            let game_state_diff_string_bytes = match receive_headered(&mut self.server) {
-                Ok(game_state_diff_string_bytes) => {
-                    game_state_diff_string_bytes
-                },
-                Err(error) => {
-                    match error.kind() {
-                        std::io::ErrorKind::WouldBlock => {
-                            //println!("tried to receive update from server but it would have blocked");
-                            return;
-                            
-                        },
-                        _ => {
-                            println!("something went wrong trying to receive update from server: {}", error);
-                            return;
-                        }
 
+            let game_state_diff_string_bytes = match self.server_receive.try_recv() {
+                Some(event) => {
+                    match event {
+                        ewebsock::WsEvent::Opened => todo!("unhandled 'Opened' event"),
+                        ewebsock::WsEvent::Message(message) => {
+                            match message {
+                                ewebsock::WsMessage::Binary(bytes) => bytes,
+                                _ => todo!("unhandled message type when trying to receive updates from server")
+                            }
+                        },
+                        ewebsock::WsEvent::Error(error) => todo!("unhandled 'Error' event when trying to receive update from server: {}", error),
+                        ewebsock::WsEvent::Closed => todo!("server closed"),
                     }
                 },
+                None => break, // this means there are no more updates
             };
             
             let game_state_diff_string = match String::from_utf8(game_state_diff_string_bytes.clone()) {
                 Ok(game_state_diff_string) => game_state_diff_string,
                 Err(error) => {
-                    println!("failed to decode game state diff as string {}", error);
-                    return;
+                    panic!("failed to decode game state diff as string {}", error);
                 },
             };
-
-            
 
             let game_state_diff: GameStateDiff = match serde_json::from_str(&game_state_diff_string) {
                 Ok(game_state_diff) => game_state_diff,
                 Err(error) => {
-                    println!("failed to deserialize game state diff: {}", error);
-                    return;
+                    panic!("failed to deserialize game state diff: {}", error);
                 },
             };
 
@@ -166,24 +144,60 @@ impl Client {
         }
     }
 
-    pub fn connect(address: &str) -> Self {
+    pub fn connect(url: &str) -> Self {
 
         let uuid = uuid();
 
         println!("{}", uuid);
 
-        let mut server = match TcpStream::connect(address) {
-            Ok(stream) => stream,
+        let (server_send, server_receive) = match ewebsock::connect(url, ewebsock::Options::default()) {
+            Ok(result) => result,
             Err(error) => {
-                panic!("failed to connect: {}", error)
+                panic!("failed to connect to server: {}", error)
             },
-        };
+        }; 
 
-        let game_state_string_bytes = match receive_headered(&mut server) {
-            Ok(game_state_diff_string_bytes) => game_state_diff_string_bytes,
-            Err(error) => {
-                panic!("failed to receive game state from server: {}", error);
-            },
+        // wait for Opened event from server
+        loop {
+            match server_receive.try_recv() {
+                Some(event) => {
+                    match event {
+                        ewebsock::WsEvent::Opened => {
+                            println!("we got the opened message!");
+                            break;
+                        },
+                        ewebsock::WsEvent::Message(message) => {
+                            match message {
+                                _ => panic!("received a message from the server")
+                            }
+                        },
+                        ewebsock::WsEvent::Error(error) => panic!("received error when trying to connect to server: {}", error),
+                        ewebsock::WsEvent::Closed => panic!("server closed when trying to connect"),
+                        
+                    }
+                },
+                None => continue,
+            }
+        }
+
+        let game_state_string_bytes = loop {
+
+            match server_receive.try_recv() {
+                Some(event) => {
+                    match event {
+                        ewebsock::WsEvent::Opened => todo!("unhandled opened event on connect"),
+                        ewebsock::WsEvent::Message(message) => {
+                            match message {
+                                ewebsock::WsMessage::Binary(bytes) => break bytes,
+                                _ => todo!("unhandled message type when receiving initial state")
+                            }
+                        },
+                        ewebsock::WsEvent::Error(error) => todo!("unhandled error when receiving initial state: {}", error),
+                        ewebsock::WsEvent::Closed => todo!("unhandled closed event when receiving initial state"),
+                    }
+                },
+                None => continue, // this means that the server would have blocked, so we try again
+            };
         };
         
         let game_state_string = match String::from_utf8(game_state_string_bytes.clone()) {
@@ -201,8 +215,6 @@ impl Client {
                 panic!("failed to deserialize game state diff: {}", error);
             },
         };
-
-        server.set_nonblocking(true).expect("failed to set socket as non blocking");
         
         Self {
             game_state: game_state.clone(),
@@ -212,7 +224,8 @@ impl Client {
             sounds: HashMap::new(),
             last_tick: Time::now(),
             uuid: uuid,
-            server: server,
+            server_receive: server_receive,
+            server_send: server_send,
             camera_offset: Vec2::new(0., 0.),
             update_count: 0,
             start_time: Time::now()

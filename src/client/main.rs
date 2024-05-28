@@ -21,7 +21,7 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    let mut client = Client::connect("voxany.net:5556");
+    let mut client = Client::connect("ws://voxany.net:5556");
 
     client.game_state.entities.push(
         game::entities::Entity::Player(Player::new(client.uuid.clone()))

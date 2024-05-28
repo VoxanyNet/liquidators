@@ -1,4 +1,4 @@
-use std::{net::{SocketAddr, TcpListener, TcpStream}, time::Duration};
+use std::{f32::consts::PI, net::{SocketAddr, TcpListener, TcpStream}, time::Duration};
 
 use diff::Diff;
 use game::{game::HasOwner, game_state::{GameState, GameStateDiff}, networking::{receive_headered, send_headered}, proxies::macroquad::math::vec2::Vec2};
@@ -138,12 +138,23 @@ impl Server {
     pub fn accept_new_client(&mut self) -> Option<()>{
 
         match self.listener.accept() {
-            Ok((mut stream, address)) => {
+            Ok((stream, address)) => {
                 println!("received new connection from address: {}", address);
 
                 stream.set_nonblocking(true).expect("Failed to set new client as non blocking");
 
-                let mut websocket_stream = tungstenite::accept(stream).expect("Failed to accept new connection as websocket");
+                let mut websocket_stream = loop {
+                    match tungstenite::accept(stream.try_clone().expect("failed to clone stream")) {
+                        Ok(websocket_stream) => break websocket_stream,
+                        Err(error) => {
+                            match error {
+                                tungstenite::HandshakeError::Interrupted(_) => continue, // try again if the handshake isnt done yet
+                                tungstenite::HandshakeError::Failure(error) => panic!("handshake failed with new client: {}", error),
+                            }
+                        },
+                    };
+                };
+                
 
                 // send client current state
                 let game_state_string = serde_json::to_string(&self.game_state).expect("Failed to serialize current game state");
