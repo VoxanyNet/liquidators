@@ -2,6 +2,7 @@ use std::{f32::consts::PI, net::{SocketAddr, TcpListener, TcpStream}, time::Dura
 
 use diff::Diff;
 use game::{game::HasOwner, game_state::{GameState, GameStateDiff}, networking::{receive_headered, send_headered}, proxies::macroquad::math::vec2::Vec2};
+use lz4_flex::{compress_prepend_size, decompress_size_prepended};
 use macroquad::color::{RED, WHITE};
 use tungstenite::{Message, WebSocket};
 
@@ -67,7 +68,7 @@ impl Server {
             // keep trying to receive updates until there are none
             loop {
 
-                let mut game_state_diff_string_bytes = match client.read() {
+                let compressed_game_state_diff_string_bytes = match client.read() {
                     Ok(message) => {
                         match message {
                             Message::Binary(game_state_diff_bytes) => {
@@ -94,7 +95,8 @@ impl Server {
                         }
                     },
                 };
-                
+                let game_state_diff_string_bytes = decompress_size_prepended(&compressed_game_state_diff_string_bytes).expect("Failed to decompress game state diff string bytes");
+
                 let game_state_diff_string = match String::from_utf8(game_state_diff_string_bytes.clone()) {
                     Ok(game_state_diff_string) => game_state_diff_string,
                     Err(error) => {
@@ -114,7 +116,7 @@ impl Server {
     
                     let mut other_client = self.clients.remove(other_client_index);
     
-                    match other_client.send(Message::Binary(game_state_diff_string_bytes.clone())) {
+                    match other_client.send(Message::Binary(compressed_game_state_diff_string_bytes.clone())) {
                         Ok(_) => {
                             self.clients.insert(other_client_index, other_client);
 
@@ -161,10 +163,12 @@ impl Server {
 
                 let game_state_bytes = game_state_string.as_bytes().to_vec();
 
+                let compressed_game_state_bytes = compress_prepend_size(&game_state_bytes);
+
                 // keep attempting to send initial state to client
                 loop {
                     match websocket_stream.send(
-                        Message::Binary(game_state_bytes.clone())
+                        Message::Binary(compressed_game_state_bytes.clone())
                     ) {
                         Ok(_) => break,
                         Err(error) => {

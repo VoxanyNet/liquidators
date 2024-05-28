@@ -2,7 +2,8 @@ use std::{collections::HashMap, net::TcpStream, thread::sleep, time::Duration};
 
 use diff::Diff;
 use game::{entities::{physics_square::PhysicsSquare, Entity}, game::{Drawable, HasOwner, HasRigidBody, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, networking::{self, receive_headered}, proxies::macroquad::math::vec2::Vec2, time::Time, uuid};
-use macroquad::{color::WHITE, input::{is_key_down, is_mouse_button_down, is_mouse_button_pressed, is_mouse_button_released}, shapes::DrawRectangleParams, texture::Texture2D};
+use lz4_flex::{compress_prepend_size, decompress_size_prepended};
+use macroquad::{color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_pressed, is_mouse_button_released}, shapes::DrawRectangleParams, texture::Texture2D};
 
 
 pub struct Client {
@@ -57,7 +58,7 @@ impl Client {
                 Duration::from_millis(5)
             );
     
-            //println!("{}",  macroquad::time::get_fps());
+            println!("{}",  macroquad::time::get_fps());
         }
     }
 
@@ -77,7 +78,9 @@ impl Client {
 
         let diff_string_bytes = diff_string.as_bytes();
 
-        self.server_send.send(ewebsock::WsMessage::Binary(diff_string_bytes.to_vec()));
+        let compressed_diff_string_bytes = compress_prepend_size(&diff_string_bytes);
+
+        self.server_send.send(ewebsock::WsMessage::Binary(compressed_diff_string_bytes.to_vec()));
 
     }
 
@@ -87,7 +90,7 @@ impl Client {
         // we loop until there are no new updates
         loop {
 
-            let game_state_diff_string_bytes = match self.server_receive.try_recv() {
+            let compressed_game_state_diff_string_bytes = match self.server_receive.try_recv() {
                 Some(event) => {
                     match event {
                         ewebsock::WsEvent::Opened => todo!("unhandled 'Opened' event"),
@@ -104,6 +107,8 @@ impl Client {
                 None => break, // this means there are no more updates
             };
             
+            let game_state_diff_string_bytes = decompress_size_prepended(&compressed_game_state_diff_string_bytes).expect("Failed to decompress incoming update");
+
             let game_state_diff_string = match String::from_utf8(game_state_diff_string_bytes.clone()) {
                 Ok(game_state_diff_string) => game_state_diff_string,
                 Err(error) => {
@@ -180,7 +185,7 @@ impl Client {
             }
         }
 
-        let game_state_string_bytes = loop {
+        let compressed_game_state_string_bytes = loop {
 
             match server_receive.try_recv() {
                 Some(event) => {
@@ -199,6 +204,8 @@ impl Client {
                 None => continue, // this means that the server would have blocked, so we try again
             };
         };
+        
+        let game_state_string_bytes = decompress_size_prepended(&compressed_game_state_string_bytes).expect("Failed to decompress initial state");
         
         let game_state_string = match String::from_utf8(game_state_string_bytes.clone()) {
             Ok(game_state_diff_string) => game_state_diff_string,
@@ -258,6 +265,12 @@ impl Client {
     pub fn tick(&mut self) {
 
         self.control_camera();
+
+        if is_key_released(macroquad::input::KeyCode::F5) {
+            let game_state_json = serde_json::to_string_pretty(&self.game_state).unwrap();
+
+            std::fs::write("state.json", game_state_json).unwrap();
+        }
 
         if is_mouse_button_released(macroquad::input::MouseButton::Left) {
 
