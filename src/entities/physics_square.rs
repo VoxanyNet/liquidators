@@ -1,4 +1,6 @@
 use diff::Diff;
+use macroquad::input::{is_key_down, KeyCode};
+use macroquad::window;
 use serde::{Deserialize, Serialize};
 
 use crate::collider::Collider;
@@ -19,11 +21,11 @@ pub struct PhysicsSquare {
     pub color: crate::proxies::macroquad::color::Color,
     pub owner: String,
     pub rigid_body_handle: RigidBodyHandle,
-    pub follow_cursor: bool
+    pub controllable: bool
 }
 
 impl PhysicsSquare {
-    pub fn new(space: &mut Space, position: Vec2, body_type: RigidBodyType, hx: f32, hy: f32, owner: &String, follow_cursor: bool) -> Self {
+    pub fn new(space: &mut Space, position: Vec2, body_type: RigidBodyType, hx: f32, hy: f32, owner: &String, controlable: bool) -> Self {
         let rigid_body_handle = space.insert_rigid_body(
             RigidBody { 
                 position: position, 
@@ -47,7 +49,7 @@ impl PhysicsSquare {
             color: WHITE,
             owner: owner.clone(),
             rigid_body_handle,
-            follow_cursor: follow_cursor
+            controllable: controlable
         }
         
     }
@@ -78,13 +80,55 @@ impl HasOwner for PhysicsSquare {
 
 impl Tickable for PhysicsSquare {
     fn tick(&mut self, context: &mut crate::game::TickContext) {
-        if self.follow_cursor {
+
+        let rigid_body = context.game_state.space.get_rigid_body_mut(self.get_rigid_body_handle()).expect("shit");
+
+        if rigid_body.position.x >= window::screen_width() || rigid_body.position.x <= 0. {
+            rigid_body.velocity.x = rigid_body.velocity.x * -1.;
+        }
+
+        if rigid_body.position.y >= window::screen_height() || rigid_body.position.y <= 0. {
+            rigid_body.velocity.y = rigid_body.velocity.y * -1.;
+        }
+
+        if self.controllable {
             let rigid_body = context.game_state.space.get_rigid_body_mut(self.get_rigid_body_handle()).expect("shit");
 
-            rigid_body.position = Vec2::new(
-                macroquad::input::mouse_position().0,
-                macroquad::input::mouse_position().1 * -1. + macroquad::window::screen_height()
-            );
+            if is_key_down(KeyCode::W) {
+
+                if rigid_body.velocity.y.is_sign_negative() {
+                    rigid_body.velocity.y = 0.
+                }
+
+                rigid_body.velocity.y += 4.
+            }
+
+            if is_key_down(KeyCode::S) {
+
+                if rigid_body.velocity.y.is_sign_positive() {
+                    rigid_body.velocity.y = 0.
+                }
+
+                rigid_body.velocity.y -= 4.
+            }
+            
+            if is_key_down(KeyCode::A) {
+
+                if rigid_body.velocity.x.is_sign_positive() {
+                    rigid_body.velocity.x = 0.
+                }
+
+                rigid_body.velocity.x -= 4.
+            }
+
+            if is_key_down(KeyCode::D) {
+
+                if rigid_body.velocity.x.is_sign_negative() {
+                    rigid_body.velocity.x = 0.
+                }
+
+                rigid_body.velocity.x += 4.
+            }
         }
     }
 }

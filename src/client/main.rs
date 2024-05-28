@@ -23,21 +23,9 @@ async fn main() {
 
     let mut client = Client::connect("ws://voxany.net:5556");
 
-    client.game_state.entities.push(
-        game::entities::Entity::Player(Player::new(client.uuid.clone()))
-    );
-
-    let physics_square = PhysicsSquare::new(
-        &mut client.game_state.space,
-        Vec2::new(50., 500.),
-        game::rigid_body::RigidBodyType::Fixed,
-        20., 
-        20., 
-        &client.uuid,
-        true
-    );
-
-    client.game_state.entities.push(game::entities::Entity::PhysicsSquare(physics_square));
+    // client.game_state.entities.push(
+    //     game::entities::Entity::Player(Player::new(client.uuid.clone()))
+    // );
 
     let physics_square = PhysicsSquare::new(
         &mut client.game_state.space,
@@ -46,7 +34,7 @@ async fn main() {
         20., 
         20., 
         &client.uuid,
-        false
+        true
     );
 
     client.game_state.entities.push(game::entities::Entity::PhysicsSquare(physics_square));
