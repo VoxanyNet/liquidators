@@ -1,5 +1,5 @@
 
-use game::{collider::Collider, entities::{physics_square::PhysicsSquare, player::Player}, proxies::macroquad::{color::colors::WHITE, math::vec2::Vec2}, rigid_body::RigidBody};
+use game::{entities::physics_square::PhysicsSquare, proxies::macroquad::math::vec2::Vec2};
 use macroquad::{miniquad::conf::Platform, window::Conf};
 use client::Client;
 

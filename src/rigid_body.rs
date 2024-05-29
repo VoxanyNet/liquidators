@@ -2,7 +2,7 @@ use diff::Diff;
 use rapier2d::{dynamics::RigidBodyBuilder, na::vector};
 use serde::{Deserialize, Serialize};
 
-use crate::{collider::Collider, proxies::macroquad::math::vec2::Vec2, space::Space};
+use crate::{collider::Collider, proxies::macroquad::math::vec2::Vec2};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(

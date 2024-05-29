@@ -1,9 +1,9 @@
-use std::{collections::HashMap, net::TcpStream, thread::sleep, time::Duration};
+use std::{collections::HashMap, time::Duration};
 
 use diff::Diff;
-use game::{entities::{physics_square::PhysicsSquare, Entity}, game::{Drawable, HasOwner, HasRigidBody, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, networking::{self, receive_headered}, proxies::macroquad::math::vec2::Vec2, time::Time, uuid};
+use game::{entities::{physics_square::PhysicsSquare, Entity}, game::{Drawable, HasOwner, HasRigidBody, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, proxies::macroquad::math::vec2::Vec2, time::Time, uuid};
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
-use macroquad::{color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_pressed, is_mouse_button_released}, shapes::DrawRectangleParams, texture::Texture2D};
+use macroquad::{input::{is_key_down, is_key_released, is_mouse_button_released}, texture::Texture2D};
 
 
 pub struct Client {
@@ -291,7 +291,7 @@ impl Client {
             );
         }
 
-        // we create a tick context because we cannot pass Client directly
+        // we create a tick context because we cannot pass Client dzirectly
         // we want others to be able to create their own client structs so TickContext is the middle man
         let mut tick_context = TickContext {
             game_state: &mut self.game_state,

@@ -1,9 +1,8 @@
-use std::{f32::consts::PI, net::{SocketAddr, TcpListener, TcpStream}, time::Duration};
+use std::net::{SocketAddr, TcpListener, TcpStream};
 
 use diff::Diff;
-use game::{game::HasOwner, game_state::{GameState, GameStateDiff}, networking::{receive_headered, send_headered}, proxies::macroquad::math::vec2::Vec2};
+use game::{game::HasOwner, game_state::{GameState, GameStateDiff}};
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
-use macroquad::color::{RED, WHITE};
 use tungstenite::{Message, WebSocket};
 
 pub struct Server {

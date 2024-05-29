@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 use crate::collider::Collider;
 use crate::game::{Color, HasOwner, HasRigidBody, Tickable};
 use crate::proxies::macroquad::color::colors::WHITE;
-use crate::proxies::macroquad::math::rect::Rect;
 
 use crate::proxies::macroquad::math::vec2::Vec2;
 use crate::rigid_body::{RigidBody, RigidBodyType};

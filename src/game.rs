@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use chrono::TimeDelta;
 use macroquad::audio::{self, load_sound};
-use macroquad::color::{BLUE, RED, WHITE};
+use macroquad::color::{RED, WHITE};
 use macroquad::input::{self};
 use macroquad::shapes::DrawRectangleParams;
 use macroquad::texture::{self, load_texture, Texture2D};

@@ -1,6 +1,5 @@
 use std::{net::SocketAddr, str::FromStr};
 
-use macroquad::{miniquad::conf::Platform, window::Conf};
 
 
 pub mod server;
