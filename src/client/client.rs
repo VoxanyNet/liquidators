@@ -58,7 +58,9 @@ impl Client {
                 Duration::from_millis(5)
             );
     
-            println!("{}",  macroquad::time::get_fps());
+            println!("fps: {}",  macroquad::time::get_fps());
+
+            println!("entities: {}", self.game_state.entities.len())
         }
     }
 
@@ -127,7 +129,7 @@ impl Client {
 
             update_count += 1;
 
-            println!("update count: {}", update_count);
+            //println!("update count: {}", update_count);
 
         }
 
