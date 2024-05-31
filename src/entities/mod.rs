@@ -1,4 +1,4 @@
-use core_lib::traits::HasOwner;
+use usefulgamelibrary::traits::HasOwner;
 use diff::Diff;
 use physics_square::PhysicsSquare;
 use serde::{Deserialize, Serialize};

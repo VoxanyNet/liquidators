@@ -1,4 +1,4 @@
-use core_lib::space::Space;
+use usefulgamelibrary::space::Space;
 use diff::Diff;
 use serde::{Deserialize, Serialize};
 

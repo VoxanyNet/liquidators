@@ -1,12 +1,12 @@
 use std::{collections::HashMap, time::Duration};
 
-use core_lib::{proxies::macroquad::math::vec2::Vec2, time::Time};
+use usefulgamelibrary::{proxies::macroquad::math::vec2::Vec2, time::Time};
 use diff::Diff;
 use liquidators_lib::{entities::{physics_square::PhysicsSquare, Entity}, game_state::{GameState, GameStateDiff}, traits::{IsClient, Tickable}};
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
 use macroquad::{input::{is_key_down, is_key_released, is_mouse_button_released}, texture::Texture2D};
-use core_lib::traits::HasOwner;
-use core_lib::traits::HasRigidBody;
+use usefulgamelibrary::traits::HasOwner;
+use usefulgamelibrary::traits::HasRigidBody;
 
 
 pub struct Client {
@@ -179,7 +179,7 @@ impl Client {
 
     pub fn connect(url: &str) -> Self {
 
-        let uuid = core_lib::uuid();
+        let uuid = usefulgamelibrary::uuid();
 
         println!("{}", uuid);
 
@@ -308,7 +308,7 @@ impl Client {
                 PhysicsSquare::new(
                     &mut self.game_state.space,
                     Vec2::new(mouse_pos.0 + 20., mouse_pos.1 + 20.),
-                    core_lib::rigid_body::RigidBodyType::Dynamic,
+                    usefulgamelibrary::rigid_body::RigidBodyType::Dynamic,
                     20., 
                     20., 
                     &self.uuid,
