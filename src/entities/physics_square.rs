@@ -1,15 +1,15 @@
+use core_lib::collider::Collider;
+use core_lib::proxies::macroquad::color::colors::WHITE;
+use core_lib::proxies::macroquad::math::vec2::Vec2;
+use core_lib::rigid_body::{RigidBody, RigidBodyType};
+use core_lib::space::{RigidBodyHandle, Space};
+use core_lib::traits::{Color, HasOwner, HasRigidBody};
 use diff::Diff;
 use macroquad::input::{is_key_down, KeyCode};
 use macroquad::window;
 use serde::{Deserialize, Serialize};
 
-use crate::collider::Collider;
-use crate::game::{Color, HasOwner, HasRigidBody, Tickable};
-use crate::proxies::macroquad::color::colors::WHITE;
-
-use crate::proxies::macroquad::math::vec2::Vec2;
-use crate::rigid_body::{RigidBody, RigidBodyType};
-use crate::space::{RigidBodyHandle, Space};
+use crate::traits::{IsClient, Tickable};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -17,7 +17,7 @@ use crate::space::{RigidBodyHandle, Space};
 ))]
 pub struct PhysicsSquare {
     pub scale: u32,
-    pub color: crate::proxies::macroquad::color::Color,
+    pub color: core_lib::proxies::macroquad::color::Color,
     pub owner: String,
     pub rigid_body_handle: RigidBodyHandle,
     pub controllable: bool
@@ -55,7 +55,7 @@ impl PhysicsSquare {
 }
 
 impl Color for PhysicsSquare {
-    fn color(&self) -> crate::proxies::macroquad::color::Color {
+    fn color(&self) -> core_lib::proxies::macroquad::color::Color {
         self.color
     }
 }
@@ -78,9 +78,9 @@ impl HasOwner for PhysicsSquare {
 }
 
 impl Tickable for PhysicsSquare {
-    fn tick(&mut self, context: &mut crate::game::TickContext) {
+    fn tick(&mut self, client: &mut dyn IsClient) {
 
-        let rigid_body = context.game_state.space.get_rigid_body_mut(self.get_rigid_body_handle()).expect("shit");
+        let rigid_body = client.get_game_state().space.get_rigid_body_mut(self.get_rigid_body_handle()).expect("shit");
 
         if rigid_body.position.x >= window::screen_width() || rigid_body.position.x <= 0. {
             rigid_body.velocity.x = rigid_body.velocity.x * -1.;
@@ -91,7 +91,7 @@ impl Tickable for PhysicsSquare {
         }
 
         if self.controllable {
-            let rigid_body = context.game_state.space.get_rigid_body_mut(self.get_rigid_body_handle()).expect("shit");
+            let rigid_body = client.get_game_state().space.get_rigid_body_mut(self.get_rigid_body_handle()).expect("shit");
 
             if is_key_down(KeyCode::W) {
 

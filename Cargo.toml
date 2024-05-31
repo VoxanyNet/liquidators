@@ -18,6 +18,7 @@ uuid = { version = "1.8.0", features = ["v4"] }
 lz4_flex = { version = "0.11", default-features = false }
 ewebsock = "0.6.0"
 tungstenite = "0.21.0"
+core_lib = {path = "../core_lib"}
 
 [[bin]]
 name = "client"
@@ -27,13 +28,7 @@ path = "src/client/main.rs"
 name = "server"
 path = "src/server/main.rs"
 
-[[bin]]
-name = "editor"
-path = "src/editor/main.rs"
-
 [lib]
-name = "game"
+name = "liquidators_lib"
 path = "src/lib.rs"
 
-[profile.release]
-strip = true 

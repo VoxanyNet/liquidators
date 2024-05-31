@@ -1,9 +1,12 @@
 use std::{collections::HashMap, time::Duration};
 
+use core_lib::{proxies::macroquad::math::vec2::Vec2, time::Time};
 use diff::Diff;
-use game::{entities::{physics_square::PhysicsSquare, Entity}, game::{Drawable, HasOwner, HasRigidBody, Texture, TickContext, Tickable}, game_state::{GameState, GameStateDiff}, proxies::macroquad::math::vec2::Vec2, time::Time, uuid};
+use liquidators_lib::{entities::{physics_square::PhysicsSquare, Entity}, game_state::{GameState, GameStateDiff}, traits::{IsClient, Tickable}};
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
 use macroquad::{input::{is_key_down, is_key_released, is_mouse_button_released}, texture::Texture2D};
+use core_lib::traits::HasOwner;
+use core_lib::traits::HasRigidBody;
 
 
 pub struct Client {
@@ -19,6 +22,37 @@ pub struct Client {
     pub camera_offset: Vec2,
     pub update_count: i32,
     pub start_time: Time
+}
+
+impl IsClient for Client {
+    fn get_game_state(&mut self) -> &mut GameState {
+        &mut self.game_state
+    }
+
+    fn get_camera_offset(&mut self) -> &mut Vec2 {
+        &mut self.camera_offset
+    }
+
+    fn get_is_host(&mut self) -> &mut bool {
+        &mut self.is_host
+    }
+
+    fn get_last_tick(&self) -> &Time {
+        &self.last_tick
+    }
+
+    fn get_sounds(&mut self) -> &mut HashMap<String, macroquad::audio::Sound> {
+        &mut self.sounds
+    }
+
+    fn get_textures(&mut self) -> &mut HashMap<String, Texture2D> {
+        &mut self.textures
+    }
+
+    fn get_uuid(&mut self) -> &String {
+        &mut self.uuid
+    }
+    
 }
 
 impl Client {
@@ -138,14 +172,6 @@ impl Client {
         for entity in self.game_state.entities.iter_mut() {
 
             match entity {
-                Entity::Player(player) => {player.draw(&mut self.textures, &self.camera_offset).await}
-                Entity::Zombie(zombie) => {zombie.draw(&mut self.textures, &self.camera_offset).await}
-                Entity::Bullet(bullet) => {bullet.draw(&self.camera_offset)},
-                Entity::Coin(coin) => {coin.draw(&self.camera_offset)},
-                Entity::Tree(tree) => {tree.draw(&mut self.textures, &self.camera_offset).await},
-                Entity::Wood(wood) => {wood.draw(&mut self.textures, &self.camera_offset).await},
-                Entity::Raft(raft) => {raft.draw(&self.camera_offset)},
-                Entity::RaftComponent(raft_component) => {raft_component.draw(&self.camera_offset)},
                 Entity::PhysicsSquare(physics_square) => {physics_square.draw(&self.camera_offset, &self.game_state.space).await}
             };
         }
@@ -153,7 +179,7 @@ impl Client {
 
     pub fn connect(url: &str) -> Self {
 
-        let uuid = uuid();
+        let uuid = core_lib::uuid();
 
         println!("{}", uuid);
 
@@ -282,7 +308,7 @@ impl Client {
                 PhysicsSquare::new(
                     &mut self.game_state.space,
                     Vec2::new(mouse_pos.0 + 20., mouse_pos.1 + 20.),
-                    game::rigid_body::RigidBodyType::Dynamic,
+                    core_lib::rigid_body::RigidBodyType::Dynamic,
                     20., 
                     20., 
                     &self.uuid,
@@ -291,29 +317,18 @@ impl Client {
             );
         }
 
-        // we create a tick context because we cannot pass Client dzirectly
-        // we want others to be able to create their own client structs so TickContext is the middle man
-        let mut tick_context = TickContext {
-            game_state: &mut self.game_state,
-            is_host: &mut self.is_host,
-            textures: &mut self.textures,
-            sounds: &mut self.sounds,
-            last_tick: &mut self.last_tick,
-            uuid: &mut self.uuid,
-        };
-
-        for index in 0..tick_context.game_state.entities.len() {
+        for index in 0..self.game_state.entities.len() {
 
             // take the player out, tick it, then put it back in
-            let mut entity = tick_context.game_state.entities.remove(index);
+            let mut entity = self.game_state.entities.remove(index);
 
             // we only tick the entity if we own it
-            if entity.get_owner() == *tick_context.uuid {
-                entity.tick(&mut tick_context);
+            if entity.get_owner() == *self.uuid {
+                entity.tick(self);
             }
             
             // put the entity back in the same index so it doesnt FUCK things up
-            tick_context.game_state.entities.insert(index, entity)
+            self.game_state.entities.insert(index, entity)
 
         }
 

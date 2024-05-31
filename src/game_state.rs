@@ -1,7 +1,8 @@
+use core_lib::space::Space;
 use diff::Diff;
 use serde::{Deserialize, Serialize};
 
-use crate::{entities::Entity, space::Space};
+use crate::entities::Entity;
 
 #[derive(Serialize, Deserialize, Diff, Clone, PartialEq)]
 #[diff(attr(

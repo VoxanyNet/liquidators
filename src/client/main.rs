@@ -1,5 +1,6 @@
 
-use game::{entities::physics_square::PhysicsSquare, proxies::macroquad::math::vec2::Vec2};
+use core_lib::{proxies::macroquad::math::vec2::Vec2, rigid_body::RigidBodyType};
+use liquidators_lib::entities::physics_square::PhysicsSquare;
 use macroquad::{miniquad::conf::Platform, window::Conf};
 use client::Client;
 
@@ -30,14 +31,14 @@ async fn main() {
     let physics_square = PhysicsSquare::new(
         &mut client.game_state.space,
         Vec2::new(50., 500.),
-        game::rigid_body::RigidBodyType::Dynamic,
+        RigidBodyType::Dynamic,
         20., 
         20., 
         &client.uuid,
         true
     );
 
-    client.game_state.entities.push(game::entities::Entity::PhysicsSquare(physics_square));
+    client.game_state.entities.push(physics_square.into());
 
     client.run().await;
 
