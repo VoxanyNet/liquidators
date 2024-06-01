@@ -2,7 +2,7 @@ use std::{collections::HashMap, time::Duration};
 
 use gamelibrary::{proxies::macroquad::math::vec2::Vec2, time::Time};
 use diff::Diff;
-use liquidators_lib::{entities::{physics_square::PhysicsSquare, Entity}, game_state::{GameState, GameStateDiff}, traits::{IsClient, Tickable}};
+use liquidators_lib::{entities::{physics_square::PhysicsSquare, Entity}, game_state::{GameState, GameStateDiff}, TickContext};
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
 use macroquad::{input::{is_key_down, is_key_released, is_mouse_button_released}, texture::Texture2D};
 use gamelibrary::traits::HasOwner;
@@ -22,37 +22,6 @@ pub struct Client {
     pub camera_offset: Vec2,
     pub update_count: i32,
     pub start_time: Time
-}
-
-impl IsClient for Client {
-    fn get_game_state(&mut self) -> &mut GameState {
-        &mut self.game_state
-    }
-
-    fn get_camera_offset(&mut self) -> &mut Vec2 {
-        &mut self.camera_offset
-    }
-
-    fn get_is_host(&mut self) -> &mut bool {
-        &mut self.is_host
-    }
-
-    fn get_last_tick(&self) -> &Time {
-        &self.last_tick
-    }
-
-    fn get_sounds(&mut self) -> &mut HashMap<String, macroquad::audio::Sound> {
-        &mut self.sounds
-    }
-
-    fn get_textures(&mut self) -> &mut HashMap<String, Texture2D> {
-        &mut self.textures
-    }
-
-    fn get_uuid(&mut self) -> &String {
-        &mut self.uuid
-    }
-    
 }
 
 impl Client {
@@ -88,9 +57,9 @@ impl Client {
     
             // cap framerate at 200fps (or 5 ms per frame)
             // TODO: this needs to take into account the time it took to draw the last frame
-            std::thread::sleep(
-                Duration::from_millis(5)
-            );
+            // std::thread::sleep(
+            //     Duration::from_millis(5)
+            // );
     
             println!("fps: {}",  macroquad::time::get_fps());
 
@@ -322,9 +291,19 @@ impl Client {
             // take the player out, tick it, then put it back in
             let mut entity = self.game_state.entities.remove(index);
 
+            let mut tick_context = TickContext {
+                game_state: &mut self.game_state,
+                is_host: &mut self.is_host,
+                textures: &mut self.textures,
+                sounds: &mut self.sounds,
+                time: &self.last_tick,
+                uuid: &self.uuid,
+                camera_offset: &mut self.camera_offset,
+            };
+
             // we only tick the entity if we own it
             if entity.get_owner() == *self.uuid {
-                entity.tick(self);
+                entity.tick(&mut tick_context);
             }
             
             // put the entity back in the same index so it doesnt FUCK things up

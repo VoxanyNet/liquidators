@@ -3,7 +3,7 @@ use diff::Diff;
 use physics_square::PhysicsSquare;
 use serde::{Deserialize, Serialize};
 
-use crate::traits::{IsClient, Tickable};
+use crate::TickContext;
 
 pub mod physics_square;
 
@@ -13,6 +13,14 @@ pub mod physics_square;
 ))]
 pub enum Entity {
     PhysicsSquare(PhysicsSquare)
+}
+
+impl Entity {
+    pub fn tick(&mut self, ctx: &mut TickContext) {
+        match self {
+            Entity::PhysicsSquare(physics_square) => physics_square.tick(ctx)
+        }
+    }
 }
 
 impl HasOwner for Entity {
@@ -26,15 +34,6 @@ impl HasOwner for Entity {
     fn set_owner(&mut self, uuid: String) {
         match self {
             Entity::PhysicsSquare(physics_square) => physics_square.owner = uuid
-        }
-    }
-}
-
-impl Tickable for Entity {
-    fn tick(&mut self, client: &mut dyn IsClient) {
-        match self {
-            Entity::PhysicsSquare(physics_square) => physics_square.tick(client)
-            
         }
     }
 }

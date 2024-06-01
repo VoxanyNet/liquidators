@@ -9,7 +9,7 @@ use macroquad::input::{is_key_down, KeyCode};
 use macroquad::window;
 use serde::{Deserialize, Serialize};
 
-use crate::traits::{IsClient, Tickable};
+use crate::TickContext;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -52,35 +52,10 @@ impl PhysicsSquare {
         }
         
     }
-}
 
-impl Color for PhysicsSquare {
-    fn color(&self) -> gamelibrary::proxies::macroquad::color::Color {
-        self.color
-    }
-}
+    pub fn tick(&mut self, ctx: &mut TickContext) {
 
-impl HasRigidBody for PhysicsSquare {
-
-    fn get_rigid_body_handle(&self) -> &RigidBodyHandle {
-        &self.rigid_body_handle
-    }
-}
-
-impl HasOwner for PhysicsSquare {
-    fn get_owner(&self) -> String {
-        self.owner.clone()
-    }
-
-    fn set_owner(&mut self, uuid: String) {
-        self.owner = uuid
-    }
-}
-
-impl Tickable for PhysicsSquare {
-    fn tick(&mut self, client: &mut dyn IsClient) {
-
-        let rigid_body = client.get_game_state().space.get_rigid_body_mut(self.get_rigid_body_handle()).expect("shit");
+        let rigid_body = ctx.game_state.space.get_rigid_body_mut(self.get_rigid_body_handle()).expect("shit");
 
         if rigid_body.position.x >= window::screen_width() || rigid_body.position.x <= 0. {
             rigid_body.velocity.x = rigid_body.velocity.x * -1.;
@@ -91,7 +66,7 @@ impl Tickable for PhysicsSquare {
         }
 
         if self.controllable {
-            let rigid_body = client.get_game_state().space.get_rigid_body_mut(self.get_rigid_body_handle()).expect("shit");
+            let rigid_body = ctx.game_state.space.get_rigid_body_mut(self.get_rigid_body_handle()).expect("shit");
 
             if is_key_down(KeyCode::W) {
 
@@ -129,5 +104,28 @@ impl Tickable for PhysicsSquare {
                 rigid_body.velocity.x += 4.
             }
         }
+    }
+}
+
+impl Color for PhysicsSquare {
+    fn color(&self) -> gamelibrary::proxies::macroquad::color::Color {
+        self.color
+    }
+}
+
+impl HasRigidBody for PhysicsSquare {
+
+    fn get_rigid_body_handle(&self) -> &RigidBodyHandle {
+        &self.rigid_body_handle
+    }
+}
+
+impl HasOwner for PhysicsSquare {
+    fn get_owner(&self) -> String {
+        self.owner.clone()
+    }
+
+    fn set_owner(&mut self, uuid: String) {
+        self.owner = uuid
     }
 }
