@@ -2,7 +2,7 @@ use std::net::{SocketAddr, TcpListener, TcpStream};
 
 use diff::Diff;
 use liquidators_lib::game_state::{GameState, GameStateDiff};
-use usefulgamelibrary::traits::HasOwner;
+use gamelibrary::traits::HasOwner;
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
 use tungstenite::{Message, WebSocket};
 

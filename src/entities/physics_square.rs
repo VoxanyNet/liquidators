@@ -1,9 +1,9 @@
-use usefulgamelibrary::collider::Collider;
-use usefulgamelibrary::proxies::macroquad::color::colors::WHITE;
-use usefulgamelibrary::proxies::macroquad::math::vec2::Vec2;
-use usefulgamelibrary::rigid_body::{RigidBody, RigidBodyType};
-use usefulgamelibrary::space::{RigidBodyHandle, Space};
-use usefulgamelibrary::traits::{Color, HasOwner, HasRigidBody};
+use gamelibrary::collider::Collider;
+use gamelibrary::proxies::macroquad::color::colors::WHITE;
+use gamelibrary::proxies::macroquad::math::vec2::Vec2;
+use gamelibrary::rigid_body::{RigidBody, RigidBodyType};
+use gamelibrary::space::{RigidBodyHandle, Space};
+use gamelibrary::traits::{Color, HasOwner, HasRigidBody};
 use diff::Diff;
 use macroquad::input::{is_key_down, KeyCode};
 use macroquad::window;
@@ -17,7 +17,7 @@ use crate::traits::{IsClient, Tickable};
 ))]
 pub struct PhysicsSquare {
     pub scale: u32,
-    pub color: usefulgamelibrary::proxies::macroquad::color::Color,
+    pub color: gamelibrary::proxies::macroquad::color::Color,
     pub owner: String,
     pub rigid_body_handle: RigidBodyHandle,
     pub controllable: bool
@@ -55,7 +55,7 @@ impl PhysicsSquare {
 }
 
 impl Color for PhysicsSquare {
-    fn color(&self) -> usefulgamelibrary::proxies::macroquad::color::Color {
+    fn color(&self) -> gamelibrary::proxies::macroquad::color::Color {
         self.color
     }
 }

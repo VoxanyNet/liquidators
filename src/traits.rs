@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use usefulgamelibrary::{proxies::macroquad::math::vec2::Vec2, time::Time};
+use gamelibrary::{proxies::macroquad::math::vec2::Vec2, time::Time};
 use macroquad::texture::Texture2D;
 
 use crate::game_state::GameState;

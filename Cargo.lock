@@ -348,6 +348,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "gamelibrary"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "diff-struct",
+ "macroquad",
+ "nalgebra",
+ "rapier2d",
+ "serde",
+ "uuid",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -490,6 +503,7 @@ dependencies = [
  "chrono",
  "diff-struct",
  "ewebsock",
+ "gamelibrary",
  "lz4_flex",
  "macroquad",
  "nalgebra",
@@ -497,7 +511,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tungstenite",
- "usefulgamelibrary",
  "uuid",
 ]
 
@@ -1091,19 +1104,6 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
-]
-
-[[package]]
-name = "usefulgamelibrary"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "diff-struct",
- "macroquad",
- "nalgebra",
- "rapier2d",
- "serde",
- "uuid",
 ]
 
 [[package]]

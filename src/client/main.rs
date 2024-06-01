@@ -1,5 +1,5 @@
 
-use usefulgamelibrary::{proxies::macroquad::math::vec2::Vec2, rigid_body::RigidBodyType};
+use gamelibrary::{proxies::macroquad::math::vec2::Vec2, rigid_body::RigidBodyType};
 use liquidators_lib::entities::physics_square::PhysicsSquare;
 use macroquad::{miniquad::conf::Platform, window::Conf};
 use client::Client;
