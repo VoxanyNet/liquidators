@@ -2,7 +2,7 @@ use std::{collections::HashMap, time::Duration};
 
 use gamelibrary::{proxies::macroquad::math::vec2::Vec2, time::Time};
 use diff::Diff;
-use liquidators_lib::{entities::{physics_square::PhysicsSquare, Entity}, game_state::{GameState, GameStateDiff}, TickContext};
+use liquidators_lib::{game_state::{GameState, GameStateDiff}, physics_square::PhysicsSquare, TickContext};
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
 use macroquad::{input::{is_key_down, is_key_released, is_mouse_button_released}, texture::Texture2D};
 use gamelibrary::traits::HasOwner;
@@ -63,7 +63,6 @@ impl Client {
     
             println!("fps: {}",  macroquad::time::get_fps());
 
-            println!("entities: {}", self.game_state.entities.len())
         }
     }
 
@@ -138,11 +137,9 @@ impl Client {
 
     } 
     pub async fn draw(&mut self) {
-        for entity in self.game_state.entities.iter_mut() {
+        for entity in self.game_state.physics_squares.iter_mut() {
 
-            match entity {
-                Entity::PhysicsSquare(physics_square) => {physics_square.draw(&self.camera_offset, &self.game_state.space).await}
-            };
+            entity.draw(&self.camera_offset, &self.game_state.space).await;
         }
     }
 
@@ -273,7 +270,7 @@ impl Client {
 
             let mouse_pos = macroquad::input::mouse_position();
 
-            self.game_state.entities.push( 
+            self.game_state.physics_squares.push( 
                 PhysicsSquare::new(
                     &mut self.game_state.space,
                     Vec2::new(mouse_pos.0 + 20., mouse_pos.1 + 20.),
@@ -282,14 +279,14 @@ impl Client {
                     20., 
                     &self.uuid,
                     false
-                ).into()
+                )
             );
         }
 
-        for index in 0..self.game_state.entities.len() {
+        for index in 0..self.game_state.physics_squares.len() {
 
             // take the player out, tick it, then put it back in
-            let mut entity = self.game_state.entities.remove(index);
+            let mut entity = self.game_state.physics_squares.remove(index);
 
             let mut tick_context = TickContext {
                 game_state: &mut self.game_state,
@@ -307,7 +304,7 @@ impl Client {
             }
             
             // put the entity back in the same index so it doesnt FUCK things up
-            self.game_state.entities.insert(index, entity)
+            self.game_state.physics_squares.insert(index, entity)
 
         }
 

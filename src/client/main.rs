@@ -1,6 +1,6 @@
 
 use gamelibrary::{proxies::macroquad::math::vec2::Vec2, rigid_body::RigidBodyType};
-use liquidators_lib::entities::physics_square::PhysicsSquare;
+use liquidators_lib::physics_square::PhysicsSquare;
 use macroquad::{miniquad::conf::Platform, window::Conf};
 use client::Client;
 
@@ -38,7 +38,7 @@ async fn main() {
         true
     );
 
-    client.game_state.entities.push(physics_square.into());
+    client.game_state.physics_squares.push(physics_square);
 
     client.run().await;
 

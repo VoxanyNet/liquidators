@@ -50,14 +50,6 @@ impl Server {
         }
     }
 
-    pub fn disconnect_client(&mut self, client_uuid: String) {
-        for entity_index in 0..self.game_state.entities.len() {
-            if self.game_state.entities[entity_index].get_owner() == client_uuid {
-                self.game_state.entities.remove(entity_index);
-            }
-        }
-    }
-
     pub fn receive_updates(&mut self) {
 
         'client_loop: for client_index in 0..self.clients.len() {

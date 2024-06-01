@@ -28,6 +28,10 @@ path = "src/client/main.rs"
 name = "server"
 path = "src/server/main.rs"
 
+[[bin]]
+name = "editor"
+path = "src/editor/main.rs"
+
 [lib]
 name = "liquidators_lib"
 path = "src/lib.rs"
