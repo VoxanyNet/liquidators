@@ -7,7 +7,7 @@ use serde::{Serialize, Deserialize};
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct Structure {
-    rigid_body_handle: RigidBodyHandle,
+    pub rigid_body_handle: RigidBodyHandle,
 }
 
 impl HasRigidBody for Structure {

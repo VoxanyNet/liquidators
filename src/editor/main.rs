@@ -1,13 +1,16 @@
-use gamelibrary::proxies::macroquad::math::vec2::Vec2;
-use liquidators_lib::level::Level;
-use macroquad::{color::WHITE, input::{self, is_mouse_button_down, is_mouse_button_pressed}, miniquad::conf::Platform, window::Conf};
+use gamelibrary::{collider::Collider, proxies::macroquad::math::vec2::Vec2, rigid_body::RigidBody, space::Space};
+use liquidators_lib::{level::Level, structure::Structure};
+use macroquad::{color::WHITE, input::{self, is_key_down, is_key_pressed, is_mouse_button_down, is_mouse_button_pressed, mouse_position}, miniquad::conf::Platform, window::{screen_height, Conf}};
+use gamelibrary::traits::HasRigidBody;
+
+pub mod menu;
 
 fn window_conf() -> Conf {
     let mut conf = Conf {
         window_title: "Liquidators Level Editor".to_owned(),
         window_width: 1280,
         window_height: 720,
-        window_resizable: true,
+        window_resizable: true, 
         platform: Platform::default(),
         ..Default::default()
     };
@@ -20,41 +23,50 @@ async fn main() {
 
     let mut level = Level { 
         physics_squares: vec![], 
-        structures: vec![] 
+        structures: vec![],
+        space: Space::new(-980.)
     };
 
-    let mut starting_coords: Option<Vec2> = None;
-
+    
     loop {
 
-        match starting_coords {
-            Some(coords) => {
+        // spawn square structure at mouse position
+        if is_key_pressed(input::KeyCode::E) {
 
-                if input::is_mouse_button_down(input::MouseButton::Left) != true {
-                    starting_coords = None
+            let rigid_body_handle = level.space.insert_rigid_body(
+                RigidBody { 
+                    position: Vec2::new(mouse_position().0 - 20., (mouse_position().1 * -1. + screen_height()) - 20.), 
+                    rotation: 0., 
+                    angular_velocity: 0.,
+                    velocity: Vec2::ZERO, 
+                    body_type: gamelibrary::rigid_body::RigidBodyType::Dynamic, 
+                    owner: "host".to_string(), 
+                    collider: Collider { 
+                        hx: 20., 
+                        hy: 20., 
+                        restitution: 0., 
+                        mass: 10., 
+                        owner: "host".to_string() 
+                    }
                 }
+            );
 
-                let mouse_pos = input::mouse_position();
+            let new_structure = Structure { 
+                rigid_body_handle: rigid_body_handle 
+            };
+            
+            level.structures.push(new_structure);
 
-                macroquad::shapes::draw_rectangle_lines(
-                    coords.x, 
-                    coords.y, 
-                    mouse_pos.0 - coords.x, 
-                    mouse_pos.1 - coords.y, 
-                    5., 
-                    WHITE
-                )
-            },
-            None => {
-
-                if input::is_mouse_button_down(input::MouseButton::Left) {
-                    starting_coords = Some(
-                        Vec2 { x: input::mouse_position().0, y: input::mouse_position().1 }
-                    );
-                }
-
-            },
         }
+
+        for structure in &mut level.structures {
+            structure.draw(&Vec2::new(0., 0.), &level.space).await
+        }
+
+        if is_key_down(input::KeyCode::F) {
+            level.space.step(&"host".to_string());
+        }
+        
 
         macroquad::window::next_frame().await;
         

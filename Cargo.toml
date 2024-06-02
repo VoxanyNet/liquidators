@@ -19,6 +19,7 @@ lz4_flex = { version = "0.11", default-features = false }
 ewebsock = "0.6.0"
 tungstenite = "0.21.0"
 gamelibrary = {path = "../gamelibrary"}
+serde-binary = "0.5.0"
 
 [[bin]]
 name = "client"

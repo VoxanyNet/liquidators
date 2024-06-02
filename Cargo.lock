@@ -63,6 +63,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
+name = "binary-stream"
+version = "3.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4ef03ef225ea9a0b680a5926a58cb45d8eb56abf23d8a8b5c5dbc61235e2dac"
+dependencies = [
+ "thiserror",
+]
+
+[[package]]
 name = "bit-vec"
 version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -509,6 +518,7 @@ dependencies = [
  "nalgebra",
  "rapier2d",
  "serde",
+ "serde-binary",
  "serde_json",
  "tungstenite",
  "uuid",
@@ -896,6 +906,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7253ab4de971e72fb7be983802300c30b5a7f0c2e56fab8abfc6a214307c0094"
 dependencies = [
  "serde_derive",
+]
+
+[[package]]
+name = "serde-binary"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b550db407b83ed53a4f76f888bfd7441b685abc2c086e20fb47781a286940506"
+dependencies = [
+ "binary-stream",
+ "serde",
+ "thiserror",
 ]
 
 [[package]]

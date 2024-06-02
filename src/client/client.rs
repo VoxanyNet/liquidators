@@ -62,6 +62,7 @@ impl Client {
             // );
     
             println!("fps: {}",  macroquad::time::get_fps());
+            println!("squares: {}", self.game_state.physics_squares.len());
 
         }
     }

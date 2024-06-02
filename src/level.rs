@@ -1,4 +1,5 @@
 use diff::Diff;
+use gamelibrary::space::Space;
 use serde::{Deserialize, Serialize};
 
 use crate::{physics_square::PhysicsSquare, structure::Structure};
@@ -9,5 +10,6 @@ use crate::{physics_square::PhysicsSquare, structure::Structure};
 ))]
 pub struct Level {
     pub physics_squares: Vec<PhysicsSquare>,
-    pub structures: Vec<Structure>
+    pub structures: Vec<Structure>,
+    pub space: Space
 }
