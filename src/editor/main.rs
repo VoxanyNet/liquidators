@@ -1,8 +1,7 @@
 use editor::Editor;
-use gamelibrary::{collider::Collider, proxies::macroquad::{color::colors::RED, math::vec2::Vec2}, rigid_body::RigidBody, space::Space};
-use liquidators_lib::{level::Level, structure::Structure};
-use macroquad::{color::WHITE, input::{self, is_key_down, is_key_pressed, is_mouse_button_down, is_mouse_button_pressed, mouse_position}, miniquad::conf::Platform, window::{screen_height, Conf}};
-use gamelibrary::traits::HasRigidBody;
+use gamelibrary::space::Space;
+use liquidators_lib::level::Level;
+use macroquad::{miniquad::conf::Platform, window::Conf};
 
 pub mod menu;
 pub mod editor;
@@ -23,7 +22,7 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    let mut level = Level { 
+    let level = Level { 
         physics_squares: vec![], 
         structures: vec![],
         space: Space::new(-980.)

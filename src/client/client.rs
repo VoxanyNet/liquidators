@@ -1,6 +1,6 @@
-use std::{collections::HashMap, time::Duration};
+use std::{collections::HashMap};
 
-use gamelibrary::{proxies::{self, macroquad::{color::{self, Color}, math::vec2::Vec2}}, time::Time};
+use gamelibrary::{proxies::{macroquad::{color::{self, Color}, math::vec2::Vec2}}, time::Time};
 use diff::Diff;
 use liquidators_lib::{game_state::{GameState, GameStateDiff}, physics_square::PhysicsSquare, TickContext};
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
