@@ -1,13 +1,25 @@
 use std::{collections::HashMap, time::Duration};
 
-use gamelibrary::{proxies::macroquad::math::vec2::Vec2, time::Time};
+use gamelibrary::{proxies::{self, macroquad::{color::{self, Color}, math::vec2::Vec2}}, time::Time};
 use diff::Diff;
 use liquidators_lib::{game_state::{GameState, GameStateDiff}, physics_square::PhysicsSquare, TickContext};
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
 use macroquad::{input::{is_key_down, is_key_released, is_mouse_button_released}, texture::Texture2D};
 use gamelibrary::traits::HasOwner;
 use gamelibrary::traits::HasRigidBody;
+use rand::prelude::SliceRandom;
 
+use rand::thread_rng;
+
+// Return a random color
+pub fn random_color() -> Color {
+
+    let colors = [color::colors::RED, color::colors::BLUE, color::colors::GREEN];
+
+    let mut rng = thread_rng();
+
+    colors.choose(&mut rng).unwrap().clone()
+}
 
 pub struct Client {
     pub game_state: GameState,
@@ -21,7 +33,8 @@ pub struct Client {
     pub server_send: ewebsock::WsSender,
     pub camera_offset: Vec2,
     pub update_count: i32,
-    pub start_time: Time
+    pub start_time: Time,
+    pub square_color: Color
 }
 
 impl Client {
@@ -76,16 +89,16 @@ impl Client {
         }
         let diff = self.last_tick_game_state.diff(&self.game_state);
 
-        let diff_string = match serde_json::to_string(&diff) {
-            Ok(diff_string) => diff_string,
-            Err(error) => panic!("failed to serialize game state diff: {}", error),
-        };
+        // let diff_string = match serde_json::to_string(&diff) {
+        //     Ok(diff_string) => diff_string,
+        //     Err(error) => panic!("failed to serialize game state diff: {}", error),
+        // };
 
-        let diff_string_bytes = diff_string.as_bytes();
+        let diff_bytes = bitcode::serialize(&diff).expect("failed to serialize game state diff");
 
-        let compressed_diff_string_bytes = compress_prepend_size(&diff_string_bytes);
+        let compressed_diff_bytes = compress_prepend_size(&diff_bytes);
 
-        self.server_send.send(ewebsock::WsMessage::Binary(compressed_diff_string_bytes.to_vec()));
+        self.server_send.send(ewebsock::WsMessage::Binary(compressed_diff_bytes.to_vec()));
 
     }
 
@@ -95,7 +108,7 @@ impl Client {
         // we loop until there are no new updates
         loop {
 
-            let compressed_game_state_diff_string_bytes = match self.server_receive.try_recv() {
+            let compressed_game_state_diff_bytes = match self.server_receive.try_recv() {
                 Some(event) => {
                     match event {
                         ewebsock::WsEvent::Opened => todo!("unhandled 'Opened' event"),
@@ -112,16 +125,9 @@ impl Client {
                 None => break, // this means there are no more updates
             };
             
-            let game_state_diff_string_bytes = decompress_size_prepended(&compressed_game_state_diff_string_bytes).expect("Failed to decompress incoming update");
+            let game_state_diff_bytes = decompress_size_prepended(&compressed_game_state_diff_bytes).expect("Failed to decompress incoming update");
 
-            let game_state_diff_string = match String::from_utf8(game_state_diff_string_bytes.clone()) {
-                Ok(game_state_diff_string) => game_state_diff_string,
-                Err(error) => {
-                    panic!("failed to decode game state diff as string {}", error);
-                },
-            };
-
-            let game_state_diff: GameStateDiff = match serde_json::from_str(&game_state_diff_string) {
+            let game_state_diff: GameStateDiff = match bitcode::deserialize(&game_state_diff_bytes) {
                 Ok(game_state_diff) => game_state_diff,
                 Err(error) => {
                     panic!("failed to deserialize game state diff: {}", error);
@@ -230,7 +236,8 @@ impl Client {
             server_send: server_send,
             camera_offset: Vec2::new(0., 0.),
             update_count: 0,
-            start_time: Time::now()
+            start_time: Time::now(),
+            square_color: random_color()
         }
     }
 
@@ -267,6 +274,12 @@ impl Client {
             std::fs::write("state.json", game_state_json).unwrap();
         }
 
+        if is_key_released(macroquad::input::KeyCode::F6) {
+            self.game_state = serde_json::from_str(
+                &std::fs::read_to_string("state.json").expect("failed to read state file")
+            ).expect("failed to deserialize state file");
+        }
+
         if is_mouse_button_released(macroquad::input::MouseButton::Left) {
 
             let mouse_pos = macroquad::input::mouse_position();
@@ -279,7 +292,8 @@ impl Client {
                     20., 
                     20., 
                     &self.uuid,
-                    false
+                    false,
+                    self.square_color
                 )
             );
         }

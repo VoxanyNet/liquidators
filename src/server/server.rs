@@ -60,7 +60,7 @@ impl Server {
             // keep trying to receive updates until there are none
             loop {
 
-                let compressed_game_state_diff_string_bytes = match client.read() {
+                let compressed_game_state_diff_bytes = match client.read() {
                     Ok(message) => {
                         match message {
                             Message::Binary(game_state_diff_bytes) => {
@@ -87,16 +87,9 @@ impl Server {
                         }
                     },
                 };
-                let game_state_diff_string_bytes = decompress_size_prepended(&compressed_game_state_diff_string_bytes).expect("Failed to decompress game state diff string bytes");
-
-                let game_state_diff_string = match String::from_utf8(game_state_diff_string_bytes.clone()) {
-                    Ok(game_state_diff_string) => game_state_diff_string,
-                    Err(error) => {
-                        todo!("unhandled game state byte decoding error {}", error);
-                    },
-                };
+                let game_state_diff_bytes = decompress_size_prepended(&compressed_game_state_diff_bytes).expect("Failed to decompress game state diff string bytes");
     
-                let game_state_diff: GameStateDiff = match serde_json::from_str(&game_state_diff_string) {
+                let game_state_diff: GameStateDiff = match bitcode::deserialize(&game_state_diff_bytes) {
                     Ok(game_state_diff) => game_state_diff,
                     Err(error) => {
                         todo!("unhandled game state diff deserialization error: {}", error);
@@ -108,7 +101,7 @@ impl Server {
     
                     let mut other_client = self.clients.remove(other_client_index);
     
-                    match other_client.send(Message::Binary(compressed_game_state_diff_string_bytes.clone())) {
+                    match other_client.send(Message::Binary(compressed_game_state_diff_bytes.clone())) {
                         Ok(_) => {
                             self.clients.insert(other_client_index, other_client);
 

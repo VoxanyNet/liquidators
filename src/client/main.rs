@@ -35,7 +35,8 @@ async fn main() {
         20., 
         20., 
         &client.uuid,
-        true
+        true,
+        client.square_color
     );
 
     client.game_state.physics_squares.push(physics_square);

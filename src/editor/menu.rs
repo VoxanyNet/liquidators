@@ -13,16 +13,16 @@ pub struct MenuItem {
     clicked: bool
 }
 
-impl MenuItem {
-    fn new() -> Self {
-        MenuItem { 
-            rect: Rect::new(x, y, w, h), 
-            text: (), 
-            hovered: (), 
-            clicked: () 
-        }
-    }
-}
+// impl MenuItem {
+//     fn new() -> Self {
+//         MenuItem { 
+//             rect: Rect::new(x, y, w, h), 
+//             text: (), 
+//             hovered: (), 
+//             clicked: () 
+//         }
+//     }
+// }
 
 impl Menu {
     fn update(&mut self) {
