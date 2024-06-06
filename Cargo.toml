@@ -18,7 +18,7 @@ uuid = { version = "1.8.0", features = ["v4"] }
 lz4_flex = { version = "0.11", default-features = false }
 ewebsock = "0.6.0"
 tungstenite = "0.21.0"
-gamelibrary = {path = "../gamelibrary"}
+gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary"}
 serde-binary = "0.5.0"
 bitcode = { version = "0.6.0", features = ["serde"] }
 rand = "0.8.5"
