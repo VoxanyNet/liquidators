@@ -5,6 +5,7 @@ use macroquad::{miniquad::conf::Platform, window::Conf};
 
 pub mod menu;
 pub mod editor;
+pub mod traits;
 
 fn window_conf() -> Conf {
     let mut conf = Conf {

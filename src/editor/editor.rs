@@ -25,10 +25,28 @@ impl Editor {
             menu.add_button("Another test".to_string());
             menu.add_button("Another test".to_string());
             menu.add_button("Another test".to_string());
+            
 
             self.menu = Some(menu);
-            println!("added menu item");
         }
+    }
+
+    pub fn despawn_menu(&mut self) {
+
+        match &mut self.menu {
+            Some(menu) => {
+                
+                let mouse_position = mouse_position();
+
+                if !menu.containing_rect.contains(Vec2::new(mouse_position.0, mouse_position.1)) 
+                && is_mouse_button_pressed(input::MouseButton::Left) {
+                    self.menu = None;
+                }
+            },
+
+            None => {},
+        }
+        
     }
 
     pub fn spawn_structure(&mut self) {
@@ -75,6 +93,8 @@ impl Editor {
 
         self.spawn_menu();
 
+        self.despawn_menu();
+
         match &mut self.menu {
             Some(menu) => menu.update(),
             None => {}
@@ -94,7 +114,6 @@ impl Editor {
         match &self.menu {
             Some(menu) => {
                 menu.draw().await;
-                println!("drew menu");
             },
             None => {}
         }
