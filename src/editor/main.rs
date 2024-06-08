@@ -30,7 +30,8 @@ async fn main() {
 
     
     let mut editor = Editor { 
-        level 
+        level,
+        menu: None
     };
 
     editor.run().await;
