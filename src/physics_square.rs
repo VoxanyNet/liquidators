@@ -1,5 +1,6 @@
 use gamelibrary::collider::Collider;
 use gamelibrary::menu::Menu;
+use gamelibrary::proxies::macroquad::color::colors::DARKGRAY;
 use gamelibrary::proxies::macroquad::math::vec2::Vec2;
 use gamelibrary::rigid_body::{RigidBody, RigidBodyType};
 use gamelibrary::space::{RigidBodyHandle, Space};
@@ -57,6 +58,18 @@ impl PhysicsSquare {
 
     pub fn get_menu(&mut self) -> &mut Option<Menu> {
         &mut self.menu
+    }
+
+    pub fn spawn_menu(&mut self, position: Vec2) {
+
+        let mut menu = Menu::new(
+            position,
+            DARKGRAY
+        );
+
+        menu.add_button("Delete".to_string());
+
+        self.menu = Some(menu);
     }
 
     pub fn tick(&mut self, ctx: &mut TickContext) {
