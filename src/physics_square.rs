@@ -25,7 +25,7 @@ pub struct PhysicsSquare {
 }
 
 impl PhysicsSquare {
-    pub fn new(space: &mut Space, position: Vec2, body_type: RigidBodyType, hx: f32, hy: f32, owner: &String, controlable: bool, color: gamelibrary::proxies::macroquad::color::Color) -> Self {
+    pub fn new(space: &mut Space, position: Vec2, body_type: RigidBodyType, hx: f32, hy: f32, owner: &String, controllable: bool, color: gamelibrary::proxies::macroquad::color::Color) -> Self {
         let rigid_body_handle = space.insert_rigid_body(
             RigidBody { 
                 position: position, 
@@ -49,10 +49,14 @@ impl PhysicsSquare {
             color: color,
             owner: owner.clone(),
             rigid_body_handle,
-            controllable: controlable,
+            controllable: controllable,
             menu: None
         }
         
+    }
+
+    pub fn get_menu(&mut self) -> &mut Option<Menu> {
+        &mut self.menu
     }
 
     pub fn tick(&mut self, ctx: &mut TickContext) {
