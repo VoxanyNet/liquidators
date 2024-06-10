@@ -381,7 +381,7 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
-source = "git+https://github.com/VoxanyNet/gamelibrary#036af7287f1ae32403cf2dd4978c76ce12f71e2c"
+source = "git+https://github.com/VoxanyNet/gamelibrary#3cb4a01e5fcdc777e64cc25a857ee7e4ee71dfaa"
 dependencies = [
  "chrono",
  "diff-struct",

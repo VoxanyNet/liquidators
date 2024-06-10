@@ -3,9 +3,7 @@ use gamelibrary::space::Space;
 use liquidators_lib::level::Level;
 use macroquad::{miniquad::conf::Platform, window::Conf};
 
-pub mod menu;
 pub mod editor;
-pub mod traits;
 
 fn window_conf() -> Conf {
     let mut conf = Conf {
@@ -31,8 +29,7 @@ async fn main() {
 
     
     let mut editor = Editor { 
-        level,
-        menu: None
+        level
     };
 
     editor.run().await;

@@ -1,5 +1,5 @@
 use gamelibrary::collider::Collider;
-use gamelibrary::proxies::macroquad::color::colors::WHITE;
+use gamelibrary::menu::Menu;
 use gamelibrary::proxies::macroquad::math::vec2::Vec2;
 use gamelibrary::rigid_body::{RigidBody, RigidBodyType};
 use gamelibrary::space::{RigidBodyHandle, Space};
@@ -20,7 +20,8 @@ pub struct PhysicsSquare {
     pub color: gamelibrary::proxies::macroquad::color::Color,
     pub owner: String,
     pub rigid_body_handle: RigidBodyHandle,
-    pub controllable: bool
+    pub controllable: bool,
+    pub menu: Option<Menu>
 }
 
 impl PhysicsSquare {
@@ -48,7 +49,8 @@ impl PhysicsSquare {
             color: color,
             owner: owner.clone(),
             rigid_body_handle,
-            controllable: controlable
+            controllable: controlable,
+            menu: None
         }
         
     }
