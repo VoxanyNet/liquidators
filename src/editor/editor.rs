@@ -1,12 +1,15 @@
+use std::time::Instant;
+
 use gamelibrary::{collider::Collider, proxies::macroquad::{color::colors::{DARKGRAY, RED}, math::vec2::Vec2}, rigid_body::RigidBody};
-use liquidators_lib::{level::Level, physics_square::PhysicsSquare, structure::Structure};
+use liquidators_lib::{level::Level, physics_square::PhysicsSquare, structure::Structure, translate_coordinates};
 use macroquad::{input::{self, is_key_down, is_key_pressed, is_mouse_button_down, is_mouse_button_pressed, mouse_position}, window::screen_height};
 use gamelibrary::traits::HasRigidBody;
+use nalgebra::point;
+use rapier2d::pipeline::{QueryFilter, QueryPipeline};
 
 pub struct Editor {
     pub level: Level
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-
 
 impl Editor {
 
@@ -20,6 +23,35 @@ impl Editor {
                     angular_velocity: 0.,
                     velocity: Vec2::ZERO, 
                     body_type: gamelibrary::rigid_body::RigidBodyType::Dynamic, 
+                    owner: "host".to_string(), 
+                    collider: Collider { 
+                        hx: 20., 
+                        hy: 20., 
+                        restitution: 0., 
+                        mass: 10., 
+                        owner: "host".to_string() 
+                    }
+                }
+            );
+
+            let new_structure = Structure { 
+                rigid_body_handle: rigid_body_handle,
+                color: RED
+            };
+            
+            self.level.structures.push(new_structure);
+
+        }
+
+        if is_key_pressed(input::KeyCode::R) {
+
+            let rigid_body_handle = self.level.space.insert_rigid_body(
+                RigidBody { 
+                    position: Vec2::new(mouse_position().0 - 20., (mouse_position().1 * -1. + screen_height()) - 20.), 
+                    rotation: 0., 
+                    angular_velocity: 0.,
+                    velocity: Vec2::ZERO, 
+                    body_type: gamelibrary::rigid_body::RigidBodyType::Fixed, 
                     owner: "host".to_string(), 
                     collider: Collider { 
                         hx: 20., 
