@@ -72,6 +72,24 @@ impl PhysicsSquare {
         self.menu = Some(menu);
     }
 
+    pub fn handle_menu(self) -> Option<Self> {
+        for menu_item in self.clone().menu.unwrap().get_menu_items() {
+
+            if menu_item.clicked && menu_item.hovered {
+                continue;
+            }
+
+            match menu_item.text.as_str() {
+                "Delete" => return None,
+                _ => return Some(self)
+            };
+
+        };  
+
+        // this is the result if the menu doesnt have any items or none of the items are hovered and clicked
+        Some(self)
+    }
+
     pub fn tick(&mut self, ctx: &mut TickContext) {
 
         let rigid_body = ctx.game_state.space.get_rigid_body_mut(self.get_rigid_body_handle()).expect("shit");

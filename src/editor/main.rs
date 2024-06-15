@@ -22,7 +22,6 @@ fn window_conf() -> Conf {
 async fn main() {
 
     let level = Level { 
-        physics_squares: vec![], 
         structures: vec![],
         space: Space::new(-980.)
     };

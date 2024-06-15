@@ -1,8 +1,8 @@
 use std::time::Instant;
 
 use gamelibrary::{collider::Collider, proxies::macroquad::{color::colors::{DARKGRAY, RED}, math::vec2::Vec2}, rigid_body::RigidBody};
-use liquidators_lib::{level::Level, physics_square::PhysicsSquare, structure::Structure, translate_coordinates};
-use macroquad::{input::{self, is_key_down, is_key_pressed, is_mouse_button_down, is_mouse_button_pressed, mouse_position}, window::screen_height};
+use liquidators_lib::{level::Level, physics_square::{self, PhysicsSquare}, structure::Structure, translate_coordinates};
+use macroquad::{input::{self, is_key_down, is_key_pressed, is_mouse_button_down, is_mouse_button_pressed, is_mouse_button_released, mouse_position}, window::screen_height};
 use gamelibrary::traits::HasRigidBody;
 use nalgebra::point;
 use rapier2d::pipeline::{QueryFilter, QueryPipeline};
@@ -36,7 +36,8 @@ impl Editor {
 
             let new_structure = Structure { 
                 rigid_body_handle: rigid_body_handle,
-                color: RED
+                color: RED,
+                menu: None
             };
             
             self.level.structures.push(new_structure);
@@ -65,7 +66,8 @@ impl Editor {
 
             let new_structure = Structure { 
                 rigid_body_handle: rigid_body_handle,
-                color: RED
+                color: RED,
+                menu: None
             };
             
             self.level.structures.push(new_structure);
@@ -84,14 +86,92 @@ impl Editor {
         // spawn square structure at mouse position
         self.spawn_structure();
         
+        let now = Instant::now();
         self.step_space();
+        println!("{:?}", now.elapsed());
+
+        self.update_menus();
+
+        self.handle_menus();
+
+        self.spawn_menus();
         
+    }
+
+    pub fn handle_menus(&mut self) {
+
+        let mut structure_index = 0;
+        let mut structures_length = self.level.structures.len();
+
+        loop {
+
+            if structure_index >= structures_length {
+                break;
+            }
+
+            let structure = self.level.structures.remove(structure_index);
+
+            let result = structure.handle_menu();
+
+            match result {
+                Some(structure) => {
+                    self.level.structures.insert(structure_index, structure);
+
+                    structure_index += 1;
+                },
+                None => {
+                    structures_length -= 1;
+
+                    // we dont increment the index
+                },
+            };
+            
+        }
+    
+            
+    }
+
+    pub fn update_menus(&mut self) {
+        for structure in &mut self.level.structures {
+            match &mut structure.menu {
+                Some(menu) => menu.update(),
+                None => {},
+            }
+        }
+    }
+    pub fn spawn_menus(&mut self) {
+
+        if !is_mouse_button_released(input::MouseButton::Right) {
+            return;
+        }
+
+        println!("mouse released");
+
+        let mouse_pos = Vec2::new(mouse_position().0, mouse_position().1);
+
+        let intersections = self.level.space.query_point(translate_coordinates(&mouse_pos));
+        
+        println!("{:?}", intersections);
+
+        for structure in &mut self.level.structures {
+
+            if intersections.contains(structure.get_rigid_body_handle()) {
+                println!("spawning");
+                structure.spawn_menu(mouse_pos);
+            }
+
+        }
     }
 
     pub async fn draw(&mut self) {
 
         for structure in &mut self.level.structures {
-            structure.draw(&Vec2::new(0., 0.), &self.level.space).await
+            structure.draw(&Vec2::new(0., 0.), &self.level.space).await;
+
+            match &structure.menu {
+                Some(menu) => menu.draw().await,
+                None => {},
+            }
         }
 
     }
