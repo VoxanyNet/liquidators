@@ -2,7 +2,7 @@ use diff::Diff;
 use gamelibrary::space::Space;
 use serde::{Deserialize, Serialize};
 
-use crate::{physics_square::PhysicsSquare, structure::Structure};
+use crate::structure::Structure;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(

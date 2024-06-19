@@ -9,10 +9,14 @@ use serde::{Serialize, Deserialize};
 pub struct Structure {
     pub rigid_body_handle: RigidBodyHandle,
     pub color: gamelibrary::proxies::macroquad::color::Color,
-    pub menu: Option<Menu>
+    pub menu: Option<Menu>,
+    pub selected: bool,
+    pub dragging: bool,
+    pub drag_offset: Option<Vec2>
 }
 
 impl Structure {
+
     pub fn spawn_menu(&mut self, position: Vec2) {
         
         let mut menu = Menu::new(
@@ -68,10 +72,22 @@ impl HasRigidBody for Structure {
     fn get_rigid_body_handle(&self) -> &RigidBodyHandle {
         &self.rigid_body_handle
     }
+
+    fn get_drag_offset(&mut self) -> &mut Option<Vec2> {
+        &mut self.drag_offset
+    }
+    
+    fn get_selected(&mut self) -> &mut bool {
+        &mut self.selected
+    }
+
+    fn get_dragging(&mut self) -> &mut bool {
+        &mut self.dragging
+    }
 }
 
 impl Color for Structure {
-    fn color(&self) -> gamelibrary::proxies::macroquad::color::Color {
-        self.color
+    fn color(&mut self) -> &mut gamelibrary::proxies::macroquad::color::Color {
+        &mut self.color
     }
 }

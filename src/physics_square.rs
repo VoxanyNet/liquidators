@@ -22,7 +22,10 @@ pub struct PhysicsSquare {
     pub owner: String,
     pub rigid_body_handle: RigidBodyHandle,
     pub controllable: bool,
-    pub menu: Option<Menu>
+    pub menu: Option<Menu>,
+    pub selected: bool,
+    pub dragging: bool,
+    pub drag_offset: Option<Vec2>
 }
 
 impl PhysicsSquare {
@@ -51,7 +54,10 @@ impl PhysicsSquare {
             owner: owner.clone(),
             rigid_body_handle,
             controllable: controllable,
-            menu: None
+            menu: None,
+            selected: false,
+            dragging: false,
+            drag_offset: None
         }
         
     }
@@ -145,8 +151,8 @@ impl PhysicsSquare {
 }
 
 impl Color for PhysicsSquare {
-    fn color(&self) -> gamelibrary::proxies::macroquad::color::Color {
-        self.color
+    fn color(&mut self) -> &mut gamelibrary::proxies::macroquad::color::Color {
+        &mut self.color
     }
 }
 
@@ -154,6 +160,18 @@ impl HasRigidBody for PhysicsSquare {
 
     fn get_rigid_body_handle(&self) -> &RigidBodyHandle {
         &self.rigid_body_handle
+    }
+
+    fn get_drag_offset(&mut self) -> &mut Option<Vec2> {
+        &mut self.drag_offset
+    }
+
+    fn get_selected(&mut self) -> &mut bool {
+        &mut self.selected
+    }
+
+    fn get_dragging(&mut self) -> &mut bool {
+        &mut self.dragging
     }
 }
 

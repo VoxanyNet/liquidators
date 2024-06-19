@@ -1,7 +1,7 @@
 use std::time::Instant;
 
-use gamelibrary::{collider::Collider, proxies::macroquad::{color::colors::{DARKGRAY, RED}, math::vec2::Vec2}, rigid_body::RigidBody};
-use liquidators_lib::{level::Level, physics_square::{self, PhysicsSquare}, structure::Structure, translate_coordinates};
+use gamelibrary::{collider::Collider, proxies::macroquad::{color::colors::{DARKGRAY, RED}, math::vec2::Vec2}, rigid_body::RigidBody, space::Space, translate_coordinates};
+use liquidators_lib::{level::Level, structure::Structure};
 use macroquad::{input::{self, is_key_down, is_key_pressed, is_mouse_button_down, is_mouse_button_pressed, is_mouse_button_released, mouse_position}, window::screen_height};
 use gamelibrary::traits::HasRigidBody;
 use nalgebra::point;
@@ -37,7 +37,10 @@ impl Editor {
             let new_structure = Structure { 
                 rigid_body_handle: rigid_body_handle,
                 color: RED,
-                menu: None
+                menu: None,
+                selected: false,
+                dragging: false,
+                drag_offset: None
             };
             
             self.level.structures.push(new_structure);
@@ -67,7 +70,10 @@ impl Editor {
             let new_structure = Structure { 
                 rigid_body_handle: rigid_body_handle,
                 color: RED,
-                menu: None
+                menu: None,
+                selected: false,
+                dragging: false,
+                drag_offset: None
             };
             
             self.level.structures.push(new_structure);
@@ -86,16 +92,46 @@ impl Editor {
         // spawn square structure at mouse position
         self.spawn_structure();
         
-        let now = Instant::now();
         self.step_space();
-        println!("{:?}", now.elapsed());
 
         self.update_menus();
 
         self.handle_menus();
 
         self.spawn_menus();
+
+        self.update_selections();
+
+        self.update_is_dragging();
+
+        self.update_drag();
+
         
+        
+    }
+
+    pub fn update_drag(&mut self) {
+        for structure_index in 0..self.level.structures.len() {
+            let structure = &mut self.level.structures[structure_index];
+
+            structure.update_drag(&mut self.level.space);
+        }
+    }
+
+    pub fn update_is_dragging(&mut self) {
+        for structure_index in 0..self.level.structures.len() {
+            let structure = &mut self.level.structures[structure_index];
+
+            structure.update_is_dragging(&mut self.level.space);
+        }
+    }
+    pub fn update_selections(&mut self) {
+        for structure_index in 0..self.level.structures.len() {
+
+            let structure = &mut self.level.structures[structure_index];
+
+            structure.update_selected(&mut self.level.space)
+        }
     }
 
     pub fn handle_menus(&mut self) {
