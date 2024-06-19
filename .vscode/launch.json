@@ -13,7 +13,7 @@
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=rust-game"
+                    "--package=liquidators"
                 ],
                 "filter": {
                     "name": "game",
@@ -31,10 +31,28 @@
                 "args": [
                     "build",
                     "--bin=client",
-                    "--package=rust-game"
+                    "--package=liquidators"
                 ],
                 "filter": {
                     "name": "client",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'editor'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=editor",
+                    "--package=liquidators"
+                ],
+                "filter": {
+                    "name": "editor",
                     "kind": "bin"
                 }
             },
@@ -50,7 +68,7 @@
                     "test",
                     "--no-run",
                     "--bin=client",
-                    "--package=rust-game"
+                    "--package=liquidators"
                 ],
                 "filter": {
                     "name": "client",
@@ -68,7 +86,7 @@
                 "args": [
                     "build",
                     "--bin=server",
-                    "--package=rust-game"
+                    "--package=liquidators"
                 ],
                 "filter": {
                     "name": "server",
@@ -87,7 +105,7 @@
                     "test",
                     "--no-run",
                     "--bin=server",
-                    "--package=rust-game"
+                    "--package=liquidators"
                 ],
                 "filter": {
                     "name": "server",
