@@ -1,11 +1,7 @@
-use std::time::Instant;
-
-use gamelibrary::{collider::Collider, proxies::macroquad::{color::colors::{DARKGRAY, RED}, math::vec2::Vec2}, rigid_body::RigidBody, space::Space, translate_coordinates};
+use gamelibrary::{collider::Collider, proxies::macroquad::{color::colors::RED, math::vec2::Vec2}, rigid_body::RigidBody, translate_coordinates};
 use liquidators_lib::{level::Level, structure::Structure};
-use macroquad::{input::{self, is_key_down, is_key_pressed, is_mouse_button_down, is_mouse_button_pressed, is_mouse_button_released, mouse_position}, window::screen_height};
+use macroquad::{input::{self, is_key_down, is_key_pressed, is_mouse_button_released, mouse_position}, window::screen_height};
 use gamelibrary::traits::HasRigidBody;
-use nalgebra::point;
-use rapier2d::pipeline::{QueryFilter, QueryPipeline};
 
 pub struct Editor {
     pub level: Level
@@ -47,7 +43,7 @@ impl Editor {
 
         }
 
-        if is_key_pressed(input::KeyCode::R) {
+        if is_key_pressed(input::KeyCode::Q) {
 
             let rigid_body_handle = self.level.space.insert_rigid_body(
                 RigidBody { 
@@ -94,47 +90,23 @@ impl Editor {
         
         self.step_space();
 
-        self.update_menus();
+        // tick all Structures
+        for structure_index in 0..self.level.structures.len() {
+            let mut structure = self.level.structures.remove(structure_index);
+
+            structure.tick_editor(&mut self.level);
+
+            self.level.structures.insert(structure_index, structure);
+
+
+        }
 
         self.handle_menus();
 
-        self.spawn_menus();
-
-        self.update_selections();
-
-        self.update_is_dragging();
-
-        self.update_drag();
-
-        
-        
-    }
-
-    pub fn update_drag(&mut self) {
-        for structure_index in 0..self.level.structures.len() {
-            let structure = &mut self.level.structures[structure_index];
-
-            structure.update_drag(&mut self.level.space);
-        }
-    }
-
-    pub fn update_is_dragging(&mut self) {
-        for structure_index in 0..self.level.structures.len() {
-            let structure = &mut self.level.structures[structure_index];
-
-            structure.update_is_dragging(&mut self.level.space);
-        }
-    }
-    pub fn update_selections(&mut self) {
-        for structure_index in 0..self.level.structures.len() {
-
-            let structure = &mut self.level.structures[structure_index];
-
-            structure.update_selected(&mut self.level.space)
-        }
     }
 
     pub fn handle_menus(&mut self) {
+        // this needs to be a function on the editor struct because structures cannot delete themselves
 
         let mut structure_index = 0;
         let mut structures_length = self.level.structures.len();
@@ -147,7 +119,7 @@ impl Editor {
 
             let structure = self.level.structures.remove(structure_index);
 
-            let result = structure.handle_menu();
+            let result = structure.handle_menu(&mut self.level.space);
 
             match result {
                 Some(structure) => {
@@ -165,38 +137,6 @@ impl Editor {
         }
     
             
-    }
-
-    pub fn update_menus(&mut self) {
-        for structure in &mut self.level.structures {
-            match &mut structure.menu {
-                Some(menu) => menu.update(),
-                None => {},
-            }
-        }
-    }
-    pub fn spawn_menus(&mut self) {
-
-        if !is_mouse_button_released(input::MouseButton::Right) {
-            return;
-        }
-
-        println!("mouse released");
-
-        let mouse_pos = Vec2::new(mouse_position().0, mouse_position().1);
-
-        let intersections = self.level.space.query_point(translate_coordinates(&mouse_pos));
-        
-        println!("{:?}", intersections);
-
-        for structure in &mut self.level.structures {
-
-            if intersections.contains(structure.get_rigid_body_handle()) {
-                println!("spawning");
-                structure.spawn_menu(mouse_pos);
-            }
-
-        }
     }
 
     pub async fn draw(&mut self) {

@@ -1,6 +1,6 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
-use gamelibrary::{proxies::{macroquad::{color::{self, Color}, math::vec2::Vec2}}, time::Time};
+use gamelibrary::{proxies::macroquad::{color::{self, Color}, math::vec2::Vec2}, time::Time};
 use diff::Diff;
 use liquidators_lib::{game_state::{GameState, GameStateDiff}, physics_square::PhysicsSquare, TickContext};
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
@@ -103,7 +103,7 @@ impl Client {
     }
 
     pub fn receive_updates(&mut self) {
-        let mut update_count = 0;
+        // let mut update_count = 0;
         
         // we loop until there are no new updates
         loop {
@@ -136,7 +136,7 @@ impl Client {
 
             self.game_state.apply(&game_state_diff);
 
-            update_count += 1;
+            // update_count += 1;
 
             //println!("update count: {}", update_count);
 
