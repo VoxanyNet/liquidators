@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use game_state::GameState;
-use gamelibrary::{proxies::macroquad::math::vec2::Vec2, time::Time};
-use macroquad::texture::Texture2D;
+use gamelibrary::time::Time;
+use macroquad::{math::Vec2, texture::Texture2D};
 
 pub mod game_state;
 pub mod physics_square;

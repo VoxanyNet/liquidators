@@ -1,8 +1,8 @@
 
-use gamelibrary::{proxies::macroquad::math::vec2::Vec2, rigid_body::RigidBodyType};
 use liquidators_lib::physics_square::PhysicsSquare;
-use macroquad::{miniquad::conf::Platform, window::Conf};
+use macroquad::{math::Vec2, miniquad::conf::Platform, window::Conf};
 use client::Client;
+use rapier2d::dynamics::RigidBodyType;
 
 pub mod client;
 

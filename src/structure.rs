@@ -1,6 +1,8 @@
 use diff::Diff;
-use gamelibrary::{menu::Menu, proxies::macroquad::{color::colors::{DARKGRAY, GREEN, RED}, math::vec2::Vec2}, space::{RigidBodyHandle, Space}, traits::{Color, HasRigidBody}, translate_coordinates};
-use macroquad::input::{self, is_key_down, is_mouse_button_released, mouse_position};
+use gamelibrary::{macroquad_to_rapier, menu::Menu, space::Space, traits::{Color, Drawable, HasCollider, HasRigidBody}};
+use macroquad::{color::DARKGRAY, input::{self, is_key_down, is_mouse_button_released, mouse_position}, math::{Rect, Vec2}};
+use nalgebra::{point, vector};
+use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, math::Rotation};
 use serde::{Serialize, Deserialize};
 
 use crate::level::Level;
@@ -11,11 +13,13 @@ use crate::level::Level;
 ))]
 pub struct Structure {
     pub rigid_body_handle: RigidBodyHandle,
-    pub color: gamelibrary::proxies::macroquad::color::Color,
+    pub collider_handle: ColliderHandle,
+    pub color: macroquad::color::Color,
     pub menu: Option<Menu>,
     pub selected: bool,
     pub dragging: bool,
-    pub drag_offset: Option<Vec2>
+    pub drag_offset: Option<Vec2>,
+    pub resize_handles: [Rect; 4]
 }
 
 impl Structure {
@@ -27,11 +31,9 @@ impl Structure {
         }
 
         let mouse_pos = Vec2::new(mouse_position().0, mouse_position().1);
+        let mouse_rapier_coords = macroquad_to_rapier(&mouse_pos);
 
-        // this should probaby be cached somewhere
-        let intersections = space.query_point(translate_coordinates(&mouse_pos));
-
-        if !intersections.contains(self.get_rigid_body_handle()) {
+        if !self.contains_point(space, mouse_rapier_coords) {
             return
         }
 
@@ -46,6 +48,9 @@ impl Structure {
         self.menu = Some(menu);
     }
 
+    pub fn resize(&mut self, space: &mut Space) {
+
+    }
     pub fn tick_editor(&mut self, level: &mut Level) {
 
         match &mut self.menu {
@@ -66,7 +71,7 @@ impl Structure {
 
     }
 
-    pub fn resize(&mut self) {
+    pub fn update_resize(&mut self) {
         if !*self.get_selected() {return}
     }
 
@@ -75,7 +80,9 @@ impl Structure {
 
         if !is_key_down(input::KeyCode::R) {return}
 
-        space.get_rigid_body_mut(self.get_rigid_body_handle()).unwrap().rotation -= 0.05
+        let mut rigid_body = space.rigid_body_set.get_mut(*self.get_rigid_body_handle()).unwrap();
+        
+        rigid_body.set_rotation(Rotation::from_angle(rigid_body.rotation().angle() - 0.05), true);
     }
 
     pub fn handle_menu(mut self, space: &mut Space) -> Option<Self> {
@@ -99,10 +106,10 @@ impl Structure {
                 },
                 "Zero Velocity" => {
 
-                    let body = space.get_rigid_body_mut(&self.get_rigid_body_handle()).unwrap();
+                    let body = space.rigid_body_set.get_mut(*self.get_rigid_body_handle()).unwrap();
                     
-                    body.velocity = Vec2::ZERO;
-                    body.angular_velocity = 0.;
+                    body.set_linvel(vector![0., 0.], true);
+                    body.set_rotation(Rotation::from_angle(0.), true);
 
                     self.menu = None;   
 
@@ -116,11 +123,17 @@ impl Structure {
         Some(self)
     }
 }
+
 impl HasRigidBody for Structure {
     fn get_rigid_body_handle(&self) -> &RigidBodyHandle {
         &self.rigid_body_handle
     }
+}
+impl HasCollider for Structure {
 
+    fn get_collider_handle(&self) -> &ColliderHandle {
+        &self.collider_handle
+    }
     fn get_drag_offset(&mut self) -> &mut Option<Vec2> {
         &mut self.drag_offset
     }
@@ -135,7 +148,7 @@ impl HasRigidBody for Structure {
 }
 
 impl Color for Structure {
-    fn color(&mut self) -> &mut gamelibrary::proxies::macroquad::color::Color {
+    fn color(&mut self) -> &mut macroquad::color::Color {
         &mut self.color
     }
 }

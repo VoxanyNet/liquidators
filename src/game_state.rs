@@ -18,7 +18,7 @@ impl GameState {
     pub fn empty() -> Self {
         Self {
             physics_squares: vec![],
-            space: Space::new(0.)
+            space: Space::new()
         }
     }
 

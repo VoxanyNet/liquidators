@@ -9,17 +9,16 @@ edition = "2021"
 [dependencies]
 chrono = "0.4.35"
 diff-struct = "0.5.3"
-macroquad = "0.4.5"
-nalgebra = "0.32.5"
-rapier2d = "0.18.0"
+macroquad = {git = "https://github.com/VoxanyNet/macroquad", rev = "659081936a0e32befc63169391b7cc5a85801470"}
+nalgebra = {git = "https://github.com/VoxanyNet/nalgebra"}
+rapier2d = {git = "https://github.com/VoxanyNet/rapier", rev = "48279009056d7c22035b2789ccc41f2bf552ea8d", features = ["serde-serialize"]}
 serde = { version = "1.0.197", features = ["serde_derive"] }
 serde_json = "1.0.114"
 uuid = { version = "1.8.0", features = ["v4"] }
 lz4_flex = { version = "0.11", default-features = false }
 ewebsock = "0.6.0"
 tungstenite = "0.21.0"
-#gamelibrary = {path = "../gamelibrary"}
-gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "202f70499147d7e379a71955d4a71f816a516764"}
+gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "82d9b61eabe74d9b237051e822b9dfec92f9b28c"}
 serde-binary = "0.5.0"
 bitcode = { version = "0.6.0", features = ["serde"] }
 rand = "0.8.5"

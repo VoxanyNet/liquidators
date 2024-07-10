@@ -1,13 +1,14 @@
-use gamelibrary::collider::Collider;
 use gamelibrary::menu::Menu;
-use gamelibrary::proxies::macroquad::color::colors::DARKGRAY;
-use gamelibrary::proxies::macroquad::math::vec2::Vec2;
-use gamelibrary::rigid_body::{RigidBody, RigidBodyType};
-use gamelibrary::space::{RigidBodyHandle, Space};
-use gamelibrary::traits::{Color, HasOwner, HasRigidBody};
+use gamelibrary::space::Space;
+use gamelibrary::traits::{Color, HasCollider, HasOwner, HasRigidBody};
 use diff::Diff;
+use macroquad::color::DARKGRAY;
 use macroquad::input::{is_key_down, KeyCode};
+use macroquad::math::{Rect, Vec2};
 use macroquad::window;
+use nalgebra::vector;
+use rapier2d::dynamics::{rigid_body, RigidBody, RigidBodyBuilder, RigidBodyHandle, RigidBodyType};
+use rapier2d::geometry::{ColliderBuilder, ColliderHandle, Group};
 use serde::{Deserialize, Serialize};
 
 use crate::TickContext;
@@ -18,34 +19,34 @@ use crate::TickContext;
 ))]
 pub struct PhysicsSquare {
     pub scale: u32,
-    pub color: gamelibrary::proxies::macroquad::color::Color,
+    pub color: macroquad::color::Color,
     pub owner: String,
     pub rigid_body_handle: RigidBodyHandle,
+    pub collider_handle: ColliderHandle,
     pub controllable: bool,
     pub menu: Option<Menu>,
     pub selected: bool,
     pub dragging: bool,
-    pub drag_offset: Option<Vec2>
+    pub drag_offset: Option<Vec2>,
+    pub resize_handles: [Rect; 4]
 }
 
 impl PhysicsSquare {
-    pub fn new(space: &mut Space, position: Vec2, body_type: RigidBodyType, hx: f32, hy: f32, owner: &String, controllable: bool, color: gamelibrary::proxies::macroquad::color::Color) -> Self {
-        let rigid_body_handle = space.insert_rigid_body(
-            RigidBody { 
-                position: position, 
-                rotation: 0.,
-                angular_velocity: 0.,
-                velocity: Vec2::new(0., 0.), 
-                body_type: body_type, 
-                owner: owner.clone(), 
-                collider: Collider { 
-                    hx: hx, 
-                    hy: hy, 
-                    restitution: 0., 
-                    mass: 10., 
-                    owner: owner.clone() 
-                }
-            }
+    pub fn new(space: &mut Space, position: Vec2, body_type: RigidBodyType, hx: f32, hy: f32, owner: &String, controllable: bool, color: macroquad::color::Color) -> Self {
+
+        
+        let rigid_body_handle = space.rigid_body_set.insert(
+            RigidBodyBuilder::new(body_type)
+                .translation(vector![position.x, position.y])
+                .build()
+        );
+        
+        
+        
+        let collider_handle = space.collider_set.insert_with_parent(
+            ColliderBuilder::cuboid(hx, hy).build(),
+            rigid_body_handle, 
+            &mut space.rigid_body_set
         );
 
         Self {
@@ -53,11 +54,13 @@ impl PhysicsSquare {
             color: color,
             owner: owner.clone(),
             rigid_body_handle,
+            collider_handle,
             controllable: controllable,
             menu: None,
             selected: false,
             dragging: false,
-            drag_offset: None
+            drag_offset: None,
+            resize_handles: [Rect::new(0., 0., 0., 0.); 4]
         }
         
     }
@@ -98,68 +101,104 @@ impl PhysicsSquare {
 
     pub fn tick(&mut self, ctx: &mut TickContext) {
 
-        let rigid_body = ctx.game_state.space.get_rigid_body_mut(self.get_rigid_body_handle()).expect("shit");
+        let rigid_body = ctx.game_state.space.rigid_body_set.get_mut(*self.get_rigid_body_handle()).expect("shit");
 
-        if rigid_body.position.x >= window::screen_width() || rigid_body.position.x <= 0. {
-            rigid_body.velocity.x = rigid_body.velocity.x * -1.;
+        if rigid_body.position().translation.x >= window::screen_width() || rigid_body.position().translation.x <= 0. {
+            rigid_body.set_linvel(
+                vector![rigid_body.linvel().x * -1., rigid_body.linvel().y], 
+                true
+            )
         }
 
-        if rigid_body.position.y >= window::screen_height() || rigid_body.position.y <= 0. {
-            rigid_body.velocity.y = rigid_body.velocity.y * -1.;
+        if rigid_body.position().translation.y >= window::screen_height() || rigid_body.position().translation.y <= 0. {
+            rigid_body.set_linvel(
+                vector![rigid_body.linvel().x, rigid_body.linvel().y * -1.], 
+                true
+            )
         }
 
         if self.controllable {
-            let rigid_body = ctx.game_state.space.get_rigid_body_mut(self.get_rigid_body_handle()).expect("shit");
 
             if is_key_down(KeyCode::W) {
 
-                if rigid_body.velocity.y.is_sign_negative() {
-                    rigid_body.velocity.y = 0.
+                // stop any y axis movement if going down
+                if rigid_body.linvel().y.is_sign_negative() {
+                    rigid_body.set_linvel(
+                        vector![rigid_body.linvel().x, 0.],
+                        true
+                    )
                 }
 
-                rigid_body.velocity.y += 4.
+                rigid_body.set_linvel(
+                    vector![rigid_body.linvel().x, rigid_body.linvel().y + 4.],
+                    true
+                )
             }
 
             if is_key_down(KeyCode::S) {
 
-                if rigid_body.velocity.y.is_sign_positive() {
-                    rigid_body.velocity.y = 0.
+                if rigid_body.linvel().y.is_sign_positive() {
+                    rigid_body.set_linvel(
+                        vector![rigid_body.linvel().x, 0.],
+                        true
+                    )
                 }
 
-                rigid_body.velocity.y -= 4.
+                rigid_body.set_linvel(
+                    vector![rigid_body.linvel().x, rigid_body.linvel().y - 4.],
+                    true
+                )
             }
             
             if is_key_down(KeyCode::A) {
 
-                if rigid_body.velocity.x.is_sign_positive() {
-                    rigid_body.velocity.x = 0.
+                if rigid_body.linvel().x.is_sign_positive() {
+                    rigid_body.set_linvel(
+                        vector![0., rigid_body.linvel().y],
+                        true
+                    )
                 }
 
-                rigid_body.velocity.x -= 4.
+                rigid_body.set_linvel(
+                    vector![rigid_body.linvel().x + 4., rigid_body.linvel().y],
+                    true
+                )
             }
 
             if is_key_down(KeyCode::D) {
 
-                if rigid_body.velocity.x.is_sign_negative() {
-                    rigid_body.velocity.x = 0.
+                if rigid_body.linvel().x.is_sign_negative() {
+                    rigid_body.set_linvel(
+                        vector![0., rigid_body.linvel().y],
+                        true
+                    )
                 }
 
-                rigid_body.velocity.x += 4.
+                rigid_body.set_linvel(
+                    vector![rigid_body.linvel().x - 4., rigid_body.linvel().y],
+                    true
+                )
             }
         }
     }
 }
 
 impl Color for PhysicsSquare {
-    fn color(&mut self) -> &mut gamelibrary::proxies::macroquad::color::Color {
+    fn color(&mut self) -> &mut macroquad::color::Color {
         &mut self.color
     }
 }
 
 impl HasRigidBody for PhysicsSquare {
-
     fn get_rigid_body_handle(&self) -> &RigidBodyHandle {
         &self.rigid_body_handle
+    }
+}
+
+impl HasCollider for PhysicsSquare {
+
+    fn get_collider_handle(&self) -> &ColliderHandle {
+        &self.collider_handle
     }
 
     fn get_drag_offset(&mut self) -> &mut Option<Vec2> {

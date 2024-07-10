@@ -23,7 +23,7 @@ async fn main() {
 
     let level = Level { 
         structures: vec![],
-        space: Space::new(-980.)
+        space: Space::new()
     };
 
     
@@ -32,6 +32,7 @@ async fn main() {
     };
 
     editor.run().await;
+
     
     
 }

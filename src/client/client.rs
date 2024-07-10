@@ -1,20 +1,21 @@
 use std::collections::HashMap;
 
-use gamelibrary::{proxies::macroquad::{color::{self, Color}, math::vec2::Vec2}, time::Time};
+use gamelibrary::time::Time;
 use diff::Diff;
 use liquidators_lib::{game_state::{GameState, GameStateDiff}, physics_square::PhysicsSquare, TickContext};
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
-use macroquad::{input::{is_key_down, is_key_released, is_mouse_button_released}, texture::Texture2D};
+use macroquad::{color::{colors, Color}, input::{is_key_down, is_key_released, is_mouse_button_released}, math::Vec2, texture::Texture2D};
 use gamelibrary::traits::HasOwner;
-use gamelibrary::traits::HasRigidBody;
+use gamelibrary::traits::HasCollider;
 use rand::prelude::SliceRandom;
 
 use rand::thread_rng;
+use rapier2d::dynamics::RigidBodyType;
 
 // Return a random color
 pub fn random_color() -> Color {
 
-    let colors = [color::colors::RED, color::colors::BLUE, color::colors::GREEN];
+    let colors = [colors::RED, colors::BLUE, colors::GREEN];
 
     let mut rng = thread_rng();
 
@@ -46,8 +47,22 @@ impl Client {
             //macroquad::window::clear_background(macroquad::color::BLACK);
     
             self.tick();
+
+            let mut owned_rigid_bodies = vec![];
+            let mut owned_colliders = vec![];
+
+            // we need a better way of extracting these
+            for physics_square in &self.game_state.physics_squares {
+
+                if physics_square.owner != self.uuid {
+                    continue;
+                }
+
+                owned_rigid_bodies.push(physics_square.rigid_body_handle);
+                owned_colliders.push(physics_square.collider_handle);
+            }
             
-            self.game_state.space.step(&self.uuid);
+            self.game_state.space.step(owned_rigid_bodies, owned_colliders);
             
             self.draw().await;
 
@@ -288,7 +303,7 @@ impl Client {
                 PhysicsSquare::new(
                     &mut self.game_state.space,
                     Vec2::new(mouse_pos.0 + 20., mouse_pos.1 + 20.),
-                    gamelibrary::rigid_body::RigidBodyType::Dynamic,
+                    RigidBodyType::Dynamic,
                     20., 
                     20., 
                     &self.uuid,
