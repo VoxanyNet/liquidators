@@ -160,7 +160,7 @@ impl PhysicsSquare {
                 }
 
                 rigid_body.set_linvel(
-                    vector![rigid_body.linvel().x + 4., rigid_body.linvel().y],
+                    vector![rigid_body.linvel().x - 4., rigid_body.linvel().y],
                     true
                 )
             }
@@ -175,10 +175,11 @@ impl PhysicsSquare {
                 }
 
                 rigid_body.set_linvel(
-                    vector![rigid_body.linvel().x - 4., rigid_body.linvel().y],
+                    vector![rigid_body.linvel().x + 4., rigid_body.linvel().y],
                     true
                 )
             }
+
         }
     }
 }

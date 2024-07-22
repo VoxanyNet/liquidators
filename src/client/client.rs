@@ -1,16 +1,16 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fs};
 
-use gamelibrary::time::Time;
+use gamelibrary::{macroquad_to_rapier, time::Time};
 use diff::Diff;
 use liquidators_lib::{game_state::{GameState, GameStateDiff}, physics_square::PhysicsSquare, TickContext};
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
-use macroquad::{color::{colors, Color}, input::{is_key_down, is_key_released, is_mouse_button_released}, math::Vec2, texture::Texture2D};
+use macroquad::{color::{colors, Color}, input::{is_key_down, is_key_released, is_mouse_button_released, mouse_position, KeyCode}, math::Vec2, texture::Texture2D, time::get_fps};
 use gamelibrary::traits::HasOwner;
 use gamelibrary::traits::HasCollider;
 use rand::prelude::SliceRandom;
 
 use rand::thread_rng;
-use rapier2d::dynamics::RigidBodyType;
+use rapier2d::{dynamics::{rigid_body, RigidBodyType}, geometry::BroadPhase};
 
 // Return a random color
 pub fn random_color() -> Color {
@@ -63,6 +63,22 @@ impl Client {
             }
             
             self.game_state.space.step(owned_rigid_bodies, owned_colliders);
+
+            if is_key_released(KeyCode::K) {
+                let physics_square = PhysicsSquare::new(
+                    &mut self.game_state.space,
+                    Vec2::new(50., 500.),
+                    RigidBodyType::Dynamic,
+                    20., 
+                    20., 
+                    &String::new(),
+                    true,
+                    self.square_color
+                );
+            
+                self.game_state.physics_squares.push(physics_square);
+            }
+            
             
             self.draw().await;
 
@@ -88,9 +104,10 @@ impl Client {
             // std::thread::sleep(
             //     Duration::from_millis(5)
             // );
-    
-            println!("fps: {}",  macroquad::time::get_fps());
-            println!("squares: {}", self.game_state.physics_squares.len());
+
+            println!("{}", get_fps());
+
+
 
         }
     }
@@ -150,10 +167,6 @@ impl Client {
             };
 
             self.game_state.apply(&game_state_diff);
-
-            // update_count += 1;
-
-            //println!("update count: {}", update_count);
 
         }
 
@@ -221,18 +234,9 @@ impl Client {
             };
         };
         
-        let game_state_string_bytes = decompress_size_prepended(&compressed_game_state_string_bytes).expect("Failed to decompress initial state");
-        
-        let game_state_string = match String::from_utf8(game_state_string_bytes.clone()) {
-            Ok(game_state_diff_string) => game_state_diff_string,
-            Err(error) => {
-                panic!("failed to decode game state diff as string {}", error);
-            },
-        };
+        let game_state_bytes = decompress_size_prepended(&compressed_game_state_string_bytes).expect("Failed to decompress initial state");
 
-        
-
-        let game_state: GameState = match serde_json::from_str(&game_state_string) {
+        let game_state: GameState = match bitcode::deserialize(&game_state_bytes) {
             Ok(game_state_diff) => game_state_diff,
             Err(error) => {
                 panic!("failed to deserialize game state diff: {}", error);
@@ -283,26 +287,34 @@ impl Client {
 
         self.control_camera();
 
-        if is_key_released(macroquad::input::KeyCode::F5) {
-            let game_state_json = serde_json::to_string_pretty(&self.game_state).unwrap();
+        if is_key_released(KeyCode::Y) {
+            let bytes = bitcode::serialize(&self.game_state.space.broad_phase).unwrap();
 
-            std::fs::write("state.json", game_state_json).unwrap();
+            fs::write("broad_phase.bin", bytes);
+        }
+        if is_key_released(macroquad::input::KeyCode::F5) {
+
+            let game_state_yaml = serde_yaml::to_string(&self.game_state.space).unwrap();
+
+            std::fs::write("state.yaml", game_state_yaml).unwrap();
         }
 
         if is_key_released(macroquad::input::KeyCode::F6) {
-            self.game_state = serde_json::from_str(
-                &std::fs::read_to_string("state.json").expect("failed to read state file")
+            self.game_state = serde_yaml::from_slice(
+                &std::fs::read("state.yaml").expect("failed to read state file")
             ).expect("failed to deserialize state file");
         }
 
         if is_mouse_button_released(macroquad::input::MouseButton::Left) {
 
-            let mouse_pos = macroquad::input::mouse_position();
+            let mouse_pos = mouse_position();
+
+            let rapier_mouse_pos = macroquad_to_rapier(&Vec2::new(mouse_pos.0, mouse_pos.1));
 
             self.game_state.physics_squares.push( 
                 PhysicsSquare::new(
                     &mut self.game_state.space,
-                    Vec2::new(mouse_pos.0 + 20., mouse_pos.1 + 20.),
+                    Vec2::new(rapier_mouse_pos.x, rapier_mouse_pos.y),
                     RigidBodyType::Dynamic,
                     20., 
                     20., 
@@ -313,7 +325,12 @@ impl Client {
             );
         }
 
+        println!("{}", self.game_state.space.rigid_body_set.len());
+        for (handle, body) in self.game_state.space.rigid_body_set.iter_mut() {
+            println!("{:?}",body.activation() )
+        }
         for index in 0..self.game_state.physics_squares.len() {
+
 
             // take the player out, tick it, then put it back in
             let mut entity = self.game_state.physics_squares.remove(index);

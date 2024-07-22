@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use gamelibrary::macroquad_to_rapier;
 use liquidators_lib::{level::Level, structure::Structure};
 use macroquad::{color::RED, input::{self, is_key_down, is_key_pressed, is_mouse_button_released, mouse_position}, math::{Rect, Vec2}, time::get_fps, window::screen_height};
@@ -94,8 +96,12 @@ impl Editor {
         // spawn square structure at mouse position
         self.spawn_structure();
         
+        
+
         self.step_space();
 
+        
+            
         // tick all Structures
         for structure_index in 0..self.level.structures.len() {
             let mut structure = self.level.structures.remove(structure_index);
@@ -110,6 +116,7 @@ impl Editor {
 
 
         }
+        
 
         self.handle_menus();
 
@@ -166,12 +173,11 @@ impl Editor {
 
         //macroquad::window::set_fullscreen(true);
 
-        loop {
+        loop { 
+
             self.tick();
 
             self.draw().await;
-
-            println!("{}", get_fps());
 
             macroquad::window::next_frame().await;
         }

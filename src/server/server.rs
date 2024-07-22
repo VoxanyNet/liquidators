@@ -1,4 +1,4 @@
-use std::net::{SocketAddr, TcpListener, TcpStream};
+use std::{net::{SocketAddr, TcpListener, TcpStream}, time::Duration};
 
 use diff::Diff;
 use liquidators_lib::game_state::{GameState, GameStateDiff};
@@ -44,7 +44,7 @@ impl Server {
             self.receive_updates();
 
             // slow the loop down a bit so that it doesnt use so much cpu
-            //std::thread::sleep(Duration::from_millis(1));
+            std::thread::sleep(Duration::from_millis(1));
             
         }
     }
@@ -143,9 +143,7 @@ impl Server {
                 
 
                 // send client current state
-                let game_state_string = serde_json::to_string(&self.game_state).expect("Failed to serialize current game state");
-
-                let game_state_bytes = game_state_string.as_bytes().to_vec();
+                let game_state_bytes = bitcode::serialize(&self.game_state).expect("Failed to serialize current game state");
 
                 let compressed_game_state_bytes = compress_prepend_size(&game_state_bytes);
 

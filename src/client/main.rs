@@ -8,7 +8,7 @@ pub mod client;
 
 fn window_conf() -> Conf {
     let mut conf = Conf {
-        window_title: "Kruz's Epic Game".to_owned(),
+        window_title: "Game".to_owned(),
         window_width: 1280,
         window_height: 720,
         window_resizable: true,
