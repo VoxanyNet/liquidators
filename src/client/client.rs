@@ -1,16 +1,17 @@
-use std::{collections::HashMap, fs};
+use std::{collections::HashMap, fs, io::Read, time::{SystemTime, UNIX_EPOCH}};
 
-use gamelibrary::{macroquad_to_rapier, time::Time};
+use gamelibrary::{macroquad_to_rapier, space::SpaceDiff, time::Time};
 use diff::Diff;
 use liquidators_lib::{game_state::{GameState, GameStateDiff}, physics_square::PhysicsSquare, TickContext};
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
 use macroquad::{color::{colors, Color}, input::{is_key_down, is_key_released, is_mouse_button_released, mouse_position, KeyCode}, math::Vec2, texture::Texture2D, time::get_fps};
 use gamelibrary::traits::HasOwner;
 use gamelibrary::traits::HasCollider;
+use nalgebra::vector;
 use rand::prelude::SliceRandom;
 
 use rand::thread_rng;
-use rapier2d::{dynamics::{rigid_body, RigidBodyType}, geometry::BroadPhase};
+use rapier2d::{dynamics::{rigid_body, RigidBodyType}, geometry::BroadPhase, parry::shape::Cuboid, prelude::{ColliderBuilder, ColliderHandle, QueryFilter}};
 
 // Return a random color
 pub fn random_color() -> Color {
@@ -45,6 +46,33 @@ impl Client {
         loop {
         
             //macroquad::window::clear_background(macroquad::color::BLACK);
+
+
+            if is_key_released(KeyCode::Q) {
+
+                let game_state_diff_bytes = fs::read("diff.bin").unwrap();
+                let game_state_diff_bytes = game_state_diff_bytes.as_slice();
+                let game_state_diff: SpaceDiff = bitcode::deserialize(game_state_diff_bytes).unwrap();
+                self.game_state.space.apply(
+                    &game_state_diff
+                )
+            }
+
+            let rapier_mouse_coords = macroquad_to_rapier( 
+                &Vec2::new(mouse_position().0, mouse_position().1)
+            );
+
+            self.game_state.space.query_pipeline.intersections_with_shape(&self.game_state.space.rigid_body_set,
+                &self.game_state.space.collider_set, &vector![rapier_mouse_coords.x, rapier_mouse_coords.y].into(), ColliderBuilder::cuboid(10., 10.).build().shape(), QueryFilter::default(), |handle| {
+                    println!("The collider {:?} intersects our shape.", handle);
+                    let start = SystemTime::now();
+                    let since_the_epoch = start
+                        .duration_since(UNIX_EPOCH)
+                        .expect("Time went backwards");
+                    println!("{:?}", since_the_epoch);
+                    true // Return `false` instead if we want to stop searching for other colliders that contain this point.
+                }
+            );
     
             self.tick();
 
@@ -71,7 +99,7 @@ impl Client {
                     RigidBodyType::Dynamic,
                     20., 
                     20., 
-                    &String::new(),
+                    &self.uuid.clone(),
                     true,
                     self.square_color
                 );
@@ -104,8 +132,6 @@ impl Client {
             // std::thread::sleep(
             //     Duration::from_millis(5)
             // );
-
-            println!("{}", get_fps());
 
 
 
@@ -286,22 +312,18 @@ impl Client {
     pub fn tick(&mut self) {
 
         self.control_camera();
-
-        if is_key_released(KeyCode::Y) {
-            let bytes = bitcode::serialize(&self.game_state.space.broad_phase).unwrap();
-
-            fs::write("broad_phase.bin", bytes);
-        }
         if is_key_released(macroquad::input::KeyCode::F5) {
 
-            let game_state_yaml = serde_yaml::to_string(&self.game_state.space).unwrap();
+            let game_state_binary = bitcode::serialize(&self.game_state).unwrap();
+            let game_state_yaml = serde_yaml::to_string(&self.game_state).unwrap();
 
+            std::fs::write("state.bin", game_state_binary).unwrap();
             std::fs::write("state.yaml", game_state_yaml).unwrap();
         }
 
         if is_key_released(macroquad::input::KeyCode::F6) {
-            self.game_state = serde_yaml::from_slice(
-                &std::fs::read("state.yaml").expect("failed to read state file")
+            self.game_state = bitcode::deserialize(
+                &std::fs::read("state.bin").expect("failed to read state file")
             ).expect("failed to deserialize state file");
         }
 
@@ -325,10 +347,7 @@ impl Client {
             );
         }
 
-        println!("{}", self.game_state.space.rigid_body_set.len());
-        for (handle, body) in self.game_state.space.rigid_body_set.iter_mut() {
-            println!("{:?}",body.activation() )
-        }
+  
         for index in 0..self.game_state.physics_squares.len() {
 
 
