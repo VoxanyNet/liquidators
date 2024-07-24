@@ -44,35 +44,6 @@ impl Client {
     pub async fn run(&mut self) {
 
         loop {
-        
-            //macroquad::window::clear_background(macroquad::color::BLACK);
-
-
-            if is_key_released(KeyCode::Q) {
-
-                let game_state_diff_bytes = fs::read("diff.bin").unwrap();
-                let game_state_diff_bytes = game_state_diff_bytes.as_slice();
-                let game_state_diff: SpaceDiff = bitcode::deserialize(game_state_diff_bytes).unwrap();
-                self.game_state.space.apply(
-                    &game_state_diff
-                )
-            }
-
-            let rapier_mouse_coords = macroquad_to_rapier( 
-                &Vec2::new(mouse_position().0, mouse_position().1)
-            );
-
-            self.game_state.space.query_pipeline.intersections_with_shape(&self.game_state.space.rigid_body_set,
-                &self.game_state.space.collider_set, &vector![rapier_mouse_coords.x, rapier_mouse_coords.y].into(), ColliderBuilder::cuboid(10., 10.).build().shape(), QueryFilter::default(), |handle| {
-                    println!("The collider {:?} intersects our shape.", handle);
-                    let start = SystemTime::now();
-                    let since_the_epoch = start
-                        .duration_since(UNIX_EPOCH)
-                        .expect("Time went backwards");
-                    println!("{:?}", since_the_epoch);
-                    true // Return `false` instead if we want to stop searching for other colliders that contain this point.
-                }
-            );
     
             self.tick();
 
@@ -90,23 +61,7 @@ impl Client {
                 owned_colliders.push(physics_square.collider_handle);
             }
             
-            self.game_state.space.step(owned_rigid_bodies, owned_colliders);
-
-            if is_key_released(KeyCode::K) {
-                let physics_square = PhysicsSquare::new(
-                    &mut self.game_state.space,
-                    Vec2::new(50., 500.),
-                    RigidBodyType::Dynamic,
-                    20., 
-                    20., 
-                    &self.uuid.clone(),
-                    true,
-                    self.square_color
-                );
-            
-                self.game_state.physics_squares.push(physics_square);
-            }
-            
+            self.game_state.space.step(owned_rigid_bodies, owned_colliders);   
             
             self.draw().await;
 
@@ -120,12 +75,6 @@ impl Client {
             self.last_tick_game_state = self.game_state.clone();
     
             macroquad::window::next_frame().await;
-    
-            if macroquad::input::is_key_down(macroquad::input::KeyCode::J) {
-                let state_string = serde_json::to_string_pretty(&self.game_state).unwrap();
-    
-                std::fs::write("state.json", state_string).expect("failed to write current state to state.json")
-            }
     
             // cap framerate at 200fps (or 5 ms per frame)
             // TODO: this needs to take into account the time it took to draw the last frame
@@ -309,16 +258,12 @@ impl Client {
         }
     }
 
-    pub fn tick(&mut self) {
-
-        self.control_camera();
+    fn save_state(&mut self) {
         if is_key_released(macroquad::input::KeyCode::F5) {
 
             let game_state_binary = bitcode::serialize(&self.game_state).unwrap();
-            let game_state_yaml = serde_yaml::to_string(&self.game_state).unwrap();
 
             std::fs::write("state.bin", game_state_binary).unwrap();
-            std::fs::write("state.yaml", game_state_yaml).unwrap();
         }
 
         if is_key_released(macroquad::input::KeyCode::F6) {
@@ -326,7 +271,9 @@ impl Client {
                 &std::fs::read("state.bin").expect("failed to read state file")
             ).expect("failed to deserialize state file");
         }
+    }
 
+    fn spawn_physics_square(&mut self) {
         if is_mouse_button_released(macroquad::input::MouseButton::Left) {
 
             let mouse_pos = mouse_position();
@@ -346,12 +293,18 @@ impl Client {
                 )
             );
         }
+    }
 
-  
+    pub fn tick(&mut self) {
+
+        self.control_camera();
+
+        self.save_state();       
+
+        self.spawn_physics_square();
+
         for index in 0..self.game_state.physics_squares.len() {
 
-
-            // take the player out, tick it, then put it back in
             let mut entity = self.game_state.physics_squares.remove(index);
 
             let mut tick_context = TickContext {
