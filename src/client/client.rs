@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fs, io::Read, time::{SystemTime, UNIX_EPOCH}};
 
-use gamelibrary::{macroquad_to_rapier, space::SpaceDiff, time::Time};
+use gamelibrary::{macroquad_to_rapier, space::SpaceDiff, texture_loader::TextureLoader, time::Time};
 use diff::Diff;
 use liquidators_lib::{game_state::{GameState, GameStateDiff}, physics_square::PhysicsSquare, TickContext};
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
@@ -27,7 +27,7 @@ pub struct Client {
     pub game_state: GameState,
     pub is_host: bool,
     pub last_tick_game_state: GameState,
-    pub textures: HashMap<String, Texture2D>,
+    pub textures: TextureLoader,
     pub sounds: HashMap<String, macroquad::audio::Sound>,
     pub last_tick: Time,
     pub uuid: String,
@@ -222,7 +222,7 @@ impl Client {
             game_state: game_state.clone(),
             is_host: true,
             last_tick_game_state: game_state.clone(),
-            textures: HashMap::new(),
+            textures: TextureLoader::new(),
             sounds: HashMap::new(),
             last_tick: Time::now(),
             uuid: uuid,

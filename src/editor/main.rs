@@ -1,7 +1,8 @@
 use editor::Editor;
-use gamelibrary::space::Space;
+use gamelibrary::{menu::Button, space::Space};
 use liquidators_lib::level::Level;
-use macroquad::{miniquad::conf::Platform, window::Conf};
+use macroquad::{color::{DARKGRAY, WHITE}, math::Rect, miniquad::conf::Platform, window::Conf};
+use nalgebra::vector;
 
 pub mod editor;
 
@@ -14,22 +15,13 @@ fn window_conf() -> Conf {
         platform: Platform::default(),
         ..Default::default()
     };
-    conf.platform.swap_interval = Some(0); // disable vsync
     conf
 }
 
 #[macroquad::main(window_conf)]
 async fn main() {
-
-    let level = Level { 
-        structures: vec![],
-        space: Space::new()
-    };
-
     
-    let mut editor = Editor { 
-        level
-    };
+    let mut editor = Editor::new();
 
     editor.run().await;
 

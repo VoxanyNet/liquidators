@@ -1,25 +1,64 @@
 use std::time::Instant;
 
-use gamelibrary::macroquad_to_rapier;
+use gamelibrary::{macroquad_to_rapier, menu::Button, mouse_world_pos, space::Space};
 use liquidators_lib::{level::Level, structure::Structure};
-use macroquad::{color::RED, input::{self, is_key_down, is_key_pressed, is_mouse_button_released, mouse_position}, math::{Rect, Vec2}, time::get_fps, window::screen_height};
+use macroquad::{camera::{self, set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, RED}, input::{self, is_key_down, is_key_pressed, is_key_released, is_mouse_button_down, is_mouse_button_released, mouse_delta_position, mouse_position, mouse_wheel, KeyCode}, math::{vec2, Rect, Vec2}, prelude::camera::mouse::Camera, time::get_fps, window::{screen_height, screen_width}};
 use gamelibrary::traits::{HasCollider, HasRigidBody};
 use nalgebra::vector;
 use rapier2d::{dynamics::{RigidBody, RigidBodyBuilder}, geometry::{Collider, ColliderBuilder, ColliderHandle, Group}};
 
 pub struct Editor {
-    pub level: Level
+    pub level: Level,
+    pub save_button: Button,
+    pub load_button: Button,
+    pub camera_rect: Rect
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 
 impl Editor {
 
+    pub fn new() -> Self {
+        let mut level = Level { 
+            structures: vec![],
+            players: vec![],
+            space: Space::new()
+        };
+    
+        level.space.gravity.y = -980.;
+        
+        let save_button = Button::new(
+            "Save".into(),
+            Rect { x: 0., y: 0., w: 50., h: 30. },
+            DARKGRAY
+        );
+    
+        let load_button = Button::new(
+            "Load".into(),
+            Rect { x: 0., y: 30., w: 50., h: 30. },
+            DARKGRAY
+        );
+
+        let camera_rect = Rect::new(0., 0., 1280., 720.);
+
+        Self {
+            level,
+            save_button,
+            load_button,
+            camera_rect
+        }
+    }
+
     pub fn spawn_structure(&mut self) {
-        if is_key_pressed(input::KeyCode::E) {
+
+        if is_key_released(input::KeyCode::E) {
+
+            let mouse_world_pos = mouse_world_pos(&self.camera_rect);
+
+            let rapier_mouse_world_pos = macroquad_to_rapier(&mouse_world_pos);
 
             let rigid_body_handle = self.level.space.rigid_body_set.insert(
                 RigidBodyBuilder::dynamic()
                     .position(
-                        vector![mouse_position().0 - 20., (mouse_position().1 * -1. + screen_height()) - 20.].into()
+                        vector![rapier_mouse_world_pos.x, rapier_mouse_world_pos.y].into()
                     )
             );
 
@@ -37,8 +76,7 @@ impl Editor {
                 menu: None,
                 selected: false,
                 dragging: false,
-                drag_offset: None,
-                resize_handles: [Rect::new(0., 0., 0., 0.); 4]
+                drag_offset: None
             };
             
             self.level.structures.push(new_structure);
@@ -47,10 +85,14 @@ impl Editor {
 
         if is_key_pressed(input::KeyCode::Q) {
 
+            let mouse_world_pos = mouse_world_pos(&self.camera_rect);
+
+            let rapier_mouse_world_pos = macroquad_to_rapier(&mouse_world_pos);
+
             let rigid_body_handle = self.level.space.rigid_body_set.insert(
                 RigidBodyBuilder::fixed()
                     .position(
-                        vector![mouse_position().0 - 20., (mouse_position().1 * -1. + screen_height()) - 20.].into()
+                        vector![rapier_mouse_world_pos.x, rapier_mouse_world_pos.y].into()
                     )
             );
 
@@ -68,8 +110,7 @@ impl Editor {
                 menu: None,
                 selected: false,
                 dragging: false,
-                drag_offset: None,
-                resize_handles: [Rect::new(0., 0., 0., 0.); 4]
+                drag_offset: None
             };
             
             self.level.structures.push(new_structure);
@@ -87,33 +128,53 @@ impl Editor {
                 owned_rigid_bodies.push(structure.rigid_body_handle);
                 owned_colliders.push(structure.collider_handle);
             }
+
             self.level.space.step(owned_rigid_bodies, owned_colliders);
+        }
+    }
+
+    pub fn update_camera(&mut self) {
+        if mouse_wheel().1 < 0. {
+            self.camera_rect.w *= 1.1;
+            self.camera_rect.h *= 1.1;
+        }
+
+        if mouse_wheel().1 > 0. {
+
+            self.camera_rect.w /= 1.1;
+            self.camera_rect.h /= 1.1;
+        }
+
+        if is_mouse_button_down(input::MouseButton::Middle) {
+            self.camera_rect.x += mouse_delta_position().x * 200.;
+            self.camera_rect.y += mouse_delta_position().y * 200.;
         }
     }
 
     pub fn tick(&mut self) {
 
+        self.update_camera();
+
+        //println!("{:?}", mouse_world_pos(&self.camera));
+
+        //self.zoom_camera();
         // spawn square structure at mouse position
         self.spawn_structure();
         
-        
+        self.step_space();     
 
-        self.step_space();
-
-        
+        self.save_button.update(&self.camera_rect);   
+        self.load_button.update(&self.camera_rect);
             
         // tick all Structures
         for structure_index in 0..self.level.structures.len() {
             let mut structure = self.level.structures.remove(structure_index);
 
-            structure.tick_editor(&mut self.level);
-
-            let rigid_body = self.level.space.rigid_body_set.get(*structure.get_rigid_body_handle()).unwrap();
+            structure.tick_editor(&mut self.level, &self.camera_rect);
 
             //println!("x: {}, y: {}", rigid_body.position().translation.x, rigid_body.position().translation.y);
 
             self.level.structures.insert(structure_index, structure);
-
 
         }
         
@@ -158,6 +219,12 @@ impl Editor {
 
     pub async fn draw(&mut self) {
 
+        let mut camera = Camera2D::from_display_rect(self.camera_rect);
+        camera.zoom.y = -camera.zoom.y;
+        set_camera(
+            &camera
+        );
+
         for structure in &mut self.level.structures {
             structure.draw(&Vec2::new(0., 0.), &self.level.space).await;
 
@@ -166,6 +233,13 @@ impl Editor {
                 None => {},
             }
         }
+
+        set_default_camera();
+
+        self.save_button.draw().await;
+        self.load_button.draw().await;
+
+        
 
     }
 

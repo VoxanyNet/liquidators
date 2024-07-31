@@ -13,18 +13,14 @@ macroquad = {git = "https://github.com/VoxanyNet/macroquad", rev = "659081936a0e
 nalgebra = {git = "https://github.com/VoxanyNet/nalgebra", rev = "e418ac27d31977ed36ee95f56d7ca18a490e0b33"}
 rapier2d = { git = "https://github.com/VoxanyNet/rapier", rev = "e273229f3b0a8daf3ce9b583859208e9adfe5b66", features = ["serde-serialize"] }
 serde = { version = "1.0.197", features = ["serde_derive"] }
-serde_json = "1.0.114"
-uuid = { version = "1.8.0", features = ["v4"] }
 lz4_flex = { version = "0.11", default-features = false }
 ewebsock = "0.6.0"
-gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "ad1077205fcedf19ea7dc795eeea686742bdc7be"}
+gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "49d6e890884254a92c17497faee4db0931a4d75e"}
 #gamelibrary = {path = "../gamelibrary"}
-serde-binary = "0.5.0"
 bitcode = { version = "0.6.0", features = ["serde"] }
 rand = "0.8.5"
-reqwest = { version = "0.12.4", features = ["blocking"] }
-serde_yaml = "0.9.34"
 tungstenite = "0.23.0"
+fxhash = "0.2.1"
 
 [[bin]]
 name = "client"

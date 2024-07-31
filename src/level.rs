@@ -2,7 +2,7 @@ use diff::Diff;
 use gamelibrary::space::Space;
 use serde::{Deserialize, Serialize};
 
-use crate::structure::Structure;
+use crate::{player::Player, structure::Structure};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -10,5 +10,6 @@ use crate::structure::Structure;
 ))]
 pub struct Level {
     pub structures: Vec<Structure>,
+    pub players: Vec<Player>,
     pub space: Space
 }

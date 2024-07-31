@@ -1,8 +1,8 @@
 use diff::Diff;
-use gamelibrary::{macroquad_to_rapier, menu::Menu, space::Space, traits::{Color, Drawable, HasCollider, HasRigidBody}};
+use gamelibrary::{macroquad_to_rapier, menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, traits::{Color, Drawable, HasCollider, HasRigidBody}};
 use macroquad::{color::DARKGRAY, input::{self, is_key_down, is_mouse_button_released, mouse_position}, math::{Rect, Vec2}};
 use nalgebra::{point, vector};
-use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, math::Rotation};
+use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, math::Rotation, prelude::{Collider, ColliderBuilder}};
 use serde::{Serialize, Deserialize};
 
 use crate::level::Level;
@@ -18,20 +18,61 @@ pub struct Structure {
     pub menu: Option<Menu>,
     pub selected: bool,
     pub dragging: bool,
-    pub drag_offset: Option<Vec2>,
-    pub resize_handles: [Rect; 4]
+    pub drag_offset: Option<Vec2>
 }
 
 impl Structure {
 
-    pub fn spawn_menu(&mut self, space: &mut Space) {
+    pub fn resize(&mut self, space: &mut Space) {
+
+        if !*self.get_selected() {
+            return;
+        }
+        let collider = space.collider_set.get_mut(self.collider_handle).unwrap();
+        let rigid_body = space.rigid_body_set.get_mut(self.rigid_body_handle).unwrap();
+
+        let shape = collider.shape_mut().as_cuboid_mut().unwrap();
+
+        let increase_unit = 10.;
+
+        if is_key_down(input::KeyCode::Right) {
+            
+            shape.half_extents.x += increase_unit;
+            rigid_body.set_position(vector![rigid_body.position().translation.x + increase_unit, rigid_body.position().translation.y].into(), true)
+        }
+
+        if is_key_down(input::KeyCode::Up) {
+            shape.half_extents.y += increase_unit;
+            rigid_body.set_position(vector![rigid_body.position().translation.x, rigid_body.position().translation.y + increase_unit].into(), true)
+        }
+
+        if is_key_down(input::KeyCode::Down) {
+            shape.half_extents.y -= increase_unit;
+            rigid_body.set_position(vector![rigid_body.position().translation.x, rigid_body.position().translation.y - increase_unit].into(), true)
+        }
+
+        if is_key_down(input::KeyCode::Left) {
+            shape.half_extents.x -= increase_unit;
+            rigid_body.set_position(vector![rigid_body.position().translation.x - increase_unit, rigid_body.position().translation.y].into(), true)
+        }
+
+        if shape.half_extents.x <= 0. {
+            shape.half_extents.x = 1.
+        }
+
+        if shape.half_extents.y <= 0. {
+            shape.half_extents.y = 1.
+        }
+        
+    }
+    pub fn spawn_menu(&mut self, space: &mut Space, camera_rect: &Rect) {
         
         if !is_mouse_button_released(input::MouseButton::Right) {
             return;
         }
 
-        let mouse_pos = Vec2::new(mouse_position().0, mouse_position().1);
-        let mouse_rapier_coords = macroquad_to_rapier(&mouse_pos);
+        let mouse_pos = mouse_world_pos(camera_rect);
+        let mouse_rapier_coords = rapier_mouse_world_pos(camera_rect);
 
         if !self.contains_point(space, mouse_rapier_coords) {
             return
@@ -48,23 +89,22 @@ impl Structure {
         self.menu = Some(menu);
     }
 
-    pub fn resize(&mut self, space: &mut Space) {
-
-    }
-    pub fn tick_editor(&mut self, level: &mut Level) {
+    pub fn tick_editor(&mut self, level: &mut Level, camera_rect: &Rect) {
 
         match &mut self.menu {
-            Some(menu) => menu.update(),
+            Some(menu) => menu.update(camera_rect),
             None => {}
         }
 
-        self.spawn_menu(&mut level.space);
+        self.resize(&mut level.space);
 
-        self.update_selected(&mut level.space);
+        self.spawn_menu(&mut level.space, camera_rect);
 
-        self.update_is_dragging(&mut level.space);
+        self.update_selected(&mut level.space, camera_rect);
 
-        self.update_drag(&mut level.space);
+        self.update_is_dragging(&mut level.space, camera_rect);
+
+        self.update_drag(&mut level.space, camera_rect);
 
         self.rotate(&mut level.space);
 
@@ -80,7 +120,7 @@ impl Structure {
 
         if !is_key_down(input::KeyCode::R) {return}
 
-        let mut rigid_body = space.rigid_body_set.get_mut(*self.get_rigid_body_handle()).unwrap();
+        let rigid_body = space.rigid_body_set.get_mut(*self.get_rigid_body_handle()).unwrap();
         
         rigid_body.set_rotation(Rotation::from_angle(rigid_body.rotation().angle() - 0.05), true);
     }
@@ -102,6 +142,7 @@ impl Structure {
             match menu_item.text.as_str() {
                 "Delete" => {
                     self.menu = None;
+                    space.rigid_body_set.remove(self.rigid_body_handle, &mut space.island_manager, &mut space.collider_set, &mut space.impulse_joint_set, &mut space.multibody_joint_set, true);
                     return None
                 },
                 "Zero Velocity" => {
@@ -109,7 +150,7 @@ impl Structure {
                     let body = space.rigid_body_set.get_mut(*self.get_rigid_body_handle()).unwrap();
                     
                     body.set_linvel(vector![0., 0.], true);
-                    body.set_rotation(Rotation::from_angle(0.), true);
+                    //body.set_rotation(Rotation::from_angle(0.), true);
 
                     self.menu = None;   
 
