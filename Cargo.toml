@@ -15,8 +15,7 @@ rapier2d = { git = "https://github.com/VoxanyNet/rapier", rev = "2d5007249371e38
 serde = { version = "1.0.197", features = ["serde_derive"] }
 lz4_flex = { version = "0.11", default-features = false }
 ewebsock = "0.6.0"
-#gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "49d6e890884254a92c17497faee4db0931a4d75e"}
-gamelibrary = {path = "../gamelibrary"}
+gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "bff983233841778a8e2af5bf8c39f878d88299f2"}
 bitcode = { version = "0.6.0", features = ["serde"] }
 rand = "0.8.5"
 tungstenite = "0.23.0"
