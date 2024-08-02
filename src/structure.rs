@@ -1,8 +1,10 @@
+use std::any::Any;
+
 use diff::Diff;
 use gamelibrary::{macroquad_to_rapier, menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, traits::{Color, Drawable, HasCollider, HasRigidBody}};
 use macroquad::{color::DARKGRAY, input::{self, is_key_down, is_mouse_button_released, mouse_position}, math::{Rect, Vec2}};
 use nalgebra::{point, vector};
-use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, math::Rotation, prelude::{Collider, ColliderBuilder}};
+use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, math::Rotation, parry::shape::Cuboid, prelude::{Collider, ColliderBuilder}};
 use serde::{Serialize, Deserialize};
 
 use crate::level::Level;

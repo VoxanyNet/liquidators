@@ -1,7 +1,5 @@
 use std::{net::SocketAddr, str::FromStr};
 
-
-
 pub mod server;
 
 fn main () {

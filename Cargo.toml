@@ -11,12 +11,12 @@ chrono = "0.4.35"
 diff-struct = "0.5.3"
 macroquad = {git = "https://github.com/VoxanyNet/macroquad", rev = "659081936a0e32befc63169391b7cc5a85801470"}
 nalgebra = {git = "https://github.com/VoxanyNet/nalgebra", rev = "e418ac27d31977ed36ee95f56d7ca18a490e0b33"}
-rapier2d = { git = "https://github.com/VoxanyNet/rapier", rev = "e273229f3b0a8daf3ce9b583859208e9adfe5b66", features = ["serde-serialize"] }
+rapier2d = { git = "https://github.com/VoxanyNet/rapier", rev = "2d5007249371e380f3fad7fed446e0e4a9843eb6", features = ["serde-serialize"] }
 serde = { version = "1.0.197", features = ["serde_derive"] }
 lz4_flex = { version = "0.11", default-features = false }
 ewebsock = "0.6.0"
-gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "49d6e890884254a92c17497faee4db0931a4d75e"}
-#gamelibrary = {path = "../gamelibrary"}
+#gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "49d6e890884254a92c17497faee4db0931a4d75e"}
+gamelibrary = {path = "../gamelibrary"}
 bitcode = { version = "0.6.0", features = ["serde"] }
 rand = "0.8.5"
 tungstenite = "0.23.0"
@@ -31,8 +31,12 @@ name = "server"
 path = "src/server/main.rs"
 
 [[bin]]
-name = "editor"
-path = "src/editor/main.rs"
+name = "editor-client"
+path = "src/editor_client/main.rs"
+
+[[bin]]
+name = "editor-server"
+path = "src/editor_server/main.rs"
 
 [lib]
 name = "liquidators_lib"

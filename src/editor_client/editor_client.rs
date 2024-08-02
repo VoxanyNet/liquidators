@@ -1,29 +1,24 @@
-use std::time::Instant;
+use std::{fs, time::Instant};
 
-use gamelibrary::{macroquad_to_rapier, menu::Button, mouse_world_pos, space::Space};
+use gamelibrary::{macroquad_to_rapier, menu::Button, mouse_world_pos, space::Space, sync::client::SyncClient};
 use liquidators_lib::{level::Level, structure::Structure};
 use macroquad::{camera::{self, set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, RED}, input::{self, is_key_down, is_key_pressed, is_key_released, is_mouse_button_down, is_mouse_button_released, mouse_delta_position, mouse_position, mouse_wheel, KeyCode}, math::{vec2, Rect, Vec2}, prelude::camera::mouse::Camera, time::get_fps, window::{screen_height, screen_width}};
 use gamelibrary::traits::{HasCollider, HasRigidBody};
 use nalgebra::vector;
 use rapier2d::{dynamics::{RigidBody, RigidBodyBuilder}, geometry::{Collider, ColliderBuilder, ColliderHandle, Group}};
 
-pub struct Editor {
+pub struct EditorClient {
     pub level: Level,
     pub save_button: Button,
     pub load_button: Button,
-    pub camera_rect: Rect
+    pub camera_rect: Rect,
+    pub sync_client: SyncClient<Level>
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 
-impl Editor {
+impl EditorClient {
 
-    pub fn new() -> Self {
-        let mut level = Level { 
-            structures: vec![],
-            players: vec![],
-            space: Space::new()
-        };
-    
-        level.space.gravity.y = -980.;
+    pub fn connect(url: &str) -> Self {
+        let (sync_client, level): (SyncClient<Level>, Level) = SyncClient::connect(url);
         
         let save_button = Button::new(
             "Save".into(),
@@ -43,7 +38,8 @@ impl Editor {
             level,
             save_button,
             load_button,
-            camera_rect
+            camera_rect,
+            sync_client
         }
     }
 
@@ -165,6 +161,20 @@ impl Editor {
 
         self.save_button.update(&self.camera_rect);   
         self.load_button.update(&self.camera_rect);
+
+        // for (handle, collider) in self.level.space.collider_set.iter() {
+        //     println!("{}", collider.shape().as_cuboid().unwrap().half_extents);
+        // }
+
+        if self.save_button.clicked {
+            fs::write("level.bin", bitcode::serialize(&self.level).unwrap()).unwrap();
+        }
+
+        if self.load_button.clicked {
+            self.level = bitcode::deserialize(
+                &fs::read("level.bin").unwrap()
+            ).unwrap()
+        }
             
         // tick all Structures
         for structure_index in 0..self.level.structures.len() {
@@ -252,6 +262,8 @@ impl Editor {
             self.tick();
 
             self.draw().await;
+
+            self.sync_client.sync(&mut self.level);
 
             macroquad::window::next_frame().await;
         }

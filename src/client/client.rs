@@ -1,6 +1,6 @@
-use std::{collections::HashMap, fs, io::Read, time::{SystemTime, UNIX_EPOCH}};
+use std::{collections::HashMap, fs, io::Read, time::{Instant, SystemTime, UNIX_EPOCH}};
 
-use gamelibrary::{macroquad_to_rapier, space::SpaceDiff, texture_loader::TextureLoader, time::Time};
+use gamelibrary::{macroquad_to_rapier, space::SpaceDiff, sync::client::SyncClient, texture_loader::TextureLoader, time::Time};
 use diff::Diff;
 use liquidators_lib::{game_state::{GameState, GameStateDiff}, physics_square::PhysicsSquare, TickContext};
 use lz4_flex::{compress_prepend_size, decompress_size_prepended};
@@ -26,17 +26,15 @@ pub fn random_color() -> Color {
 pub struct Client {
     pub game_state: GameState,
     pub is_host: bool,
-    pub last_tick_game_state: GameState,
     pub textures: TextureLoader,
     pub sounds: HashMap<String, macroquad::audio::Sound>,
     pub last_tick: Time,
     pub uuid: String,
-    pub server_receive: ewebsock::WsReceiver,
-    pub server_send: ewebsock::WsSender,
     pub camera_offset: Vec2,
     pub update_count: i32,
     pub start_time: Time,
-    pub square_color: Color
+    pub square_color: Color,
+    pub sync_client: SyncClient<GameState>
 }
 
 impl Client {
@@ -65,14 +63,11 @@ impl Client {
             
             self.draw().await;
 
-            self.send_updates();
-            
-            self.receive_updates();
+            let then = Instant::now();
 
-            // we dont want to track the changes that happen to the game state when we receive updates
-            // so we set the checkpoint right after we receive the updates
-            // this way it will only track what happened when we ticked the game state
-            self.last_tick_game_state = self.game_state.clone();
+            self.sync_client.sync(&mut self.game_state);
+
+            println!("{:?}", then.elapsed());
     
             macroquad::window::next_frame().await;
     
@@ -87,65 +82,7 @@ impl Client {
         }
     }
 
-    // generate and send diff of game state from the last time we called this function (previous tick)
-    pub fn send_updates(&mut self) {
-
-        if self.last_tick_game_state == self.game_state {
-            //println!("no changes in game state, not sending update");
-            return;
-        }
-        let diff = self.last_tick_game_state.diff(&self.game_state);
-
-        // let diff_string = match serde_json::to_string(&diff) {
-        //     Ok(diff_string) => diff_string,
-        //     Err(error) => panic!("failed to serialize game state diff: {}", error),
-        // };
-
-        let diff_bytes = bitcode::serialize(&diff).expect("failed to serialize game state diff");
-
-        let compressed_diff_bytes = compress_prepend_size(&diff_bytes);
-
-        self.server_send.send(ewebsock::WsMessage::Binary(compressed_diff_bytes.to_vec()));
-
-    }
-
-    pub fn receive_updates(&mut self) {
-        // let mut update_count = 0;
-        
-        // we loop until there are no new updates
-        loop {
-
-            let compressed_game_state_diff_bytes = match self.server_receive.try_recv() {
-                Some(event) => {
-                    match event {
-                        ewebsock::WsEvent::Opened => todo!("unhandled 'Opened' event"),
-                        ewebsock::WsEvent::Message(message) => {
-                            match message {
-                                ewebsock::WsMessage::Binary(bytes) => bytes,
-                                _ => todo!("unhandled message type when trying to receive updates from server")
-                            }
-                        },
-                        ewebsock::WsEvent::Error(error) => todo!("unhandled 'Error' event when trying to receive update from server: {}", error),
-                        ewebsock::WsEvent::Closed => todo!("server closed"),
-                    }
-                },
-                None => break, // this means there are no more updates
-            };
-            
-            let game_state_diff_bytes = decompress_size_prepended(&compressed_game_state_diff_bytes).expect("Failed to decompress incoming update");
-
-            let game_state_diff: GameStateDiff = match bitcode::deserialize(&game_state_diff_bytes) {
-                Ok(game_state_diff) => game_state_diff,
-                Err(error) => {
-                    panic!("failed to deserialize game state diff: {}", error);
-                },
-            };
-
-            self.game_state.apply(&game_state_diff);
-
-        }
-
-    } 
+ 
     pub async fn draw(&mut self) {
         for entity in self.game_state.physics_squares.iter_mut() {
 
@@ -158,80 +95,21 @@ impl Client {
         let uuid = gamelibrary::uuid();
 
         println!("{}", uuid);
-
-        let (server_send, server_receive) = match ewebsock::connect(url, ewebsock::Options::default()) {
-            Ok(result) => result,
-            Err(error) => {
-                panic!("failed to connect to server: {}", error)
-            },
-        }; 
-
-        // wait for Opened event from server
-        loop {
-            match server_receive.try_recv() {
-                Some(event) => {
-                    match event {
-                        ewebsock::WsEvent::Opened => {
-                            println!("we got the opened message!");
-                            break;
-                        },
-                        ewebsock::WsEvent::Message(message) => {
-                            match message {
-                                _ => panic!("received a message from the server")
-                            }
-                        },
-                        ewebsock::WsEvent::Error(error) => panic!("received error when trying to connect to server: {}", error),
-                        ewebsock::WsEvent::Closed => panic!("server closed when trying to connect"),
-                        
-                    }
-                },
-                None => continue,
-            }
-        }
-
-        let compressed_game_state_string_bytes = loop {
-
-            match server_receive.try_recv() {
-                Some(event) => {
-                    match event {
-                        ewebsock::WsEvent::Opened => todo!("unhandled opened event on connect"),
-                        ewebsock::WsEvent::Message(message) => {
-                            match message {
-                                ewebsock::WsMessage::Binary(bytes) => break bytes,
-                                _ => todo!("unhandled message type when receiving initial state")
-                            }
-                        },
-                        ewebsock::WsEvent::Error(error) => todo!("unhandled error when receiving initial state: {}", error),
-                        ewebsock::WsEvent::Closed => todo!("unhandled closed event when receiving initial state"),
-                    }
-                },
-                None => continue, // this means that the server would have blocked, so we try again
-            };
-        };
         
-        let game_state_bytes = decompress_size_prepended(&compressed_game_state_string_bytes).expect("Failed to decompress initial state");
-
-        let game_state: GameState = match bitcode::deserialize(&game_state_bytes) {
-            Ok(game_state_diff) => game_state_diff,
-            Err(error) => {
-                panic!("failed to deserialize game state diff: {}", error);
-            },
-        };
+        let (sync_client, game_state): (SyncClient<GameState>, GameState) = SyncClient::connect(url);
         
         Self {
-            game_state: game_state.clone(),
+            game_state,
             is_host: true,
-            last_tick_game_state: game_state.clone(),
             textures: TextureLoader::new(),
             sounds: HashMap::new(),
             last_tick: Time::now(),
-            uuid: uuid,
-            server_receive: server_receive,
-            server_send: server_send,
+            uuid,
             camera_offset: Vec2::new(0., 0.),
             update_count: 0,
             start_time: Time::now(),
-            square_color: random_color()
+            square_color: random_color(),
+            sync_client
         }
     }
 

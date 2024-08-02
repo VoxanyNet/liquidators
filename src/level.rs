@@ -13,3 +13,17 @@ pub struct Level {
     pub players: Vec<Player>,
     pub space: Space
 }
+
+impl Level {
+    pub fn empty() -> Self {
+        let mut level = Level { 
+            structures: vec![],
+            players: vec![],
+            space: Space::new()
+        };
+    
+        level.space.gravity.y = -980.;
+        
+        level
+    }
+}
