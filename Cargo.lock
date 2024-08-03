@@ -328,6 +328,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 
 [[package]]
+name = "equivalent"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
+
+[[package]]
 name = "ewebsock"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -398,7 +404,7 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
-source = "git+https://github.com/VoxanyNet/gamelibrary?rev=bff983233841778a8e2af5bf8c39f878d88299f2#bff983233841778a8e2af5bf8c39f878d88299f2"
+source = "git+https://github.com/VoxanyNet/gamelibrary?rev=cbd3623bd5475cb438ad850ac5efa9f9f74c4e88#cbd3623bd5475cb438ad850ac5efa9f9f74c4e88"
 dependencies = [
  "bitcode",
  "chrono",
@@ -534,6 +540,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "indexmap"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de3fc2e30ba82dd1b3911c8de1ffc143c74a914a14e99514d7637e3099df5ea0"
+dependencies = [
+ "equivalent",
+ "hashbrown 0.14.5",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -576,6 +592,7 @@ dependencies = [
  "rand",
  "rapier2d",
  "serde",
+ "serde_yaml",
  "tungstenite 0.23.0",
 ]
 
@@ -922,7 +939,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.21.0"
-source = "git+https://github.com/VoxanyNet/rapier?rev=2d5007249371e380f3fad7fed446e0e4a9843eb6#2d5007249371e380f3fad7fed446e0e4a9843eb6"
+source = "git+https://github.com/VoxanyNet/rapier?rev=3b71872728323f4cbebf81cfeab394d0571661ac#3b71872728323f4cbebf81cfeab394d0571661ac"
 dependencies = [
  "approx",
  "arrayvec",
@@ -962,6 +979,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "583034fd73374156e66797ed8e5b0d5690409c9226b22d87cb7f19821c05d152"
 
 [[package]]
+name = "ryu"
+version = "1.0.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f3cb5ba0dc43242ce17de99c180e96db90b235b8a9fdc9543c96d2209116bd9f"
+
+[[package]]
 name = "safe_arch"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -988,6 +1011,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.72",
+]
+
+[[package]]
+name = "serde_yaml"
+version = "0.9.34+deprecated"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a8b1a1a2ebf674015cc02edccce75287f1a0130d394307b36743c2f5d504b47"
+dependencies = [
+ "indexmap",
+ "itoa",
+ "ryu",
+ "serde",
+ "unsafe-libyaml",
 ]
 
 [[package]]
@@ -1198,6 +1234,12 @@ checksum = "a56d1686db2308d901306f92a263857ef59ea39678a5458e7cb17f01415101f5"
 dependencies = [
  "tinyvec",
 ]
+
+[[package]]
+name = "unsafe-libyaml"
+version = "0.2.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "673aac59facbab8a9007c7f6108d11f63b603f7cabff99fabf650fea5c32b861"
 
 [[package]]
 name = "url"

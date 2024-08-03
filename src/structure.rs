@@ -1,8 +1,8 @@
 use std::any::Any;
 
 use diff::Diff;
-use gamelibrary::{macroquad_to_rapier, menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, traits::{Color, Drawable, HasCollider, HasRigidBody}};
-use macroquad::{color::DARKGRAY, input::{self, is_key_down, is_mouse_button_released, mouse_position}, math::{Rect, Vec2}};
+use gamelibrary::{macroquad_to_rapier, menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, sync::client, traits::{Color, Drawable, HasCollider, HasRigidBody}};
+use macroquad::{color::{DARKGRAY, GREEN, ORANGE, PINK}, input::{self, is_key_down, is_mouse_button_released, mouse_position}, math::{Rect, Vec2}};
 use nalgebra::{point, vector};
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, math::Rotation, parry::shape::Cuboid, prelude::{Collider, ColliderBuilder}};
 use serde::{Serialize, Deserialize};
@@ -20,7 +20,8 @@ pub struct Structure {
     pub menu: Option<Menu>,
     pub selected: bool,
     pub dragging: bool,
-    pub drag_offset: Option<Vec2>
+    pub drag_offset: Option<Vec2>,
+    pub editor_owner: String
 }
 
 impl Structure {
@@ -91,24 +92,24 @@ impl Structure {
         self.menu = Some(menu);
     }
 
-    pub fn tick_editor(&mut self, level: &mut Level, camera_rect: &Rect) {
+    pub fn tick_editor(&mut self, level: &mut Level, camera_rect: &Rect, client_uuid: &String) {
 
-        match &mut self.menu {
-            Some(menu) => menu.update(camera_rect),
-            None => {}
+        
+
+        if self.editor_owner == *client_uuid {
+
+            match &mut self.menu {
+                Some(menu) => menu.update(camera_rect),
+                None => {}
+            }
+
+            self.resize(&mut level.space);
+            self.spawn_menu(&mut level.space, camera_rect);
+            self.update_selected(&mut level.space, camera_rect);
+            self.update_is_dragging(&mut level.space, camera_rect);
+            self.update_drag(&mut level.space, camera_rect);
+            self.rotate(&mut level.space);
         }
-
-        self.resize(&mut level.space);
-
-        self.spawn_menu(&mut level.space, camera_rect);
-
-        self.update_selected(&mut level.space, camera_rect);
-
-        self.update_is_dragging(&mut level.space, camera_rect);
-
-        self.update_drag(&mut level.space, camera_rect);
-
-        self.rotate(&mut level.space);
 
 
     }

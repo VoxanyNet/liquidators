@@ -1,6 +1,6 @@
 use std::{fs, time::Instant};
 
-use gamelibrary::{macroquad_to_rapier, menu::Button, mouse_world_pos, space::Space, sync::client::SyncClient};
+use gamelibrary::{macroquad_to_rapier, menu::Button, mouse_world_pos, space::Space, sync::client::SyncClient, uuid};
 use liquidators_lib::{level::Level, structure::Structure};
 use macroquad::{camera::{self, set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, RED}, input::{self, is_key_down, is_key_pressed, is_key_released, is_mouse_button_down, is_mouse_button_released, mouse_delta_position, mouse_position, mouse_wheel, KeyCode}, math::{vec2, Rect, Vec2}, prelude::camera::mouse::Camera, time::get_fps, window::{screen_height, screen_width}};
 use gamelibrary::traits::{HasCollider, HasRigidBody};
@@ -8,6 +8,7 @@ use nalgebra::vector;
 use rapier2d::{dynamics::{RigidBody, RigidBodyBuilder}, geometry::{Collider, ColliderBuilder, ColliderHandle, Group}};
 
 pub struct EditorClient {
+    pub uuid: String,
     pub level: Level,
     pub save_button: Button,
     pub load_button: Button,
@@ -18,6 +19,9 @@ pub struct EditorClient {
 impl EditorClient {
 
     pub fn connect(url: &str) -> Self {
+
+        let uuid = uuid();
+
         let (sync_client, level): (SyncClient<Level>, Level) = SyncClient::connect(url);
         
         let save_button = Button::new(
@@ -35,11 +39,13 @@ impl EditorClient {
         let camera_rect = Rect::new(0., 0., 1280., 720.);
 
         Self {
+            uuid,
             level,
             save_button,
             load_button,
             camera_rect,
             sync_client
+
         }
     }
 
@@ -66,6 +72,7 @@ impl EditorClient {
             let collider_handle = self.level.space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut self.level.space.rigid_body_set);
 
             let new_structure = Structure { 
+                editor_owner: self.uuid.clone(),
                 rigid_body_handle: rigid_body_handle,
                 collider_handle: collider_handle,
                 color: RED,
@@ -100,6 +107,7 @@ impl EditorClient {
             let collider_handle = self.level.space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut self.level.space.rigid_body_set);
 
             let new_structure = Structure { 
+                editor_owner: self.uuid.clone(),
                 rigid_body_handle: rigid_body_handle,
                 collider_handle: collider_handle,
                 color: RED,
@@ -180,7 +188,7 @@ impl EditorClient {
         for structure_index in 0..self.level.structures.len() {
             let mut structure = self.level.structures.remove(structure_index);
 
-            structure.tick_editor(&mut self.level, &self.camera_rect);
+            structure.tick_editor(&mut self.level, &self.camera_rect, &self.uuid);
 
             //println!("x: {}, y: {}", rigid_body.position().translation.x, rigid_body.position().translation.y);
 
@@ -205,6 +213,11 @@ impl EditorClient {
                 break;
             }
 
+            if self.level.structures[structure_index].editor_owner != self.uuid {
+                structure_index += 1;
+                continue;
+            }
+
             let structure = self.level.structures.remove(structure_index);
 
             let result = structure.handle_menu(&mut self.level.space);
@@ -216,7 +229,7 @@ impl EditorClient {
                     structure_index += 1;
                 },
                 None => {
-                    structures_length -= 1;
+                    structures_length -= 1; 
 
                     // we dont increment the index
                 },
