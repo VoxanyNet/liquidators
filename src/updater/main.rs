@@ -2,16 +2,16 @@ use std::{fs, time::Duration};
 
 fn main() {
     
-    let program_files_directory = match std::env::var("ProgramFiles") {
+    let app_data_directory = match std::env::var("LocalAppData") {
         Ok(program_files_directory) => program_files_directory,
         Err(error) => {
-            println!("Failed to find program files directory: {}", error.to_string());
+            println!("Failed to find app data directory: {}", error.to_string());
             std::thread::sleep(Duration::from_secs(1));
             panic!();
         }
     };
 
-    let application_directory = format!("{}\\liquidators", program_files_directory);
+    let application_directory = format!("{}\\Programs\\liquidators", app_data_directory);
 
     // create application directory if it doesnt already exist
     match fs::create_dir_all(application_directory.clone()) {
