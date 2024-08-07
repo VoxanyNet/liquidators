@@ -40,7 +40,7 @@ impl Structure {
         let draw_pos = rapier_to_macroquad(&vec2(position.x, position.y));
 
         // draw the outline
-        if *self.get_selected() {
+        if *self.selected() {
             macroquad::shapes::draw_rectangle_ex(
                 draw_pos.x,
                 draw_pos.y, 
@@ -70,7 +70,7 @@ impl Structure {
 
     pub fn resize(&mut self, space: &mut Space) {
 
-        if !*self.get_selected() {
+        if !*self.selected() {
             return;
         }
         let collider = space.collider_set.get_mut(self.collider_handle).unwrap();
@@ -157,11 +157,11 @@ impl Structure {
     }
 
     pub fn update_resize(&mut self) {
-        if !*self.get_selected() {return}
+        if !*self.selected() {return}
     }
 
     pub fn rotate(&mut self, space: &mut Space) {
-        if !*self.get_selected() {return}
+        if !*self.selected() {return}
 
         if !is_key_down(input::KeyCode::R) {return}
 
@@ -212,18 +212,18 @@ impl Structure {
 
 impl HasCollider for Structure {
 
-    fn get_collider_handle(&self) -> &ColliderHandle {
+    fn collider_handle(&self) -> &ColliderHandle {
         &self.collider_handle
     }
-    fn get_drag_offset(&mut self) -> &mut Option<Vec2> {
+    fn drag_offset(&mut self) -> &mut Option<Vec2> {
         &mut self.drag_offset
     }
     
-    fn get_selected(&mut self) -> &mut bool {
+    fn selected(&mut self) -> &mut bool {
         &mut self.selected
     }
 
-    fn get_dragging(&mut self) -> &mut bool {
+    fn dragging(&mut self) -> &mut bool {
         &mut self.dragging
     }
 }

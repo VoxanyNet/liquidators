@@ -1,7 +1,7 @@
 use diff::Diff;
 use serde::{Deserialize, Serialize};
 
-use crate::{level::Level};
+use crate::level::Level;
 
 #[derive(Serialize, Deserialize, Diff, Clone, PartialEq)]
 #[diff(attr(

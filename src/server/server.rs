@@ -1,7 +1,7 @@
-use std::{net::{SocketAddr}, time::Duration};
+use std::{net::SocketAddr, time::Duration};
 
 use gamelibrary::sync::server::SyncServer;
-use liquidators_lib::game_state::{GameState};
+use liquidators_lib::game_state::GameState;
 
 pub struct Server {
     pub sync_server: SyncServer<GameState>

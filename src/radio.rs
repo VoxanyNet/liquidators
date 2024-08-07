@@ -13,19 +13,19 @@ pub struct Radio {
 }
 
 impl HasCollider for Radio {
-    fn get_collider_handle(&self) -> &ColliderHandle {
+    fn collider_handle(&self) -> &ColliderHandle {
         &self.collider_handle
     }
 
-    fn get_selected(&mut self) -> &mut bool {
+    fn selected(&mut self) -> &mut bool {
         &mut self.selected
     }
 
-    fn get_dragging(&mut self) -> &mut bool {
+    fn dragging(&mut self) -> &mut bool {
         &mut self.dragging
     }
 
-    fn get_drag_offset(&mut self) -> &mut Option<Vec2> {
+    fn drag_offset(&mut self) -> &mut Option<Vec2> {
         todo!()
     }
 }
