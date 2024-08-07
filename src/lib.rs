@@ -10,6 +10,7 @@ pub mod level;
 pub mod structure;
 pub mod shotgun;
 pub mod player;
+pub mod radio;
 
 pub struct TickContext<'a> {
     pub game_state: &'a mut GameState,

@@ -1,14 +1,14 @@
 use gamelibrary::menu::Menu;
 use gamelibrary::space::Space;
-use gamelibrary::traits::{Color, HasCollider, HasOwner, HasRigidBody};
+use gamelibrary::traits::HasCollider;
 use diff::Diff;
 use macroquad::color::DARKGRAY;
 use macroquad::input::{is_key_down, KeyCode};
 use macroquad::math::{Rect, Vec2};
 use macroquad::window;
 use nalgebra::vector;
-use rapier2d::dynamics::{rigid_body, RigidBody, RigidBodyBuilder, RigidBodyHandle, RigidBodyType};
-use rapier2d::geometry::{ColliderBuilder, ColliderHandle, Group};
+use rapier2d::dynamics::{RigidBodyBuilder, RigidBodyHandle, RigidBodyType};
+use rapier2d::geometry::{ColliderBuilder, ColliderHandle};
 use serde::{Deserialize, Serialize};
 
 use crate::TickContext;
@@ -101,7 +101,7 @@ impl PhysicsSquare {
 
     pub fn tick(&mut self, ctx: &mut TickContext) {
 
-        let rigid_body = ctx.game_state.space.rigid_body_set.get_mut(*self.get_rigid_body_handle()).expect("shit");
+        let rigid_body = ctx.game_state.level.space.rigid_body_set.get_mut(self.rigid_body_handle).expect("shit");
 
         if rigid_body.position().translation.x >= window::screen_width() || rigid_body.position().translation.x <= 0. {
             rigid_body.set_linvel(
@@ -184,18 +184,6 @@ impl PhysicsSquare {
     }
 }
 
-impl Color for PhysicsSquare {
-    fn color(&mut self) -> &mut macroquad::color::Color {
-        &mut self.color
-    }
-}
-
-impl HasRigidBody for PhysicsSquare {
-    fn get_rigid_body_handle(&self) -> &RigidBodyHandle {
-        &self.rigid_body_handle
-    }
-}
-
 impl HasCollider for PhysicsSquare {
 
     fn get_collider_handle(&self) -> &ColliderHandle {
@@ -212,15 +200,5 @@ impl HasCollider for PhysicsSquare {
 
     fn get_dragging(&mut self) -> &mut bool {
         &mut self.dragging
-    }
-}
-
-impl HasOwner for PhysicsSquare {
-    fn get_owner(&self) -> String {
-        self.owner.clone()
-    }
-
-    fn set_owner(&mut self, uuid: String) {
-        self.owner = uuid
     }
 }

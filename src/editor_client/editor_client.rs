@@ -1,11 +1,10 @@
-use std::{fs, time::Instant};
+use std::fs;
 
-use gamelibrary::{macroquad_to_rapier, menu::Button, mouse_world_pos, space::Space, sync::client::SyncClient, uuid};
+use gamelibrary::{macroquad_to_rapier, menu::Button, mouse_world_pos, sync::client::SyncClient, texture_loader::TextureLoader, uuid};
 use liquidators_lib::{level::Level, structure::Structure};
-use macroquad::{camera::{self, set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, RED}, input::{self, is_key_down, is_key_pressed, is_key_released, is_mouse_button_down, is_mouse_button_released, mouse_delta_position, mouse_position, mouse_wheel, KeyCode}, math::{vec2, Rect, Vec2}, prelude::camera::mouse::Camera, time::get_fps, window::{screen_height, screen_width}};
-use gamelibrary::traits::{HasCollider, HasRigidBody};
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, RED}, input::{self, is_key_down, is_key_pressed, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel}, math::Rect};
 use nalgebra::vector;
-use rapier2d::{dynamics::{RigidBody, RigidBodyBuilder}, geometry::{Collider, ColliderBuilder, ColliderHandle, Group}};
+use rapier2d::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder};
 
 pub struct EditorClient {
     pub uuid: String,
@@ -13,7 +12,8 @@ pub struct EditorClient {
     pub save_button: Button,
     pub load_button: Button,
     pub camera_rect: Rect,
-    pub sync_client: SyncClient<Level>
+    pub sync_client: SyncClient<Level>,
+    pub textures: TextureLoader
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 
 impl EditorClient {
@@ -44,7 +44,8 @@ impl EditorClient {
             save_button,
             load_button,
             camera_rect,
-            sync_client
+            sync_client,
+            textures: TextureLoader::new()
 
         }
     }
@@ -79,7 +80,9 @@ impl EditorClient {
                 menu: None,
                 selected: false,
                 dragging: false,
-                drag_offset: None
+                owner: None,
+                drag_offset: None,
+                sprite_path: "assets/structure/brick_block.png".to_string()
             };
             
             self.level.structures.push(new_structure);
@@ -114,7 +117,9 @@ impl EditorClient {
                 menu: None,
                 selected: false,
                 dragging: false,
-                drag_offset: None
+                owner: None,
+                drag_offset: None,
+                sprite_path: "assets/structure/brick_block.png".to_string()
             };
             
             self.level.structures.push(new_structure);
@@ -249,7 +254,7 @@ impl EditorClient {
         );
 
         for structure in &mut self.level.structures {
-            structure.draw(&Vec2::new(0., 0.), &self.level.space).await;
+            structure.draw(&self.level.space, &mut self.textures).await;
 
             match &structure.menu {
                 Some(menu) => menu.draw().await,

@@ -1,17 +1,11 @@
-use std::{collections::HashMap, fs, io::Read, time::{Instant, SystemTime, UNIX_EPOCH}};
+use std::collections::HashMap;
 
-use gamelibrary::{macroquad_to_rapier, space::SpaceDiff, sync::client::SyncClient, texture_loader::TextureLoader, time::Time};
-use diff::Diff;
-use liquidators_lib::{game_state::{GameState, GameStateDiff}, physics_square::PhysicsSquare, TickContext};
-use lz4_flex::{compress_prepend_size, decompress_size_prepended};
-use macroquad::{color::{colors, Color}, input::{is_key_down, is_key_released, is_mouse_button_released, mouse_position, KeyCode}, math::Vec2, texture::Texture2D, time::get_fps};
-use gamelibrary::traits::HasOwner;
-use gamelibrary::traits::HasCollider;
-use nalgebra::vector;
+use gamelibrary::{sync::client::SyncClient, texture_loader::TextureLoader, time::Time};
+use liquidators_lib::game_state::GameState;
+use macroquad::{color::{colors, Color}, input::{is_key_down, is_key_released}, math::Vec2};
 use rand::prelude::SliceRandom;
 
 use rand::thread_rng;
-use rapier2d::{dynamics::{rigid_body, RigidBodyType}, geometry::BroadPhase, parry::shape::Cuboid, prelude::{ColliderBuilder, ColliderHandle, QueryFilter}};
 
 // Return a random color
 pub fn random_color() -> Color {
@@ -43,50 +37,50 @@ impl Client {
 
         loop {
     
-            self.tick();
-
-            let mut owned_rigid_bodies = vec![];
-            let mut owned_colliders = vec![];
-
-            // we need a better way of extracting these
-            for physics_square in &self.game_state.physics_squares {
-
-                if physics_square.owner != self.uuid {
-                    continue;
-                }
-
-                owned_rigid_bodies.push(physics_square.rigid_body_handle);
-                owned_colliders.push(physics_square.collider_handle);
-            }
-            
-            self.game_state.space.step(owned_rigid_bodies, owned_colliders);   
+            self.tick();  
             
             self.draw().await;
 
-            let then = Instant::now();
+            self.step_space();
 
             self.sync_client.sync(&mut self.game_state);
-
-            println!("{:?}", then.elapsed());
     
             macroquad::window::next_frame().await;
-    
-            // cap framerate at 200fps (or 5 ms per frame)
-            // TODO: this needs to take into account the time it took to draw the last frame
-            // std::thread::sleep(
-            //     Duration::from_millis(5)
-            // );
-
 
 
         }
     }
 
+    pub fn step_space(&mut self) {
+        let mut owned_rigid_bodies = vec![];
+        let mut owned_colliders = vec![];
+
+        // we need a better way of extracting these
+        for structure in &self.game_state.level.structures {
+
+            if let Some(owner) = &structure.owner {
+
+                if self.uuid == *owner {
+                    owned_rigid_bodies.push(structure.rigid_body_handle);
+                    owned_colliders.push(structure.collider_handle);
+                }
+
+                else {
+                    continue;
+                }
+                
+            };
+            
+        }
+        
+        self.game_state.level.space.step(owned_rigid_bodies, owned_colliders); 
+    }
+
  
     pub async fn draw(&mut self) {
-        for entity in self.game_state.physics_squares.iter_mut() {
+        for structure in self.game_state.level.structures.iter_mut() {
 
-            entity.draw(&self.camera_offset, &self.game_state.space).await;
+            structure.draw(&self.game_state.level.space, &mut self.textures).await;
         }
     }
 
@@ -151,59 +145,11 @@ impl Client {
         }
     }
 
-    fn spawn_physics_square(&mut self) {
-        if is_mouse_button_released(macroquad::input::MouseButton::Left) {
-
-            let mouse_pos = mouse_position();
-
-            let rapier_mouse_pos = macroquad_to_rapier(&Vec2::new(mouse_pos.0, mouse_pos.1));
-
-            self.game_state.physics_squares.push( 
-                PhysicsSquare::new(
-                    &mut self.game_state.space,
-                    Vec2::new(rapier_mouse_pos.x, rapier_mouse_pos.y),
-                    RigidBodyType::Dynamic,
-                    20., 
-                    20., 
-                    &self.uuid,
-                    false,
-                    self.square_color
-                )
-            );
-        }
-    }
-
     pub fn tick(&mut self) {
 
         self.control_camera();
 
         self.save_state();       
-
-        self.spawn_physics_square();
-
-        for index in 0..self.game_state.physics_squares.len() {
-
-            let mut entity = self.game_state.physics_squares.remove(index);
-
-            let mut tick_context = TickContext {
-                game_state: &mut self.game_state,
-                is_host: &mut self.is_host,
-                textures: &mut self.textures,
-                sounds: &mut self.sounds,
-                time: &self.last_tick,
-                uuid: &self.uuid,
-                camera_offset: &mut self.camera_offset,
-            };
-
-            // we only tick the entity if we own it
-            if entity.get_owner() == *self.uuid {
-                entity.tick(&mut tick_context);
-            }
-            
-            // put the entity back in the same index so it doesnt FUCK things up
-            self.game_state.physics_squares.insert(index, entity)
-
-        }
 
         self.last_tick = Time::now(); 
 

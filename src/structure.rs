@@ -1,10 +1,8 @@
-use std::any::Any;
-
 use diff::Diff;
-use gamelibrary::{macroquad_to_rapier, menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, sync::client, traits::{Color, Drawable, HasCollider, HasRigidBody}};
-use macroquad::{color::{DARKGRAY, GREEN, ORANGE, PINK}, input::{self, is_key_down, is_mouse_button_released, mouse_position}, math::{Rect, Vec2}};
-use nalgebra::{point, vector};
-use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, math::Rotation, parry::shape::Cuboid, prelude::{Collider, ColliderBuilder}};
+use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::Space, texture_loader::TextureLoader, traits::HasCollider};
+use macroquad::{color::{DARKGRAY, WHITE}, input::{self, is_key_down, is_mouse_button_released}, math::{vec2, Rect, Vec2}, shapes::DrawRectangleParams, texture::{draw_texture_ex, DrawTextureParams}};
+use nalgebra::vector;
+use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, math::Rotation};
 use serde::{Serialize, Deserialize};
 
 use crate::level::Level;
@@ -21,10 +19,54 @@ pub struct Structure {
     pub selected: bool,
     pub dragging: bool,
     pub drag_offset: Option<Vec2>,
-    pub editor_owner: String
+    pub owner: Option<String>,
+    pub editor_owner: String,
+    pub sprite_path: String
 }
 
 impl Structure {
+
+    pub async fn draw(&mut self, space: &Space, textures: &mut TextureLoader) {
+        let rigid_body = space.rigid_body_set.get(self.rigid_body_handle).unwrap();
+        let collider = space.collider_set.get(self.collider_handle).unwrap();
+
+        // use the shape to define how large we should draw the texture
+        // maybe we should change this
+        let shape = collider.shape().as_cuboid().unwrap();
+
+        let position = rigid_body.position().translation;
+        let rotation = rigid_body.rotation().angle();
+
+        let draw_pos = rapier_to_macroquad(&vec2(position.x, position.y));
+
+        // draw the outline
+        if *self.get_selected() {
+            macroquad::shapes::draw_rectangle_ex(
+                draw_pos.x,
+                draw_pos.y, 
+                (shape.half_extents.x * 2.) + 10., 
+                (shape.half_extents.y * 2.) + 10., 
+                DrawRectangleParams { offset: macroquad::math::Vec2::new(0.5, 0.5), rotation: rotation * -1., color: WHITE }
+            );
+        } 
+
+        draw_texture_ex(
+            textures.get(&self.sprite_path).await, 
+            draw_pos.x - shape.half_extents.x, 
+            draw_pos.y - shape.half_extents.y, 
+            WHITE, 
+            DrawTextureParams {
+                dest_size: Some(vec2(shape.half_extents.x * 2., shape.half_extents.y * 2.)),
+                source: None,
+                rotation: rotation * -1.,
+                flip_x: false,
+                flip_y: false,
+                pivot: None,
+            }
+        );
+
+        
+    }
 
     pub fn resize(&mut self, space: &mut Space) {
 
@@ -123,7 +165,7 @@ impl Structure {
 
         if !is_key_down(input::KeyCode::R) {return}
 
-        let rigid_body = space.rigid_body_set.get_mut(*self.get_rigid_body_handle()).unwrap();
+        let rigid_body = space.rigid_body_set.get_mut(self.rigid_body_handle).unwrap();
         
         rigid_body.set_rotation(Rotation::from_angle(rigid_body.rotation().angle() - 0.05), true);
     }
@@ -150,7 +192,7 @@ impl Structure {
                 },
                 "Zero Velocity" => {
 
-                    let body = space.rigid_body_set.get_mut(*self.get_rigid_body_handle()).unwrap();
+                    let body = space.rigid_body_set.get_mut(self.rigid_body_handle).unwrap();
                     
                     body.set_linvel(vector![0., 0.], true);
                     //body.set_rotation(Rotation::from_angle(0.), true);
@@ -168,11 +210,6 @@ impl Structure {
     }
 }
 
-impl HasRigidBody for Structure {
-    fn get_rigid_body_handle(&self) -> &RigidBodyHandle {
-        &self.rigid_body_handle
-    }
-}
 impl HasCollider for Structure {
 
     fn get_collider_handle(&self) -> &ColliderHandle {
@@ -188,11 +225,5 @@ impl HasCollider for Structure {
 
     fn get_dragging(&mut self) -> &mut bool {
         &mut self.dragging
-    }
-}
-
-impl Color for Structure {
-    fn color(&mut self) -> &mut macroquad::color::Color {
-        &mut self.color
     }
 }

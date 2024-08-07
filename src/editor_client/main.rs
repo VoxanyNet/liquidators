@@ -1,13 +1,10 @@
 use editor_client::EditorClient;
-use gamelibrary::{menu::Button, space::Space};
-use liquidators_lib::level::Level;
-use macroquad::{color::{DARKGRAY, WHITE}, math::Rect, miniquad::conf::Platform, window::Conf};
-use nalgebra::vector;
+use macroquad::{miniquad::conf::Platform, window::Conf};
 
 pub mod editor_client;
 
 fn window_conf() -> Conf {
-    let mut conf = Conf {
+    let conf = Conf {
         window_title: "Liquidators Level Editor".to_owned(),
         window_width: 1280,
         window_height: 720,

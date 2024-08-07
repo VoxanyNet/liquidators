@@ -1,8 +1,8 @@
 use diff::Diff;
-use gamelibrary::texture_loader::TextureLoader;
-use macroquad::{color::WHITE, input::{is_key_down, KeyCode}, math::Vec2};
+use gamelibrary::macroquad_to_rapier;
+use macroquad::{color::WHITE, input::{is_key_down, KeyCode}, math::{vec2, Vec2}, texture::DrawTextureParams};
 use nalgebra::vector;
-use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBody, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
 use crate::TickContext;
@@ -27,8 +27,8 @@ impl Player {
 
         let collider = ColliderBuilder::cuboid(18., 15.).build();
 
-        let rigid_body_handle = ctx.game_state.space.rigid_body_set.insert(rigid_body);
-        let collider_handle = ctx.game_state.space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut ctx.game_state.space.rigid_body_set);
+        let rigid_body_handle = ctx.game_state.level.space.rigid_body_set.insert(rigid_body);
+        let collider_handle = ctx.game_state.level.space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut ctx.game_state.level.space.rigid_body_set);
 
         Player {
             rigid_body: rigid_body_handle,
@@ -43,7 +43,7 @@ impl Player {
 
     pub fn control(&mut self, ctx: &mut TickContext) {
 
-        let rigid_body = ctx.game_state.space.rigid_body_set.get_mut(self.rigid_body).unwrap();
+        let rigid_body = ctx.game_state.level.space.rigid_body_set.get_mut(self.rigid_body).unwrap();
 
         if is_key_down(KeyCode::W) {
 
@@ -107,12 +107,28 @@ impl Player {
         }
     }
 
-    async fn draw(&self, ctx: &mut TickContext<'_>) {
+    pub async fn draw(&self, ctx: &mut TickContext<'_>) {
 
         let texture = ctx.textures.get(&self.sprite_path).await;
-        let rigid_body = ctx.game_state.space.rigid_body_set.get(self.rigid_body).unwrap();
-        let collider = ctx.game_state.space.collider_set.get(self.collider).unwrap();
+        let rigid_body = ctx.game_state.level.space.rigid_body_set.get(self.rigid_body).unwrap();
+        let body_position = rigid_body.position().translation;
+        let rotation = rigid_body.rotation().angle();
 
-        macroquad::texture::draw_texture(texture, rigid_body.position().translation.x, rigid_body.position().translation.y, WHITE);
+        let draw_pos = macroquad_to_rapier(&vec2(body_position.x, body_position.y));
+
+        macroquad::texture::draw_texture_ex(
+            texture, 
+            draw_pos.x, 
+            draw_pos.y, 
+            WHITE,
+            DrawTextureParams {
+                dest_size: None,
+                source: None,
+                rotation,
+                flip_x: false,
+                flip_y: false,
+                pivot: None,
+            }
+        );
     }
 }
