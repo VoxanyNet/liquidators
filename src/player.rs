@@ -1,11 +1,12 @@
 use diff::Diff;
-use gamelibrary::macroquad_to_rapier;
+use ears::Music;
+use gamelibrary::{macroquad_to_rapier, space::Space, traits::HasPhysics};
 use macroquad::{color::WHITE, input::{is_key_down, KeyCode}, math::{vec2, Vec2}, texture::DrawTextureParams};
 use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::TickContext;
+use crate::{game_state::GameState, level::Level, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -15,35 +16,48 @@ pub struct Player {
     pub rigid_body: RigidBodyHandle,
     pub collider: ColliderHandle,
     pub sprite_path: String,
+    pub owner: String,
+    pub sounds: Vec<Music>,
+    pub selected: bool,
+    pub dragging: bool,
+    pub drag_offset: Option<Vec2>
 }
 
 impl Player {
 
-    pub fn spawn(ctx: &mut TickContext, position: &Vec2) -> Self {
+    pub fn spawn(players: &mut Vec<Player>, space: &mut Space, owner: String, position: &Vec2) {
 
         let rigid_body = RigidBodyBuilder::dynamic()
             .position(vector![position.x, position.y].into())
+            .lock_rotations()
             .build();
 
         let collider = ColliderBuilder::cuboid(18., 15.).build();
 
-        let rigid_body_handle = ctx.game_state.level.space.rigid_body_set.insert(rigid_body);
-        let collider_handle = ctx.game_state.level.space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut ctx.game_state.level.space.rigid_body_set);
+        let rigid_body_handle = space.rigid_body_set.insert(rigid_body);
+        let collider_handle = space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut space.rigid_body_set);
 
-        Player {
-            rigid_body: rigid_body_handle,
-            collider: collider_handle,
-            sprite_path: "player/idle.png".to_string(),
-        }
+        players.push(
+            Player {
+                rigid_body: rigid_body_handle,
+                collider: collider_handle,
+                sprite_path: "assets/player/idle.png".to_string(),
+                owner,
+                sounds: vec![],
+                selected: false,
+                dragging: false,
+                drag_offset: None
+            }
+        )
     }
 
-    pub fn tick(&mut self, ctx: &mut TickContext) {
-        self.control(ctx);
+    pub fn tick(&mut self, level: &mut Level, ctx: &mut TickContext) {
+        self.control(level, ctx);
     }
 
-    pub fn control(&mut self, ctx: &mut TickContext) {
+    pub fn control(&mut self, level: &mut Level, ctx: &mut TickContext) {
 
-        let rigid_body = ctx.game_state.level.space.rigid_body_set.get_mut(self.rigid_body).unwrap();
+        let rigid_body = level.space.rigid_body_set.get_mut(self.rigid_body).unwrap();
 
         if is_key_down(KeyCode::W) {
 
@@ -107,28 +121,34 @@ impl Player {
         }
     }
 
-    pub async fn draw(&self, ctx: &mut TickContext<'_>) {
+    pub async fn draw(&self, game_state: &GameState, ctx: &mut TickContext<'_>) {
 
-        let texture = ctx.textures.get(&self.sprite_path).await;
-        let rigid_body = ctx.game_state.level.space.rigid_body_set.get(self.rigid_body).unwrap();
-        let body_position = rigid_body.position().translation;
-        let rotation = rigid_body.rotation().angle();
+        self.draw_texture(&game_state.level.space, &self.sprite_path, &mut ctx.textures).await;
+    }
+}
 
-        let draw_pos = macroquad_to_rapier(&vec2(body_position.x, body_position.y));
+impl HasPhysics for Player {
+    fn collider_handle(&self) -> &ColliderHandle {
+        &self.collider
+    }
 
-        macroquad::texture::draw_texture_ex(
-            texture, 
-            draw_pos.x, 
-            draw_pos.y, 
-            WHITE,
-            DrawTextureParams {
-                dest_size: None,
-                source: None,
-                rotation,
-                flip_x: false,
-                flip_y: false,
-                pivot: None,
-            }
-        );
+    fn rigid_body_handle(&self) -> &RigidBodyHandle {
+        &self.rigid_body
+    }
+
+    fn selected(&self) -> &bool {
+        &self.selected
+    }
+    
+    fn selected_mut(&mut self) -> &mut bool {
+        &mut self.selected
+    }
+
+    fn dragging(&mut self) -> &mut bool {
+        &mut self.dragging
+    }
+
+    fn drag_offset(&mut self) -> &mut Option<Vec2> {
+        &mut self.drag_offset
     }
 }

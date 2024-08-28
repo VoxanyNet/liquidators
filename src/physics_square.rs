@@ -1,6 +1,6 @@
 use gamelibrary::menu::Menu;
 use gamelibrary::space::Space;
-use gamelibrary::traits::HasCollider;
+use gamelibrary::traits::HasPhysics;
 use diff::Diff;
 use macroquad::color::DARKGRAY;
 use macroquad::input::{is_key_down, KeyCode};
@@ -11,6 +11,7 @@ use rapier2d::dynamics::{RigidBodyBuilder, RigidBodyHandle, RigidBodyType};
 use rapier2d::geometry::{ColliderBuilder, ColliderHandle};
 use serde::{Deserialize, Serialize};
 
+use crate::game_state::GameState;
 use crate::TickContext;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -99,9 +100,9 @@ impl PhysicsSquare {
         Some(self)
     }
 
-    pub fn tick(&mut self, ctx: &mut TickContext) {
+    pub fn tick(&mut self, game_state: &mut GameState, ctx: &mut TickContext) {
 
-        let rigid_body = ctx.game_state.level.space.rigid_body_set.get_mut(self.rigid_body_handle).expect("shit");
+        let rigid_body = game_state.level.space.rigid_body_set.get_mut(self.rigid_body_handle).expect("shit");
 
         if rigid_body.position().translation.x >= window::screen_width() || rigid_body.position().translation.x <= 0. {
             rigid_body.set_linvel(
@@ -184,7 +185,7 @@ impl PhysicsSquare {
     }
 }
 
-impl HasCollider for PhysicsSquare {
+impl HasPhysics for PhysicsSquare {
 
     fn collider_handle(&self) -> &ColliderHandle {
         &self.collider_handle
@@ -194,11 +195,19 @@ impl HasCollider for PhysicsSquare {
         &mut self.drag_offset
     }
 
-    fn selected(&mut self) -> &mut bool {
+    fn selected(&self) -> &bool {
+        &self.selected
+    }
+    
+    fn selected_mut(&mut self) -> &mut bool {
         &mut self.selected
     }
 
     fn dragging(&mut self) -> &mut bool {
         &mut self.dragging
+    }
+    
+    fn rigid_body_handle(&self) -> &RigidBodyHandle {
+        &self.rigid_body_handle
     }
 }

@@ -1,10 +1,12 @@
 use std::fs;
 
-use gamelibrary::{macroquad_to_rapier, menu::Button, mouse_world_pos, sync::client::SyncClient, texture_loader::TextureLoader, uuid};
-use liquidators_lib::{level::Level, structure::Structure};
+use ears::{AudioController, Music, Sound};
+use gamelibrary::{macroquad_to_rapier, menu::Button, mouse_world_pos, rapier_mouse_world_pos, sync::client::SyncClient, texture_loader::TextureLoader, uuid};
+use liquidators_lib::{level::Level, radio::RadioBuilder, structure::{self, Structure}};
 use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, RED}, input::{self, is_key_down, is_key_pressed, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel}, math::Rect};
 use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder};
+use gamelibrary::traits::HasPhysics;
 
 pub struct EditorClient {
     pub uuid: String,
@@ -50,6 +52,18 @@ impl EditorClient {
         }
     }
 
+    pub fn spawn_radio(&mut self) {
+        if !is_key_released(input::KeyCode::T) {
+            return
+        }
+
+        let radio = RadioBuilder::new(&mut self.level.space, &rapier_mouse_world_pos(&self.camera_rect))
+            .editor_owner(self.uuid.clone())
+            .build();
+
+        self.level.radios.push(radio);
+
+    }
     pub fn spawn_structure(&mut self) {
 
         if is_key_released(input::KeyCode::E) {
@@ -138,7 +152,7 @@ impl EditorClient {
                 owned_colliders.push(structure.collider_handle);
             }
 
-            self.level.space.step(owned_rigid_bodies, owned_colliders);
+            self.level.space.step(&owned_rigid_bodies, &owned_colliders);
         }
     }
 
@@ -160,24 +174,9 @@ impl EditorClient {
         }
     }
 
-    pub fn tick(&mut self) {
-
-        self.update_camera();
-
-        //println!("{:?}", mouse_world_pos(&self.camera));
-
-        //self.zoom_camera();
-        // spawn square structure at mouse position
-        self.spawn_structure();
-        
-        self.step_space();     
-
+    fn handle_buttons(&mut self) {
         self.save_button.update(&self.camera_rect);   
         self.load_button.update(&self.camera_rect);
-
-        // for (handle, collider) in self.level.space.collider_set.iter() {
-        //     println!("{}", collider.shape().as_cuboid().unwrap().half_extents);
-        // }
 
         if self.save_button.clicked {
             fs::write("level.bin", bitcode::serialize(&self.level).unwrap()).unwrap();
@@ -188,21 +187,38 @@ impl EditorClient {
                 &fs::read("level.bin").unwrap()
             ).unwrap()
         }
-            
-        // tick all Structures
+    }
+
+    pub fn tick(&mut self) {
+
+        self.update_camera();
+
+        self.spawn_structure();
+
+        self.handle_buttons();
+
+        self.spawn_radio();
+
         for structure_index in 0..self.level.structures.len() {
             let mut structure = self.level.structures.remove(structure_index);
 
             structure.tick_editor(&mut self.level, &self.camera_rect, &self.uuid);
 
-            //println!("x: {}, y: {}", rigid_body.position().translation.x, rigid_body.position().translation.y);
-
             self.level.structures.insert(structure_index, structure);
 
         }
-        
 
+        for radio_index in 0..self.level.radios.len() {
+            let mut radio = self.level.radios.remove(radio_index);
+
+            radio.tick_editor(&mut self.level, &self.camera_rect, &self.uuid);
+
+            self.level.radios.insert(radio_index, radio);
+        }
+        
         self.handle_menus();
+
+        self.step_space();            
 
     }
 
@@ -254,12 +270,17 @@ impl EditorClient {
         );
 
         for structure in &mut self.level.structures {
-            structure.draw(&self.level.space, &mut self.textures).await;
+            let texture_path = structure.sprite_path.clone();
+            structure.draw_texture(&self.level.space, &texture_path, &mut self.textures).await;
 
             match &structure.menu {
                 Some(menu) => menu.draw().await,
                 None => {},
             }
+        }
+
+        for radio in &mut self.level.radios {
+            radio.draw(&mut self.textures, &self.level.space).await;
         }
 
         set_default_camera();
@@ -272,6 +293,11 @@ impl EditorClient {
     }
 
     pub async fn run(&mut self) {
+
+        // let mut sound = Sound::new("assets/sounds/radio.mp3").unwrap();
+        // sound.set_volume(0.25);
+
+        // sound.play();
 
         //macroquad::window::set_fullscreen(true);
 

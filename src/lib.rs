@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use game_state::GameState;
 use gamelibrary::{texture_loader::TextureLoader, time::Time};
 use macroquad::math::Vec2;
+use rapier2d::prelude::{ColliderHandle, RigidBodyHandle};
 
 pub mod game_state;
 pub mod physics_square;
@@ -13,7 +14,6 @@ pub mod player;
 pub mod radio;
 
 pub struct TickContext<'a> {
-    pub game_state: &'a mut GameState,
     pub is_host: &'a mut bool,
     pub textures: &'a mut TextureLoader,
     pub sounds: &'a mut HashMap<String, macroquad::audio::Sound>,

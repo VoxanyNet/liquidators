@@ -1,11 +1,14 @@
 use std::collections::HashMap;
 
+use ears::{AudioController, Sound};
 use gamelibrary::{sync::client::SyncClient, texture_loader::TextureLoader, time::Time};
-use liquidators_lib::game_state::GameState;
-use macroquad::{color::{colors, Color}, input::{is_key_down, is_key_released}, math::Vec2};
+use liquidators_lib::{game_state::GameState, player::Player, TickContext};
+use macroquad::{color::{colors, Color}, input::{is_key_down, is_key_released}, math::{vec2, Vec2}};
 use rand::prelude::SliceRandom;
+use gamelibrary::traits::HasPhysics;
 
 use rand::thread_rng;
+use rapier2d::prelude::{ColliderHandle, RigidBodyHandle};
 
 // Return a random color
 pub fn random_color() -> Color {
@@ -28,10 +31,35 @@ pub struct Client {
     pub update_count: i32,
     pub start_time: Time,
     pub square_color: Color,
-    pub sync_client: SyncClient<GameState>
+    pub sync_client: SyncClient<GameState>,
+    pub owned_colliders: Vec<ColliderHandle>,
+    pub owned_bodies: Vec<RigidBodyHandle>
 }
 
 impl Client {
+
+    pub fn tick(&mut self) {
+
+        let mut tick_content = TickContext {
+            is_host: &mut self.is_host,
+            textures: &mut self.textures,
+            sounds: &mut self.sounds,
+            time: &self.last_tick,
+            uuid: &self.uuid,
+            camera_offset: &mut self.camera_offset
+        };
+
+        self.game_state.tick(
+            &mut tick_content
+        );
+
+        self.control_camera();
+
+        self.save_state();
+
+        self.last_tick = Time::now(); 
+
+    }
 
     pub async fn run(&mut self) {
 
@@ -41,47 +69,21 @@ impl Client {
             
             self.draw().await;
 
-            self.step_space();
-
             self.sync_client.sync(&mut self.game_state);
     
-            macroquad::window::next_frame().await;
-
-
         }
-    }
-
-    pub fn step_space(&mut self) {
-        let mut owned_rigid_bodies = vec![];
-        let mut owned_colliders = vec![];
-
-        // we need a better way of extracting these
-        for structure in &self.game_state.level.structures {
-
-            if let Some(owner) = &structure.owner {
-
-                if self.uuid == *owner {
-                    owned_rigid_bodies.push(structure.rigid_body_handle);
-                    owned_colliders.push(structure.collider_handle);
-                }
-
-                else {
-                    continue;
-                }
-                
-            };
-            
-        }
-        
-        self.game_state.level.space.step(owned_rigid_bodies, owned_colliders); 
     }
 
  
     pub async fn draw(&mut self) {
         for structure in self.game_state.level.structures.iter_mut() {
 
-            structure.draw(&self.game_state.level.space, &mut self.textures).await;
+            let texture_path = structure.sprite_path.clone();
+
+            structure.draw_texture(&self.game_state.level.space, &texture_path, &mut self.textures).await;
         }
+
+        macroquad::window::next_frame().await;
     }
 
     pub fn connect(url: &str) -> Self {
@@ -90,7 +92,9 @@ impl Client {
 
         println!("{}", uuid);
         
-        let (sync_client, game_state): (SyncClient<GameState>, GameState) = SyncClient::connect(url);
+        let (sync_client, mut game_state): (SyncClient<GameState>, GameState) = SyncClient::connect(url);
+
+        Player::spawn(&mut game_state.level.players, &mut game_state.level.space, uuid.clone(), &vec2(100., 20.));
         
         Self {
             game_state,
@@ -103,7 +107,9 @@ impl Client {
             update_count: 0,
             start_time: Time::now(),
             square_color: random_color(),
-            sync_client
+            sync_client,
+            owned_bodies: vec![],
+            owned_colliders: vec![]
         }
     }
 
@@ -145,13 +151,5 @@ impl Client {
         }
     }
 
-    pub fn tick(&mut self) {
-
-        self.control_camera();
-
-        self.save_state();       
-
-        self.last_tick = Time::now(); 
-
-    }
+    
 }
