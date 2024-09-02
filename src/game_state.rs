@@ -26,37 +26,13 @@ impl GameState {
         }
     }
 
-    pub fn from_save(path: String) -> Self {
-        
-        let bytes = fs::read(path).unwrap();
-
-        let game_state: GameState = bitcode::deserialize(&bytes).unwrap();
-        
-        game_state
-    }
-
     pub fn tick(
         &mut self,
         ctx: &mut TickContext
     ) { 
-   
-        self.step_space();
 
         self.level.tick(ctx)
 
-    }
-
-    pub fn step_space(&mut self) {
-
-        let mut owned_colliders: Vec<ColliderHandle> = vec![];
-        let mut owned_bodies: Vec<RigidBodyHandle> = vec![];
-
-        for structure in &self.level.structures {
-            owned_bodies.push(structure.rigid_body_handle);
-            owned_colliders.push(structure.collider_handle);
-        }
-
-        self.level.space.step(&owned_bodies, &owned_colliders);
     }
 
 }

@@ -103,9 +103,9 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
 name = "bit-vec"
-version = "0.6.3"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
+checksum = "d2c54ff287cfc0a34f38a6b832ea1bd8e448a330b3e40a50859e6488bee07f22"
 dependencies = [
  "serde",
 ]
@@ -552,7 +552,6 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
-source = "git+https://github.com/VoxanyNet/gamelibrary?rev=9901252cba078b6781dfc6c8bec379df0dd244fe#9901252cba078b6781dfc6c8bec379df0dd244fe"
 dependencies = [
  "bitcode",
  "chrono",
@@ -1002,7 +1001,7 @@ dependencies = [
 [[package]]
 name = "nalgebra"
 version = "0.33.0"
-source = "git+https://github.com/VoxanyNet/nalgebra?rev=e418ac27d31977ed36ee95f56d7ca18a490e0b33#e418ac27d31977ed36ee95f56d7ca18a490e0b33"
+source = "git+https://github.com/VoxanyNet/nalgebra?rev=c57d898ac19a01ac5ad2d6da5f98dea91257ac9e#c57d898ac19a01ac5ad2d6da5f98dea91257ac9e"
 dependencies = [
  "approx",
  "diff-struct",
@@ -1019,7 +1018,7 @@ dependencies = [
 [[package]]
 name = "nalgebra-macros"
 version = "0.2.2"
-source = "git+https://github.com/VoxanyNet/nalgebra?rev=e418ac27d31977ed36ee95f56d7ca18a490e0b33#e418ac27d31977ed36ee95f56d7ca18a490e0b33"
+source = "git+https://github.com/VoxanyNet/nalgebra?rev=c57d898ac19a01ac5ad2d6da5f98dea91257ac9e#c57d898ac19a01ac5ad2d6da5f98dea91257ac9e"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1214,8 +1213,8 @@ dependencies = [
 
 [[package]]
 name = "parry2d"
-version = "0.16.1"
-source = "git+https://github.com/VoxanyNet/parry?rev=1b57111c393511d11e18407994c2e95f9e4ae83b#1b57111c393511d11e18407994c2e95f9e4ae83b"
+version = "0.17.0"
+source = "git+https://github.com/VoxanyNet/parry?rev=10a5155cb735ca3d2e912473b22bad2f2ad5889e#10a5155cb735ca3d2e912473b22bad2f2ad5889e"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1365,8 +1364,8 @@ dependencies = [
 
 [[package]]
 name = "rapier2d"
-version = "0.21.0"
-source = "git+https://github.com/VoxanyNet/rapier?rev=3b71872728323f4cbebf81cfeab394d0571661ac#3b71872728323f4cbebf81cfeab394d0571661ac"
+version = "0.22.0"
+source = "git+https://github.com/VoxanyNet/rapier?rev=54b56a9a72d223b407a01c97865067eaa3d5e0e4#54b56a9a72d223b407a01c97865067eaa3d5e0e4"
 dependencies = [
  "approx",
  "arrayvec",

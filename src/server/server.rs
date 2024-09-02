@@ -1,7 +1,7 @@
 use std::{net::SocketAddr, time::Duration};
 
 use gamelibrary::sync::server::SyncServer;
-use liquidators_lib::game_state::GameState;
+use liquidators_lib::{game_state::GameState, level::Level};
 
 pub struct Server {
     pub sync_server: SyncServer<GameState>
@@ -10,7 +10,9 @@ pub struct Server {
 impl Server {
     pub fn new(address: SocketAddr) -> Self {
 
-        let game_state = GameState::empty();
+        let mut game_state = GameState::empty();
+
+        game_state.level = Level::from_save("level.bin".to_string());
 
         let sync_server = SyncServer::new(address, game_state);
         

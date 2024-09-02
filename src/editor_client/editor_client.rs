@@ -3,7 +3,7 @@ use std::fs;
 use ears::{AudioController, Music, Sound};
 use gamelibrary::{macroquad_to_rapier, menu::Button, mouse_world_pos, rapier_mouse_world_pos, sync::client::SyncClient, texture_loader::TextureLoader, uuid};
 use liquidators_lib::{level::Level, radio::RadioBuilder, structure::{self, Structure}};
-use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, RED}, input::{self, is_key_down, is_key_pressed, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel}, math::Rect};
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, RED, WHITE}, input::{self, is_key_down, is_key_pressed, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel}, math::Rect, text::draw_text, time::get_fps, window::screen_width};
 use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder};
 use gamelibrary::traits::HasPhysics;
@@ -142,6 +142,7 @@ impl EditorClient {
     }
 
     pub fn step_space(&mut self) {
+
         if is_key_down(input::KeyCode::F) {
 
             let mut owned_rigid_bodies = vec![];
@@ -271,7 +272,7 @@ impl EditorClient {
 
         for structure in &mut self.level.structures {
             let texture_path = structure.sprite_path.clone();
-            structure.draw_texture(&self.level.space, &texture_path, &mut self.textures).await;
+            structure.debug_draw(&self.level.space, &texture_path, &mut self.textures).await;
 
             match &structure.menu {
                 Some(menu) => menu.draw().await,
@@ -284,6 +285,8 @@ impl EditorClient {
         }
 
         set_default_camera();
+
+        draw_text(format!("fps: {}", get_fps()).as_str(), screen_width() - 120., 25., 30., WHITE);
 
         self.save_button.draw().await;
         self.load_button.draw().await;

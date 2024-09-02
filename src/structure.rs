@@ -1,6 +1,6 @@
 use diff::Diff;
-use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, traits::HasPhysics};
-use macroquad::{color::DARKGRAY, input::{self, is_key_down, is_mouse_button_released}, math::{Rect, Vec2}};
+use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
+use macroquad::{color::DARKGRAY, input::{self, is_key_down, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}};
 use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, math::Rotation};
 use serde::{Serialize, Deserialize};
@@ -92,11 +92,25 @@ impl Structure {
         self.menu = Some(menu);
     }
 
-    pub fn tick_editor(&mut self, level: &mut Level, camera_rect: &Rect, client_uuid: &String) {
+    pub fn update_editor_owner(&mut self, editor_uuid: &String, space: &mut Space, camera_rect: &Rect) {
+        // transfer ownership to whoever clicks this structure
 
-        
+        if !is_mouse_button_pressed(input::MouseButton::Left) {
+            return;
+        }
 
-        if self.editor_owner == *client_uuid {
+        if !self.contains_point(space, rapier_mouse_world_pos(camera_rect)) {
+            return;
+        }
+
+        self.editor_owner = editor_uuid.clone();
+    }
+
+    pub fn tick_editor(&mut self, level: &mut Level, camera_rect: &Rect, editor_uuid: &String) {
+
+        self.update_editor_owner(editor_uuid, &mut level.space, camera_rect);
+
+        if self.editor_owner == *editor_uuid {
 
             match &mut self.menu {
                 Some(menu) => menu.update(camera_rect),
@@ -166,6 +180,16 @@ impl Structure {
         // this is the result if the menu doesnt have any items or none of the items are hovered and clicked
         Some(self)
     }
+
+    pub async fn debug_draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
+        self.draw_outline(space).await;
+        self.draw_texture(space, texture_path, textures).await;
+    }
+
+    pub async fn draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
+        self.draw_texture(space, texture_path, textures).await;
+    }
+
 }
 
 impl HasPhysics for Structure {

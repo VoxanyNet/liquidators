@@ -1,9 +1,9 @@
 use diff::Diff;
 use ears::Music;
-use gamelibrary::{macroquad_to_rapier, space::Space, traits::HasPhysics};
+use gamelibrary::{macroquad_to_rapier, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
 use macroquad::{color::WHITE, input::{is_key_down, KeyCode}, math::{vec2, Vec2}, texture::DrawTextureParams};
 use nalgebra::vector;
-use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
 use crate::{game_state::GameState, level::Level, TickContext};
@@ -20,7 +20,8 @@ pub struct Player {
     pub sounds: Vec<Music>,
     pub selected: bool,
     pub dragging: bool,
-    pub drag_offset: Option<Vec2>
+    pub drag_offset: Option<Vec2>,
+    pub max_speed: Vec2
 }
 
 impl Player {
@@ -29,7 +30,7 @@ impl Player {
 
         let rigid_body = RigidBodyBuilder::dynamic()
             .position(vector![position.x, position.y].into())
-            .lock_rotations()
+            //.lock_rotations()
             .build();
 
         let collider = ColliderBuilder::cuboid(18., 15.).build();
@@ -46,7 +47,8 @@ impl Player {
                 sounds: vec![],
                 selected: false,
                 dragging: false,
-                drag_offset: None
+                drag_offset: None,
+                max_speed: vec2(80., 80.)
             }
         )
     }
@@ -55,11 +57,16 @@ impl Player {
         self.control(level, ctx);
     }
 
-    pub fn control(&mut self, level: &mut Level, ctx: &mut TickContext) {
+    pub fn jump(&mut self, rigid_body: &mut RigidBody) {
+        if is_key_down(KeyCode::Space) {
 
-        let rigid_body = level.space.rigid_body_set.get_mut(self.rigid_body).unwrap();
+            // dont allow if moving if falling or jumping
 
-        if is_key_down(KeyCode::W) {
+            println!("{}", rigid_body.linvel().y);
+
+            if rigid_body.linvel().y != 0. {
+                return
+            }
 
             // stop any y axis movement if going down
             if rigid_body.linvel().y.is_sign_negative() {
@@ -70,27 +77,27 @@ impl Player {
             }
 
             rigid_body.set_linvel(
-                vector![rigid_body.linvel().x, rigid_body.linvel().y + 4.],
+                vector![rigid_body.linvel().x, rigid_body.linvel().y + 700.],
                 true
             )
         }
+    }
 
-        if is_key_down(KeyCode::S) {
+    pub fn control(&mut self, level: &mut Level, ctx: &mut TickContext) {
 
-            if rigid_body.linvel().y.is_sign_positive() {
-                rigid_body.set_linvel(
-                    vector![rigid_body.linvel().x, 0.],
-                    true
-                )
+        let rigid_body = level.space.rigid_body_set.get_mut(self.rigid_body).unwrap();
+        
+        self.jump(rigid_body);
+
+        if is_key_down(KeyCode::A) {
+
+            if rigid_body.linvel().x.abs() > self.max_speed.x {
+                return
             }
 
-            rigid_body.set_linvel(
-                vector![rigid_body.linvel().x, rigid_body.linvel().y - 4.],
-                true
-            )
-        }
-        
-        if is_key_down(KeyCode::A) {
+            if rigid_body.linvel().y.abs() > self.max_speed.y {
+                return
+            }
 
             if rigid_body.linvel().x.is_sign_positive() {
                 rigid_body.set_linvel(
@@ -100,12 +107,21 @@ impl Player {
             }
 
             rigid_body.set_linvel(
-                vector![rigid_body.linvel().x - 4., rigid_body.linvel().y],
+                vector![rigid_body.linvel().x - 40., rigid_body.linvel().y],
                 true
-            )
+            );
+
         }
 
         if is_key_down(KeyCode::D) {
+
+            if rigid_body.linvel().x.abs() > self.max_speed.x {
+                return
+            }
+
+            if rigid_body.linvel().y.abs() > self.max_speed.y {
+                return
+            }
 
             if rigid_body.linvel().x.is_sign_negative() {
                 rigid_body.set_linvel(
@@ -115,15 +131,15 @@ impl Player {
             }
 
             rigid_body.set_linvel(
-                vector![rigid_body.linvel().x + 4., rigid_body.linvel().y],
+                vector![rigid_body.linvel().x + 40., rigid_body.linvel().y],
                 true
             )
         }
     }
 
-    pub async fn draw(&self, game_state: &GameState, ctx: &mut TickContext<'_>) {
+    pub async fn draw(&self, space: &Space, textures: &mut TextureLoader) {
 
-        self.draw_texture(&game_state.level.space, &self.sprite_path, &mut ctx.textures).await;
+        self.draw_texture(&space, &self.sprite_path, textures).await;
     }
 }
 

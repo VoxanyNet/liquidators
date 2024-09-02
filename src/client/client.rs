@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ears::{AudioController, Sound};
 use gamelibrary::{sync::client::SyncClient, texture_loader::TextureLoader, time::Time};
 use liquidators_lib::{game_state::GameState, player::Player, TickContext};
-use macroquad::{color::{colors, Color}, input::{is_key_down, is_key_released}, math::{vec2, Vec2}};
+use macroquad::{color::{colors, Color, WHITE}, input::{is_key_down, is_key_released, KeyCode}, math::{vec2, Vec2}, text::draw_text, time::get_fps, window::screen_width};
 use rand::prelude::SliceRandom;
 use gamelibrary::traits::HasPhysics;
 
@@ -40,7 +40,7 @@ impl Client {
 
     pub fn tick(&mut self) {
 
-        let mut tick_content = TickContext {
+        let mut tick_context = TickContext {
             is_host: &mut self.is_host,
             textures: &mut self.textures,
             sounds: &mut self.sounds,
@@ -50,7 +50,7 @@ impl Client {
         };
 
         self.game_state.tick(
-            &mut tick_content
+            &mut tick_context
         );
 
         self.control_camera();
@@ -66,6 +66,10 @@ impl Client {
         loop {
     
             self.tick();  
+
+            if is_key_released(KeyCode::H) {
+                println!("paused");
+            }
             
             self.draw().await;
 
@@ -80,8 +84,15 @@ impl Client {
 
             let texture_path = structure.sprite_path.clone();
 
-            structure.draw_texture(&self.game_state.level.space, &texture_path, &mut self.textures).await;
+            structure.draw(&self.game_state.level.space, &texture_path, &mut self.textures).await;
         }
+
+        for player in self.game_state.level.players.iter_mut() {
+            player.draw(&self.game_state.level.space, &mut self.textures).await;
+        }
+
+        draw_text(format!("fps: {}", get_fps()).as_str(), screen_width() - 120., 25., 30., WHITE);
+
 
         macroquad::window::next_frame().await;
     }
@@ -94,7 +105,7 @@ impl Client {
         
         let (sync_client, mut game_state): (SyncClient<GameState>, GameState) = SyncClient::connect(url);
 
-        Player::spawn(&mut game_state.level.players, &mut game_state.level.space, uuid.clone(), &vec2(100., 20.));
+        Player::spawn(&mut game_state.level.players, &mut game_state.level.space, uuid.clone(), &vec2(100., 300.));
         
         Self {
             game_state,

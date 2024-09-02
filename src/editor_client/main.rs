@@ -12,6 +12,7 @@ fn window_conf() -> Conf {
         platform: Platform::default(),
         ..Default::default()
     };
+
     conf
 }
 
