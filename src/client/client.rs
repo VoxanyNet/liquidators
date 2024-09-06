@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use ears::{AudioController, Sound};
 use gamelibrary::{sync::client::SyncClient, texture_loader::TextureLoader, time::Time};
-use liquidators_lib::{game_state::GameState, player::Player, TickContext};
+use liquidators_lib::{game_state::GameState, level::Level, player::Player, TickContext};
 use macroquad::{color::{colors, Color, WHITE}, input::{is_key_down, is_key_released, KeyCode}, math::{vec2, Vec2}, text::draw_text, time::get_fps, window::screen_width};
 use rand::prelude::SliceRandom;
 use gamelibrary::traits::HasPhysics;
@@ -31,9 +31,7 @@ pub struct Client {
     pub update_count: i32,
     pub start_time: Time,
     pub square_color: Color,
-    pub sync_client: SyncClient<GameState>,
-    pub owned_colliders: Vec<ColliderHandle>,
-    pub owned_bodies: Vec<RigidBodyHandle>
+    pub sync_client: SyncClient<GameState>
 }
 
 impl Client {
@@ -53,6 +51,10 @@ impl Client {
             &mut tick_context
         );
 
+        if is_key_released(KeyCode::B) {
+            self.game_state.level = Level::from_save("level.bin".to_string());
+        }
+
         self.control_camera();
 
         self.save_state();
@@ -65,7 +67,7 @@ impl Client {
 
         loop {
     
-            self.tick();  
+            self.tick(); 
 
             if is_key_released(KeyCode::H) {
                 println!("paused");
@@ -105,6 +107,13 @@ impl Client {
         
         let (sync_client, mut game_state): (SyncClient<GameState>, GameState) = SyncClient::connect(url);
 
+        // if we are the first player to join, we take ownership of everything
+        if game_state.level.players.len() == 0 {
+            for structure in game_state.level.structures.iter_mut() {
+                structure.owner = Some(uuid.clone())
+            }
+        }
+
         Player::spawn(&mut game_state.level.players, &mut game_state.level.space, uuid.clone(), &vec2(100., 300.));
         
         Self {
@@ -118,9 +127,7 @@ impl Client {
             update_count: 0,
             start_time: Time::now(),
             square_color: random_color(),
-            sync_client,
-            owned_bodies: vec![],
-            owned_colliders: vec![]
+            sync_client
         }
     }
 

@@ -1,8 +1,8 @@
-use std::{collections::HashMap, fs, hash::RandomState};
+use std::{collections::HashMap, fs, hash::RandomState, time::Instant};
 
 use diff::Diff;
 use gamelibrary::{space::Space, texture_loader::TextureLoader, time::Time};
-use macroquad::{audio::Sound, input::is_key_released, math::Vec2};
+use macroquad::{audio::Sound, input::{is_key_down, is_key_released, KeyCode}, math::Vec2};
 use rapier2d::prelude::{collider, ColliderHandle, RigidBody, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
@@ -81,6 +81,9 @@ impl Level {
         }  
 
         self.space.step(&owned_bodies, &owned_colliders);
+        
+        
+
 
     }
 }

@@ -48,7 +48,7 @@ impl Player {
                 selected: false,
                 dragging: false,
                 drag_offset: None,
-                max_speed: vec2(80., 80.)
+                max_speed: vec2(150., 80.)
             }
         )
     }
@@ -62,9 +62,7 @@ impl Player {
 
             // dont allow if moving if falling or jumping
 
-            println!("{}", rigid_body.linvel().y);
-
-            if rigid_body.linvel().y != 0. {
+            if rigid_body.linvel().y.abs() > 0.5 {
                 return
             }
 
@@ -91,11 +89,7 @@ impl Player {
 
         if is_key_down(KeyCode::A) {
 
-            if rigid_body.linvel().x.abs() > self.max_speed.x {
-                return
-            }
-
-            if rigid_body.linvel().y.abs() > self.max_speed.y {
+            if rigid_body.linvel().x < -self.max_speed.x {
                 return
             }
 
@@ -115,11 +109,7 @@ impl Player {
 
         if is_key_down(KeyCode::D) {
 
-            if rigid_body.linvel().x.abs() > self.max_speed.x {
-                return
-            }
-
-            if rigid_body.linvel().y.abs() > self.max_speed.y {
+            if rigid_body.linvel().x > self.max_speed.x {
                 return
             }
 

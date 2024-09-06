@@ -4,7 +4,7 @@ use macroquad::{miniquad::conf::Platform, window::Conf};
 pub mod editor_client;
 
 fn window_conf() -> Conf {
-    let conf = Conf {
+    let mut conf = Conf {
         window_title: "Liquidators Level Editor".to_owned(),
         window_width: 1280,
         window_height: 720,
@@ -12,7 +12,7 @@ fn window_conf() -> Conf {
         platform: Platform::default(),
         ..Default::default()
     };
-
+    //conf.platform.swap_interval = Some(0); // disable vsync
     conf
 }
 

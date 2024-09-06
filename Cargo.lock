@@ -552,7 +552,7 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
-source = "git+https://github.com/VoxanyNet/gamelibrary?rev=d9685225e5e70e807220342c6f38c058eea8ef57#d9685225e5e70e807220342c6f38c058eea8ef57"
+source = "git+https://github.com/VoxanyNet/gamelibrary?rev=23a803d5ec09e14efe731d47218cf29655070e32#23a803d5ec09e14efe731d47218cf29655070e32"
 dependencies = [
  "bitcode",
  "chrono",
@@ -565,6 +565,7 @@ dependencies = [
  "rand",
  "rapier2d",
  "serde",
+ "serde_yaml",
  "tungstenite 0.23.0",
  "uuid",
 ]
@@ -887,7 +888,6 @@ dependencies = [
  "rapier2d",
  "reqwest",
  "serde",
- "serde_yaml",
  "tungstenite 0.23.0",
 ]
 
