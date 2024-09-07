@@ -552,7 +552,7 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
-source = "git+https://github.com/VoxanyNet/gamelibrary?rev=23a803d5ec09e14efe731d47218cf29655070e32#23a803d5ec09e14efe731d47218cf29655070e32"
+source = "git+https://github.com/VoxanyNet/gamelibrary?rev=0400c96df73324a7b61db63167dd0a0ab2de4ef1#0400c96df73324a7b61db63167dd0a0ab2de4ef1"
 dependencies = [
  "bitcode",
  "chrono",
@@ -565,6 +565,7 @@ dependencies = [
  "rand",
  "rapier2d",
  "serde",
+ "serde_json",
  "serde_yaml",
  "tungstenite 0.23.0",
  "uuid",
@@ -1592,9 +1593,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.122"
+version = "1.0.128"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "784b6203951c57ff748476b126ccb5e8e2959a5c19e5c617ab1956be3dbc68da"
+checksum = "6ff5456707a1de34e7e37f2a6fd3d3f808c318259cbd01ab6377795054b483d8"
 dependencies = [
  "itoa",
  "memchr",
