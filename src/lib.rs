@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Instant};
 
 use game_state::GameState;
 use gamelibrary::{texture_loader::TextureLoader, time::Time};
@@ -16,8 +16,8 @@ pub mod radio;
 pub struct TickContext<'a> {
     pub is_host: &'a mut bool,
     pub textures: &'a mut TextureLoader,
+    pub last_tick: &'a Instant,
     pub sounds: &'a mut HashMap<String, macroquad::audio::Sound>,
-    pub time: &'a Time,
     pub uuid: &'a String,
     pub camera_offset: &'a mut Vec2
 }

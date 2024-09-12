@@ -6,7 +6,7 @@ use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{game_state::GameState, level::Level, TickContext};
+use crate::{game_state::GameState, level::Level, shotgun::Shotgun, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -21,7 +21,8 @@ pub struct Player {
     pub selected: bool,
     pub dragging: bool,
     pub drag_offset: Option<Vec2>,
-    pub max_speed: Vec2
+    pub max_speed: Vec2,
+    pub shotgun: Option<Shotgun>
 }
 
 impl Player {
@@ -48,7 +49,8 @@ impl Player {
                 selected: false,
                 dragging: false,
                 drag_offset: None,
-                max_speed: vec2(150., 80.)
+                max_speed: vec2(150., 80.),
+                shotgun: None
             }
         )
     }

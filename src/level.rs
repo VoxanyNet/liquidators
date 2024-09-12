@@ -6,7 +6,7 @@ use macroquad::{audio::Sound, input::{is_key_down, is_key_released, KeyCode}, ma
 use rapier2d::prelude::{collider, ColliderHandle, RigidBody, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{game_state::GameState, player::Player, radio::Radio, structure::Structure, TickContext};
+use crate::{game_state::GameState, player::Player, radio::Radio, shotgun::Shotgun, structure::Structure, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -16,7 +16,8 @@ pub struct Level {
     pub structures: Vec<Structure>,
     pub players: Vec<Player>,
     pub space: Space,
-    pub radios: Vec<Radio> 
+    pub radios: Vec<Radio>,
+    pub shotguns: Vec<Shotgun>
 }
 
 impl Level {
@@ -25,7 +26,8 @@ impl Level {
             structures: vec![],
             players: vec![],
             space: Space::new(),
-            radios: vec![]
+            radios: vec![],
+            shotguns: vec![]
         };
     
         level.space.gravity.y = -980.;
@@ -80,7 +82,7 @@ impl Level {
             self.structures.insert(structure_index, structure);
         }  
 
-        self.space.step(&owned_bodies, &owned_colliders);
+        self.space.step(ctx.last_tick.elapsed(), &owned_bodies, &owned_colliders);
         
         
 

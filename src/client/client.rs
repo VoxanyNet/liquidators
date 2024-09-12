@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, thread::sleep, time::{Duration, Instant}};
 
 use ears::{AudioController, Sound};
 use gamelibrary::{sync::client::SyncClient, texture_loader::TextureLoader, time::Time};
@@ -25,13 +25,14 @@ pub struct Client {
     pub is_host: bool,
     pub textures: TextureLoader,
     pub sounds: HashMap<String, macroquad::audio::Sound>,
-    pub last_tick: Time,
+    pub last_tick: Instant,
     pub uuid: String,
     pub camera_offset: Vec2,
     pub update_count: i32,
     pub start_time: Time,
     pub square_color: Color,
-    pub sync_client: SyncClient<GameState>
+    pub sync_client: SyncClient<GameState>,
+    pub last_sync: Instant
 }
 
 impl Client {
@@ -42,9 +43,9 @@ impl Client {
             is_host: &mut self.is_host,
             textures: &mut self.textures,
             sounds: &mut self.sounds,
-            time: &self.last_tick,
             uuid: &self.uuid,
-            camera_offset: &mut self.camera_offset
+            camera_offset: &mut self.camera_offset,
+            last_tick: &self.last_tick
         };
 
         self.game_state.tick(
@@ -59,7 +60,7 @@ impl Client {
 
         self.save_state();
 
-        self.last_tick = Time::now(); 
+        self.last_tick = Instant::now();
 
     }
 
@@ -72,10 +73,24 @@ impl Client {
             if is_key_released(KeyCode::H) {
                 println!("paused");
             }
+
+            println!("dt: {}", self.last_tick.elapsed().as_secs_f32());
             
             self.draw().await;
 
-            self.sync_client.sync(&mut self.game_state);
+            // only sync 30 tps
+            // this could probably be optimized but this is more readable
+            if self.last_sync.elapsed().as_secs_f32() > 1./10. {
+                self.sync_client.sync(&mut self.game_state);
+
+                self.last_sync = Instant::now();
+            }            
+
+            // calculate the time we need to sleep to lock the framerate at 120
+            let sleep_duration = Duration::from_millis(7).saturating_sub(self.last_tick.elapsed());
+            
+
+            std::thread::sleep(sleep_duration);
     
         }
     }
@@ -121,13 +136,14 @@ impl Client {
             is_host: true,
             textures: TextureLoader::new(),
             sounds: HashMap::new(),
-            last_tick: Time::now(),
+            last_tick: Instant::now(),
             uuid,
             camera_offset: Vec2::new(0., 0.),
             update_count: 0,
             start_time: Time::now(),
             square_color: random_color(),
-            sync_client
+            sync_client,
+            last_sync: Instant::now()
         }
     }
 
@@ -138,19 +154,19 @@ impl Client {
 
     pub fn control_camera(&mut self) {
         if is_key_down(macroquad::input::KeyCode::Right) {
-            self.camera_offset.x += 1.0 * self.last_tick.elapsed().num_milliseconds() as f32;
+            self.camera_offset.x += 1.0 * self.last_tick.elapsed().as_millis() as f32;
         }
 
         if is_key_down(macroquad::input::KeyCode::Left) {
-            self.camera_offset.x -= 1.0 * self.last_tick.elapsed().num_milliseconds() as f32;
+            self.camera_offset.x -= 1.0 * self.last_tick.elapsed().as_millis() as f32;
         }
 
         if is_key_down(macroquad::input::KeyCode::Down) {
-            self.camera_offset.y -= 1.0 * self.last_tick.elapsed().num_milliseconds() as f32;
+            self.camera_offset.y -= 1.0 * self.last_tick.elapsed().as_millis() as f32;
         }
 
         if is_key_down(macroquad::input::KeyCode::Up) {
-            self.camera_offset.y += 1.0 * self.last_tick.elapsed().num_milliseconds() as f32;
+            self.camera_offset.y += 1.0 * self.last_tick.elapsed().as_millis() as f32;
         }
     }
 

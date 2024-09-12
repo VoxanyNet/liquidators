@@ -1,8 +1,8 @@
-use std::fs;
+use std::{fs, time::Instant};
 
 use ears::{AudioController, Music, Sound};
 use gamelibrary::{macroquad_to_rapier, menu::Button, mouse_world_pos, rapier_mouse_world_pos, sync::client::SyncClient, texture_loader::TextureLoader, uuid};
-use liquidators_lib::{level::Level, radio::RadioBuilder, structure::{self, Structure}};
+use liquidators_lib::{level::Level, radio::RadioBuilder, shotgun::Shotgun, structure::{self, Structure}};
 use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, RED, WHITE}, input::{self, is_key_down, is_key_pressed, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel}, math::Rect, text::draw_text, time::get_fps, window::screen_width};
 use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder};
@@ -15,7 +15,8 @@ pub struct EditorClient {
     pub load_button: Button,
     pub camera_rect: Rect,
     pub sync_client: SyncClient<Level>,
-    pub textures: TextureLoader
+    pub textures: TextureLoader,
+    pub last_tick: Instant,
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 
 impl EditorClient {
@@ -47,7 +48,8 @@ impl EditorClient {
             load_button,
             camera_rect,
             sync_client,
-            textures: TextureLoader::new()
+            textures: TextureLoader::new(),
+            last_tick: Instant::now()
 
         }
     }
@@ -63,6 +65,16 @@ impl EditorClient {
 
         self.level.radios.push(radio);
 
+    }
+
+    pub fn spawn_shotgun(&mut self) {
+
+        if is_key_pressed(input::KeyCode::P) {
+            let shotgun = Shotgun::new(&mut self.level.space, rapier_mouse_world_pos(&self.camera_rect));
+
+            self.level.shotguns.push(shotgun);
+
+        }
     }
     pub fn spawn_structure(&mut self) {
 
@@ -148,12 +160,17 @@ impl EditorClient {
             let mut owned_rigid_bodies = vec![];
             let mut owned_colliders = vec![];
 
+            for shotgun in &self.level.shotguns {
+                owned_colliders.push(shotgun.collider);
+                owned_rigid_bodies.push(shotgun.rigid_body)
+            }
+
             for structure in &self.level.structures {
                 owned_rigid_bodies.push(structure.rigid_body_handle);
                 owned_colliders.push(structure.collider_handle);
             }
 
-            self.level.space.step(&owned_rigid_bodies, &owned_colliders);
+            self.level.space.step(self.last_tick.elapsed(), &owned_rigid_bodies, &owned_colliders);
         }
     }
 
@@ -200,6 +217,8 @@ impl EditorClient {
 
         self.spawn_radio();
 
+        self.spawn_shotgun();
+
         for structure_index in 0..self.level.structures.len() {
             let mut structure = self.level.structures.remove(structure_index);
 
@@ -219,7 +238,9 @@ impl EditorClient {
         
         self.handle_menus();
 
-        self.step_space();            
+        self.step_space();   
+
+        self.last_tick = Instant::now();         
 
     }
 
@@ -282,6 +303,10 @@ impl EditorClient {
 
         for radio in &mut self.level.radios {
             radio.draw(&mut self.textures, &self.level.space).await;
+        }
+
+        for shotgun in &self.level.shotguns {
+            shotgun.draw(&self.level.space, &mut self.textures).await;
         }
 
         set_default_camera();

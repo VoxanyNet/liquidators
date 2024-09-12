@@ -11,9 +11,10 @@ fn window_conf() -> Conf {
         window_height: 720,
         window_resizable: true,
         platform: Platform::default(),
+        fullscreen: true,
         ..Default::default()
     };
-    //conf.platform.swap_interval = Some(0); // disable vsync
+    conf.platform.swap_interval = Some(0); // disable vsync
     conf
 }
 
