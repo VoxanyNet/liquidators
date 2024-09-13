@@ -368,18 +368,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
 
 [[package]]
-name = "ears"
-version = "0.8.0"
-source = "git+https://github.com/VoxanyNet/ears?rev=dd2a11b664782c361cdc34fcc098814ed2dc5f76#dd2a11b664782c361cdc34fcc098814ed2dc5f76"
-dependencies = [
- "diff-struct",
- "lazy_static",
- "libc",
- "pkg-config",
- "serde",
-]
-
-[[package]]
 name = "either"
 version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -848,12 +836,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lazy_static"
-version = "1.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
-
-[[package]]
 name = "libc"
 version = "0.2.155"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -878,7 +860,6 @@ dependencies = [
  "bitcode",
  "chrono",
  "diff-struct",
- "ears",
  "ewebsock",
  "fxhash",
  "gamelibrary",

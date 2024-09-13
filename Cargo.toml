@@ -22,7 +22,6 @@ rand = "0.8.5"
 tungstenite = "0.23.0"
 fxhash = "0.2.1"
 reqwest = { version = "0.12.5", features = ["blocking"] }
-ears = {git="https://github.com/VoxanyNet/ears", rev = "dd2a11b664782c361cdc34fcc098814ed2dc5f76"}
 
 [[bin]]
 name = "updater"

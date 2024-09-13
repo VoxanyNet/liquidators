@@ -1,5 +1,4 @@
 use diff::Diff;
-use ears::Music;
 use gamelibrary::{macroquad_to_rapier, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
 use macroquad::{color::WHITE, input::{is_key_down, KeyCode}, math::{vec2, Vec2}, texture::DrawTextureParams};
 use nalgebra::vector;
@@ -17,7 +16,6 @@ pub struct Player {
     pub collider: ColliderHandle,
     pub sprite_path: String,
     pub owner: String,
-    pub sounds: Vec<Music>,
     pub selected: bool,
     pub dragging: bool,
     pub drag_offset: Option<Vec2>,
@@ -45,7 +43,6 @@ impl Player {
                 collider: collider_handle,
                 sprite_path: "assets/player/idle.png".to_string(),
                 owner,
-                sounds: vec![],
                 selected: false,
                 dragging: false,
                 drag_offset: None,

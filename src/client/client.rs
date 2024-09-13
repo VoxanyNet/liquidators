@@ -1,6 +1,5 @@
 use std::{collections::HashMap, thread::sleep, time::{Duration, Instant}};
 
-use ears::{AudioController, Sound};
 use gamelibrary::{sync::client::SyncClient, texture_loader::TextureLoader, time::Time};
 use liquidators_lib::{game_state::GameState, level::Level, player::Player, TickContext};
 use macroquad::{color::{colors, Color, WHITE}, input::{is_key_down, is_key_released, KeyCode}, math::{vec2, Vec2}, text::draw_text, time::get_fps, window::screen_width};
