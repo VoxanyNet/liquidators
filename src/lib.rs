@@ -12,6 +12,7 @@ pub mod structure;
 pub mod shotgun;
 pub mod player;
 pub mod radio;
+pub mod chat;
 
 pub struct TickContext<'a> {
     pub is_host: &'a mut bool,

@@ -84,8 +84,18 @@ impl Level {
 
         self.space.step(ctx.last_tick.elapsed(), &owned_bodies, &owned_colliders);
         
-        
+    }
 
+    pub async fn draw(&self, textures: &mut TextureLoader) {
+        for structure in self.structures.iter() {
 
+            let texture_path = structure.sprite_path.clone();
+
+            structure.draw(&self.space, &texture_path, textures).await;
+        }
+
+        for player in self.players.iter() {
+            player.draw(&self.space, textures).await;
+        }
     }
 }

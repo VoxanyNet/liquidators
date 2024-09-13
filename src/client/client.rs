@@ -80,7 +80,7 @@ impl Client {
 
             // only sync 30 tps
             // this could probably be optimized but this is more readable
-            if self.last_sync.elapsed().as_secs_f32() > 1./10. {
+            if self.last_sync.elapsed().as_secs_f32() > 1./30. {
                 self.sync_client.sync(&mut self.game_state);
 
                 self.last_sync = Instant::now();
@@ -97,19 +97,10 @@ impl Client {
 
  
     pub async fn draw(&mut self) {
-        for structure in self.game_state.level.structures.iter_mut() {
-
-            let texture_path = structure.sprite_path.clone();
-
-            structure.draw(&self.game_state.level.space, &texture_path, &mut self.textures).await;
-        }
-
-        for player in self.game_state.level.players.iter_mut() {
-            player.draw(&self.game_state.level.space, &mut self.textures).await;
-        }
 
         draw_text(format!("fps: {}", get_fps()).as_str(), screen_width() - 120., 25., 30., WHITE);
-
+        
+        self.game_state.draw(&mut self.textures).await;
 
         macroquad::window::next_frame().await;
     }
