@@ -1,5 +1,4 @@
 use diff::Diff;
-use ears::{AudioController, Music, Sound};
 use gamelibrary::{space::Space, texture_loader::TextureLoader, traits::HasPhysics};
 use macroquad::{input::is_key_released, math::{Rect, Vec2}};
 use nalgebra::vector;
@@ -20,8 +19,7 @@ pub struct Radio {
     pub dragging: bool,
     pub drag_offset: Option<Vec2>,
     pub owner: Option<String>,
-    pub editor_owner: Option<String>,
-    pub music: Option<Sound>
+    pub editor_owner: Option<String>
 }
 
 impl Radio {
@@ -34,34 +32,10 @@ impl Radio {
 
 
         if self.editor_owner.as_ref().unwrap() == client_uuid {
-            self.update_music();
             self.update_selected(&mut level.space, camera_rect);
 
-            if let Some(music) = &self.music {
-                println!("{:?}", music.get_volume());
-            }
         }
         
-    }
-
-    fn update_music(&mut self) {
-        if !*self.selected() {
-            return
-        }
-
-        if !is_key_released(macroquad::input::KeyCode::C) {
-            return
-        }
-
-        let mut music = Sound::new("assets/sounds/mono.wav").unwrap();
-        music.set_position([1., 1., 1.]);
-        music.set_reference_distance(200.);
-        music.play();
-
-        println!("started music");
-
-        self.music = Some(music);
-
     }
     
 }
@@ -100,7 +74,6 @@ pub struct RadioBuilder {
     drag_offset: Option<Option<Vec2>>,
     owner: Option<Option<String>>,
     editor_owner: Option<Option<String>>,
-    music: Option<Option<Sound>>,
     texture_path: Option<String>
 }
 
@@ -127,7 +100,6 @@ impl RadioBuilder {
             drag_offset: None,
             owner: None,
             editor_owner: None,
-            music: None,
             texture_path: None
         }
     }
@@ -169,11 +141,6 @@ impl RadioBuilder {
 
     pub fn texture_path(mut self, texture_path: String) -> Self {
         self.texture_path = Some(texture_path);
-        self
-    }
-
-    pub fn music(mut self, music: Sound) -> Self {
-        self.music = Some(Some(music));
         self
     }
 
@@ -224,11 +191,6 @@ impl RadioBuilder {
             None => None,
         };
 
-        let music = match self.music {
-            Some(music) => music,
-            None => None
-        };
-
         let texture_path = match self.texture_path {
             Some(texture_path) => texture_path,
             None => "assets/structure/radio_on.png".to_string()
@@ -243,7 +205,6 @@ impl RadioBuilder {
             drag_offset,
             owner,
             editor_owner,
-            music,
             texture_path
         }
         
