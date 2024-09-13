@@ -79,7 +79,7 @@ impl Client {
 
             // only sync 30 tps
             // this could probably be optimized but this is more readable
-            if self.last_sync.elapsed().as_secs_f32() > 1./30. {
+            if self.last_sync.elapsed().as_secs_f32() > 1./60. {
                 self.sync_client.sync(&mut self.game_state);
 
                 self.last_sync = Instant::now();
