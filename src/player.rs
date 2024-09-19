@@ -54,7 +54,10 @@ impl Player {
 
     pub fn tick(&mut self, level: &mut Level, ctx: &mut TickContext) {
         self.control(level, ctx);
+        
     }
+
+    
 
     pub fn jump(&mut self, rigid_body: &mut RigidBody) {
         if is_key_down(KeyCode::Space) {

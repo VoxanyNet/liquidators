@@ -1,7 +1,7 @@
 use std::{fs, time::Instant};
 
 use gamelibrary::{macroquad_to_rapier, menu::Button, mouse_world_pos, rapier_mouse_world_pos, sync::client::SyncClient, texture_loader::TextureLoader, uuid};
-use liquidators_lib::{level::Level, radio::RadioBuilder, shotgun::Shotgun, structure::{self, Structure}};
+use liquidators_lib::{brick::Brick, level::Level, radio::RadioBuilder, shotgun::Shotgun, structure::{self, Structure}};
 use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, RED, WHITE}, input::{self, is_key_down, is_key_pressed, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel}, math::Rect, text::draw_text, time::get_fps, window::screen_width};
 use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder};
@@ -16,6 +16,7 @@ pub struct EditorClient {
     pub sync_client: SyncClient<Level>,
     pub textures: TextureLoader,
     pub last_tick: Instant,
+    pub enable_physics: bool
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 
 impl EditorClient {
@@ -48,113 +49,22 @@ impl EditorClient {
             camera_rect,
             sync_client,
             textures: TextureLoader::new(),
-            last_tick: Instant::now()
+            last_tick: Instant::now(),
+            enable_physics: false
 
         }
     }
 
-    pub fn spawn_radio(&mut self) {
-        if !is_key_released(input::KeyCode::T) {
-            return
-        }
+    pub fn toggle_physics(&mut self) {
 
-        let radio = RadioBuilder::new(&mut self.level.space, &rapier_mouse_world_pos(&self.camera_rect))
-            .editor_owner(self.uuid.clone())
-            .build();
-
-        self.level.radios.push(radio);
-
-    }
-
-    pub fn spawn_shotgun(&mut self) {
-
-        if is_key_pressed(input::KeyCode::P) {
-            let shotgun = Shotgun::new(&mut self.level.space, rapier_mouse_world_pos(&self.camera_rect));
-
-            self.level.shotguns.push(shotgun);
-
-        }
-    }
-    pub fn spawn_structure(&mut self) {
-
-        if is_key_released(input::KeyCode::E) {
-
-            let mouse_world_pos = mouse_world_pos(&self.camera_rect);
-
-            let rapier_mouse_world_pos = macroquad_to_rapier(&mouse_world_pos);
-
-            let rigid_body_handle = self.level.space.rigid_body_set.insert(
-                RigidBodyBuilder::dynamic()
-                    .position(
-                        vector![rapier_mouse_world_pos.x, rapier_mouse_world_pos.y].into()
-                    )
-            );
-
-            let collider = ColliderBuilder::cuboid(20., 20.)
-                .mass(10.)
-                .restitution(0.)
-                .build();
-
-            let collider_handle = self.level.space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut self.level.space.rigid_body_set);
-
-            let new_structure = Structure { 
-                editor_owner: self.uuid.clone(),
-                rigid_body_handle: rigid_body_handle,
-                collider_handle: collider_handle,
-                color: RED,
-                menu: None,
-                selected: false,
-                dragging: false,
-                owner: None,
-                drag_offset: None,
-                sprite_path: "assets/structure/brick_block.png".to_string()
-            };
-            
-            self.level.structures.push(new_structure);
-
-        }
-
-        if is_key_pressed(input::KeyCode::Q) {
-
-            let mouse_world_pos = mouse_world_pos(&self.camera_rect);
-
-            let rapier_mouse_world_pos = macroquad_to_rapier(&mouse_world_pos);
-
-            let rigid_body_handle = self.level.space.rigid_body_set.insert(
-                RigidBodyBuilder::fixed()
-                    .position(
-                        vector![rapier_mouse_world_pos.x, rapier_mouse_world_pos.y].into()
-                    )
-            );
-
-            let collider = ColliderBuilder::cuboid(20., 20.)
-                .mass(10.)
-                .restitution(0.)
-                .build();
-
-            let collider_handle = self.level.space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut self.level.space.rigid_body_set);
-
-            let new_structure = Structure { 
-                editor_owner: self.uuid.clone(),
-                rigid_body_handle: rigid_body_handle,
-                collider_handle: collider_handle,
-                color: RED,
-                menu: None,
-                selected: false,
-                dragging: false,
-                owner: None,
-                drag_offset: None,
-                sprite_path: "assets/structure/brick_block.png".to_string()
-            };
-            
-            self.level.structures.push(new_structure);
-
+        if is_key_released(input::KeyCode::F) {
+            self.enable_physics = !self.enable_physics;
         }
     }
 
     pub fn step_space(&mut self) {
 
-        if is_key_down(input::KeyCode::F) {
+        if self.enable_physics {
 
             let mut owned_rigid_bodies = vec![];
             let mut owned_colliders = vec![];
@@ -167,6 +77,11 @@ impl EditorClient {
             for structure in &self.level.structures {
                 owned_rigid_bodies.push(structure.rigid_body_handle);
                 owned_colliders.push(structure.collider_handle);
+            }
+
+            for brick in &self.level.bricks {
+                owned_rigid_bodies.push(brick.rigid_body_handle().clone());
+                owned_colliders.push(brick.collider_handle().clone());
             }
 
             self.level.space.step(self.last_tick.elapsed(), &owned_rigid_bodies, &owned_colliders);
@@ -208,32 +123,13 @@ impl EditorClient {
 
     pub fn tick(&mut self) {
 
+        self.level.editor_tick(&self.camera_rect, &self.uuid);
+
+        self.toggle_physics();
+
         self.update_camera();
 
-        self.spawn_structure();
-
         self.handle_buttons();
-
-        self.spawn_radio();
-
-        self.spawn_shotgun();
-
-        for structure_index in 0..self.level.structures.len() {
-            let mut structure = self.level.structures.remove(structure_index);
-
-            structure.tick_editor(&mut self.level, &self.camera_rect, &self.uuid);
-
-            self.level.structures.insert(structure_index, structure);
-
-        }
-
-        for radio_index in 0..self.level.radios.len() {
-            let mut radio = self.level.radios.remove(radio_index);
-
-            radio.tick_editor(&mut self.level, &self.camera_rect, &self.uuid);
-
-            self.level.radios.insert(radio_index, radio);
-        }
         
         self.handle_menus();
 
@@ -290,23 +186,7 @@ impl EditorClient {
             &camera
         );
 
-        for structure in &mut self.level.structures {
-            let texture_path = structure.sprite_path.clone();
-            structure.debug_draw(&self.level.space, &texture_path, &mut self.textures).await;
-
-            match &structure.menu {
-                Some(menu) => menu.draw().await,
-                None => {},
-            }
-        }
-
-        for radio in &mut self.level.radios {
-            radio.draw(&mut self.textures, &self.level.space).await;
-        }
-
-        for shotgun in &self.level.shotguns {
-            shotgun.draw(&self.level.space, &mut self.textures).await;
-        }
+        self.level.editor_draw(&mut self.textures).await;
 
         set_default_camera();
 

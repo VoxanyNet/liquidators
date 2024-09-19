@@ -1,13 +1,12 @@
-use std::{collections::HashMap, thread::sleep, time::{Duration, Instant}};
+use std::{collections::HashMap, time::{Duration, Instant}};
 
-use gamelibrary::{sync::client::SyncClient, texture_loader::TextureLoader, time::Time};
-use liquidators_lib::{game_state::GameState, level::Level, player::Player, TickContext};
-use macroquad::{color::{colors, Color, WHITE}, input::{is_key_down, is_key_released, KeyCode}, math::{vec2, Vec2}, text::draw_text, time::get_fps, window::screen_width};
+use gamelibrary::{sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics};
+use liquidators_lib::{game_state::GameState, level::Level, player::{self, Player}, vec_remove_iter::IntoVecRemoveIter, TickContext};
+use macroquad::{color::{colors, Color, WHITE}, input::{is_key_down, is_key_released, is_quit_requested, prevent_quit, KeyCode}, math::{vec2, Vec2}, text::draw_text, time::get_fps, window::screen_width};
 use rand::prelude::SliceRandom;
-use gamelibrary::traits::HasPhysics;
+
 
 use rand::thread_rng;
-use rapier2d::prelude::{ColliderHandle, RigidBodyHandle};
 
 // Return a random color
 pub fn random_color() -> Color {
@@ -63,17 +62,43 @@ impl Client {
 
     }
 
+    pub fn disconnect(&mut self) {
+
+       let mut players = self.game_state.level.players.into_vec_remove_iter();
+
+       while let Some(mut item) = players.next() {
+
+            if item.element.owner != self.uuid {
+                item.restore();
+            }
+
+            else {
+                item.element.remove_body_and_collider(&mut self.game_state.level.space);
+            }
+        }
+
+
+        // send a final sync to the server
+        self.sync_client.sync(&mut self.game_state);
+    }
+
     pub async fn run(&mut self) {
 
+        prevent_quit();
+
         loop {
-    
+
+            if is_quit_requested() {
+                self.disconnect();
+
+                break;
+            }
+
             self.tick(); 
 
             if is_key_released(KeyCode::H) {
                 println!("paused");
             }
-
-            println!("dt: {}", self.last_tick.elapsed().as_secs_f32());
             
             self.draw().await;
 
@@ -116,6 +141,10 @@ impl Client {
         if game_state.level.players.len() == 0 {
             for structure in game_state.level.structures.iter_mut() {
                 structure.owner = Some(uuid.clone())
+            }
+
+            for brick in game_state.level.bricks.iter_mut() {
+                brick.owner = Some(uuid.clone());
             }
         }
 

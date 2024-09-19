@@ -24,7 +24,7 @@ pub struct Radio {
 
 impl Radio {
 
-    pub async fn draw(&mut self, textures: &mut TextureLoader, space: &Space) {
+    pub async fn draw(&self, textures: &mut TextureLoader, space: &Space) {
         self.draw_texture(space, &self.texture_path.clone(), textures).await;
     }
 

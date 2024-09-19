@@ -368,6 +368,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
 
 [[package]]
+name = "ears"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e741c53078ec208f07c837fca26cd2624f959140c52268ee0677ad3b8e9b2112"
+dependencies = [
+ "lazy_static",
+ "libc",
+ "pkg-config",
+]
+
+[[package]]
 name = "either"
 version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -540,7 +551,7 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
-source = "git+https://github.com/VoxanyNet/gamelibrary?rev=49e2e8e6dd97f888ea9f1fbd342783d6ebe80d33#49e2e8e6dd97f888ea9f1fbd342783d6ebe80d33"
+source = "git+https://github.com/VoxanyNet/gamelibrary?rev=230fcd52910d7da26cea74edb641ccec52169449#230fcd52910d7da26cea74edb641ccec52169449"
 dependencies = [
  "bitcode",
  "chrono",
@@ -836,6 +847,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "lazy_static"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
+
+[[package]]
 name = "libc"
 version = "0.2.155"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -860,6 +877,7 @@ dependencies = [
  "bitcode",
  "chrono",
  "diff-struct",
+ "ears",
  "ewebsock",
  "fxhash",
  "gamelibrary",

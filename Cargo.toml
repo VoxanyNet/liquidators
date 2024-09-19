@@ -15,13 +15,14 @@ rapier2d = { git = "https://github.com/VoxanyNet/rapier", rev = "54b56a9a72d223b
 serde = { version = "1.0.205", features = ["serde_derive"] }
 lz4_flex = { version = "0.11", default-features = false }
 ewebsock = "0.6.0"
-gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "49e2e8e6dd97f888ea9f1fbd342783d6ebe80d33"}
+gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "230fcd52910d7da26cea74edb641ccec52169449"}
 #gamelibrary ={ path = "../gamelibrary"}
 bitcode = { version = "0.6.0", features = ["serde"] }
 rand = "0.8.5"
 tungstenite = "0.23.0"
 fxhash = "0.2.1"
 reqwest = { version = "0.12.5", features = ["blocking"] }
+ears = "0.8.0"
 
 [[bin]]
 name = "updater"

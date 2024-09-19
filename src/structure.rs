@@ -1,8 +1,8 @@
 use diff::Diff;
 use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::DARKGRAY, input::{self, is_key_down, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}};
+use macroquad::{color::{DARKGRAY, RED}, input::{self, is_key_down, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}};
 use nalgebra::vector;
-use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, math::Rotation};
+use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, math::Rotation, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
 
 use crate::level::Level;
@@ -26,48 +26,36 @@ pub struct Structure {
 
 impl Structure {
 
-    pub fn resize(&mut self, space: &mut Space) {
+    pub fn new(pos: Vec2, space: &mut Space, owner: String) -> Self {
+        let rigid_body_handle = space.rigid_body_set.insert(
+            RigidBodyBuilder::dynamic()
+                .position(
+                    vector![pos.x, pos.y].into()
+                )
+        );
 
-        if !*self.selected() {
-            return;
+        let collider = ColliderBuilder::cuboid(20., 20.)
+            .mass(10.)
+            .restitution(0.)
+            .build();
+
+        let collider_handle = space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut space.rigid_body_set);
+
+        Structure { 
+            editor_owner: owner.clone(),
+            rigid_body_handle: rigid_body_handle,
+            collider_handle: collider_handle,
+            color: RED,
+            menu: None,
+            selected: false,
+            dragging: false,
+            owner: None,
+            drag_offset: None,
+            sprite_path: "assets/structure/brick_block.png".to_string()
         }
-        let collider = space.collider_set.get_mut(self.collider_handle).unwrap();
-        let rigid_body = space.rigid_body_set.get_mut(self.rigid_body_handle).unwrap();
-
-        let shape = collider.shape_mut().as_cuboid_mut().unwrap();
-
-        let increase_unit = 10.;
-
-        if is_key_down(input::KeyCode::Right) {
-            
-            shape.half_extents.x += increase_unit;
-            rigid_body.set_position(vector![rigid_body.position().translation.x + increase_unit, rigid_body.position().translation.y].into(), true)
-        }
-
-        if is_key_down(input::KeyCode::Up) {
-            shape.half_extents.y += increase_unit;
-            rigid_body.set_position(vector![rigid_body.position().translation.x, rigid_body.position().translation.y + increase_unit].into(), true)
-        }
-
-        if is_key_down(input::KeyCode::Down) {
-            shape.half_extents.y -= increase_unit;
-            rigid_body.set_position(vector![rigid_body.position().translation.x, rigid_body.position().translation.y - increase_unit].into(), true)
-        }
-
-        if is_key_down(input::KeyCode::Left) {
-            shape.half_extents.x -= increase_unit;
-            rigid_body.set_position(vector![rigid_body.position().translation.x - increase_unit, rigid_body.position().translation.y].into(), true)
-        }
-
-        if shape.half_extents.x <= 0. {
-            shape.half_extents.x = 1.
-        }
-
-        if shape.half_extents.y <= 0. {
-            shape.half_extents.y = 1.
-        }
-        
     }
+
+    
     pub fn spawn_menu(&mut self, space: &mut Space, camera_rect: &Rect) {
         
         if !is_mouse_button_released(input::MouseButton::Right) {
@@ -117,29 +105,15 @@ impl Structure {
                 None => {}
             }
 
-            self.resize(&mut level.space);
+            self.editor_resize(&mut level.space);
             self.spawn_menu(&mut level.space, camera_rect);
             self.update_selected(&mut level.space, camera_rect);
             self.update_is_dragging(&mut level.space, camera_rect);
             self.update_drag(&mut level.space, camera_rect);
-            self.rotate(&mut level.space);
+            self.editor_rotate(&mut level.space);
         }
 
 
-    }
-
-    pub fn update_resize(&mut self) {
-        if !*self.selected() {return}
-    }
-
-    pub fn rotate(&mut self, space: &mut Space) {
-        if !*self.selected() {return}
-
-        if !is_key_down(input::KeyCode::R) {return}
-
-        let rigid_body = space.rigid_body_set.get_mut(self.rigid_body_handle).unwrap();
-        
-        rigid_body.set_rotation(Rotation::from_angle(rigid_body.rotation().angle() - 0.05), true);
     }
 
     pub fn handle_menu(mut self, space: &mut Space) -> Option<Self> {
@@ -182,8 +156,13 @@ impl Structure {
     }
 
     pub async fn debug_draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
-        self.draw_outline(space).await;
+        self.draw_outline(space, 10.).await;
         self.draw_texture(space, texture_path, textures).await;
+
+        match &self.menu {
+            Some(menu) => menu.draw().await,
+            None => {},
+        }
     }
 
     pub async fn draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
