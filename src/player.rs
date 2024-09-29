@@ -1,11 +1,11 @@
 use diff::Diff;
-use gamelibrary::{macroquad_to_rapier, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::WHITE, input::{is_key_down, KeyCode}, math::{vec2, Vec2}, texture::DrawTextureParams};
-use nalgebra::vector;
+use gamelibrary::{macroquad_to_rapier, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
+use macroquad::{color::WHITE, input::{is_key_down, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Vec2}, texture::DrawTextureParams};
+use nalgebra::{vector, ComplexField};
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{game_state::GameState, level::Level, shotgun::Shotgun, TickContext};
+use crate::{brick::Brick, game_state::GameState, level::Level, shotgun::Shotgun, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -32,7 +32,7 @@ impl Player {
             //.lock_rotations()
             .build();
 
-        let collider = ColliderBuilder::cuboid(18., 15.).build();
+        let collider = ColliderBuilder::cuboid(18., 15.).mass(7000.).build();
 
         let rigid_body_handle = space.rigid_body_set.insert(rigid_body);
         let collider_handle = space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut space.rigid_body_set);
@@ -53,11 +53,43 @@ impl Player {
     }
 
     pub fn tick(&mut self, level: &mut Level, ctx: &mut TickContext) {
+        self.launch_brick(level, ctx);
         self.control(level, ctx);
         
     }
 
-    
+    pub fn launch_brick(&mut self, level: &mut Level, ctx: &mut TickContext) {
+
+        if !is_mouse_button_down(macroquad::input::MouseButton::Left) {
+            return;
+        }
+        let (player_pos, player_rotation, player_velocity) = {
+            let body = level.space.rigid_body_set.get(*self.rigid_body_handle()).unwrap();
+            (body.position().clone(), body.rotation().clone(), body.linvel().clone())
+        };
+
+        let mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);
+
+        let mouse_body_distance = mouse_pos - Vec2::new(player_pos.translation.x, player_pos.translation.y); 
+        
+        let brick_spawn_point = Vec2::new(
+            player_pos.translation.x + mouse_body_distance.normalize().x * 40., 
+            player_pos.translation.y + mouse_body_distance.normalize().y * 40.
+        );
+
+        let brick = Brick::new(&mut level.space, brick_spawn_point, Some(ctx.uuid.clone()));
+        
+        let brick_body = level.space.rigid_body_set.get_mut(*brick.rigid_body_handle()).unwrap();
+
+        let mut brick_velocity = player_velocity;
+        brick_velocity.x += 5000. * mouse_body_distance.normalize().x;
+        
+        brick_body.set_rotation(player_rotation, true);
+        brick_body.set_linvel(brick_velocity, true);
+
+        level.bricks.push(brick);
+
+    }
 
     pub fn jump(&mut self, rigid_body: &mut RigidBody) {
         if is_key_down(KeyCode::Space) {
@@ -79,7 +111,9 @@ impl Player {
             rigid_body.set_linvel(
                 vector![rigid_body.linvel().x, rigid_body.linvel().y + 700.],
                 true
-            )
+            );
+
+            
         }
     }
 

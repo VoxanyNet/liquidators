@@ -1,15 +1,21 @@
+use std::collections::HashMap;
+
 use diff::Diff;
+use ears::{AudioController, Sound};
 use gamelibrary::{rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{input::{self, is_mouse_button_pressed}, math::{Rect, Vec2}};
-use nalgebra::vector;
-use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
+use macroquad::{audio::{load_sound, play_sound}, input::{self, is_key_released, is_mouse_button_pressed}, math::{Rect, Vec2}};
+use nalgebra::{vector, Vector};
+use rapier2d::prelude::{rigid_body, ActiveEvents, ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
+
+use crate::{level::Level, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct Brick {
+    sounds: Vec<ears::Sound>,
     collider: ColliderHandle,
     body: RigidBodyHandle,
     selected: bool,
@@ -17,7 +23,8 @@ pub struct Brick {
     drag_offset: Option<Vec2>,
     texture_path: String,
     pub owner: Option<String>,
-    editor_owner: Option<String>
+    editor_owner: Option<String>,
+    previous_velocity: Vec2 // try to change this to the native rapier type
 }
 
 impl Brick {
@@ -26,14 +33,18 @@ impl Brick {
         let body_handle = space.rigid_body_set.insert( 
             RigidBodyBuilder::dynamic()
                 .position(vector![location.x, location.y].into())
+                //.ccd_enabled(true)
                 .build()
         );
 
         let collider_handle = space.collider_set.insert_with_parent(
-            ColliderBuilder::cuboid(8., 3.).build(), 
+            ColliderBuilder::cuboid(8., 3.)
+            .active_events(ActiveEvents::COLLISION_EVENTS)
+            .build(), 
             body_handle, 
             &mut space.rigid_body_set
         );
+
 
         Self {
             collider: collider_handle,
@@ -43,8 +54,23 @@ impl Brick {
             texture_path: "assets/structure/brick.png".to_string(),
             drag_offset: None,
             editor_owner: None,
-            owner
+            owner,
+            previous_velocity: Vec2::ZERO,
+            sounds: vec![]
         }
+    }
+
+    pub fn tick(&mut self, level: &mut Level, ctx: &mut TickContext) {
+
+        match &self.owner {
+            Some(owner) => {
+                if ctx.uuid == owner {
+
+                }
+            },
+            None => {},
+        }
+        
     }
 
     pub fn update_editor_owner(&mut self, editor_uuid: &String, space: &mut Space, camera_rect: &Rect) {

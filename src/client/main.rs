@@ -21,7 +21,7 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    let mut client = Client::connect("ws://voxany.net:5556");
+    let mut client = Client::connect("ws://0.0.0.0:5556");
 
     client.run().await;
 

@@ -86,11 +86,16 @@ impl Level {
         }  
 
         for brick_index in 0..self.bricks.len() {
-            let brick = self.bricks.remove(brick_index);
+            let mut brick = self.bricks.remove(brick_index);
 
+            brick.tick(self, ctx);
+            
             match &brick.owner {
                 Some(owner) => {
-                    if owner == ctx.uuid {
+
+
+                    if owner == ctx.uuid { 
+                        
                         owned_bodies.push(*brick.rigid_body_handle());
                         owned_colliders.push(*brick.collider_handle());
                     }

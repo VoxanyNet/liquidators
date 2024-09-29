@@ -370,12 +370,12 @@ checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
 [[package]]
 name = "ears"
 version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e741c53078ec208f07c837fca26cd2624f959140c52268ee0677ad3b8e9b2112"
 dependencies = [
+ "diff-struct",
  "lazy_static",
  "libc",
  "pkg-config",
+ "serde",
 ]
 
 [[package]]
@@ -551,7 +551,6 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
-source = "git+https://github.com/VoxanyNet/gamelibrary?rev=230fcd52910d7da26cea74edb641ccec52169449#230fcd52910d7da26cea74edb641ccec52169449"
 dependencies = [
  "bitcode",
  "chrono",
@@ -884,6 +883,7 @@ dependencies = [
  "lz4_flex",
  "macroquad",
  "nalgebra",
+ "parry2d",
  "rand",
  "rapier2d",
  "reqwest",

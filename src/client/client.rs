@@ -1,12 +1,15 @@
 use std::{collections::HashMap, time::{Duration, Instant}};
 
+use diff::Diff;
+use ears::{AudioController, Sound};
 use gamelibrary::{sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics};
-use liquidators_lib::{game_state::GameState, level::Level, player::{self, Player}, vec_remove_iter::IntoVecRemoveIter, TickContext};
-use macroquad::{color::{colors, Color, WHITE}, input::{is_key_down, is_key_released, is_quit_requested, prevent_quit, KeyCode}, math::{vec2, Vec2}, text::draw_text, time::get_fps, window::screen_width};
+use liquidators_lib::{game_state::GameState, level::Level, player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{colors, Color, WHITE}, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, time::get_fps, window::screen_width};
 use rand::prelude::SliceRandom;
 
 
 use rand::thread_rng;
+use serde::{Deserialize, Serialize};
 
 // Return a random color
 pub fn random_color() -> Color {
@@ -22,7 +25,6 @@ pub struct Client {
     pub game_state: GameState,
     pub is_host: bool,
     pub textures: TextureLoader,
-    pub sounds: HashMap<String, macroquad::audio::Sound>,
     pub last_tick: Instant,
     pub uuid: String,
     pub camera_offset: Vec2,
@@ -30,7 +32,8 @@ pub struct Client {
     pub start_time: Time,
     pub square_color: Color,
     pub sync_client: SyncClient<GameState>,
-    pub last_sync: Instant
+    pub last_sync: Instant,
+    pub camera_rect: Rect
 }
 
 impl Client {
@@ -40,26 +43,44 @@ impl Client {
         let mut tick_context = TickContext {
             is_host: &mut self.is_host,
             textures: &mut self.textures,
-            sounds: &mut self.sounds,
             uuid: &self.uuid,
             camera_offset: &mut self.camera_offset,
-            last_tick: &self.last_tick
+            last_tick: &self.last_tick,
+            camera_rect: &self.camera_rect
         };
 
         self.game_state.tick(
             &mut tick_context
         );
+        
+        self.update_camera();
 
         if is_key_released(KeyCode::B) {
             self.game_state.level = Level::from_save("level.bin".to_string());
         }
 
-        self.control_camera();
-
         self.save_state();
 
         self.last_tick = Instant::now();
 
+    }
+
+    pub fn update_camera(&mut self) {
+        if mouse_wheel().1 < 0. {
+            self.camera_rect.w *= 1.1;
+            self.camera_rect.h *= 1.1;
+        }
+
+        if mouse_wheel().1 > 0. {
+
+            self.camera_rect.w /= 1.1;
+            self.camera_rect.h /= 1.1;
+        }
+
+        if is_mouse_button_down(input::MouseButton::Middle) {
+            self.camera_rect.x += mouse_delta_position().x * 200.;
+            self.camera_rect.y += mouse_delta_position().y * 200.;
+        }
     }
 
     pub fn disconnect(&mut self) {
@@ -124,12 +145,26 @@ impl Client {
 
         draw_text(format!("fps: {}", get_fps()).as_str(), screen_width() - 120., 25., 30., WHITE);
         
+        let mut camera = Camera2D::from_display_rect(self.camera_rect);
+        camera.zoom.y = -camera.zoom.y;
+
+        set_camera(
+            &camera
+        );
+        
         self.game_state.draw(&mut self.textures).await;
+
+        set_default_camera();
 
         macroquad::window::next_frame().await;
     }
 
     pub fn connect(url: &str) -> Self {
+
+        let mut camera_rect = Rect::new(0., 300., 1280., 720.);
+
+        camera_rect.w /= 1.5;
+        camera_rect.h /= 1.5;
 
         let uuid = gamelibrary::uuid();
 
@@ -153,8 +188,7 @@ impl Client {
         Self {
             game_state,
             is_host: true,
-            textures: TextureLoader::new(),
-            sounds: HashMap::new(),
+            textures: TextureLoader::new(), 
             last_tick: Instant::now(),
             uuid,
             camera_offset: Vec2::new(0., 0.),
@@ -162,31 +196,14 @@ impl Client {
             start_time: Time::now(),
             square_color: random_color(),
             sync_client,
-            last_sync: Instant::now()
+            last_sync: Instant::now(),
+            camera_rect
         }
     }
 
 
     pub fn connect_as_master() {
 
-    }
-
-    pub fn control_camera(&mut self) {
-        if is_key_down(macroquad::input::KeyCode::Right) {
-            self.camera_offset.x += 1.0 * self.last_tick.elapsed().as_millis() as f32;
-        }
-
-        if is_key_down(macroquad::input::KeyCode::Left) {
-            self.camera_offset.x -= 1.0 * self.last_tick.elapsed().as_millis() as f32;
-        }
-
-        if is_key_down(macroquad::input::KeyCode::Down) {
-            self.camera_offset.y -= 1.0 * self.last_tick.elapsed().as_millis() as f32;
-        }
-
-        if is_key_down(macroquad::input::KeyCode::Up) {
-            self.camera_offset.y += 1.0 * self.last_tick.elapsed().as_millis() as f32;
-        }
     }
 
     fn save_state(&mut self) {
