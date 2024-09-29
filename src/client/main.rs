@@ -1,5 +1,5 @@
 
-use macroquad::{color::RED, input::prevent_quit, miniquad::conf::Platform, window::{clear_background, next_frame, set_panic_handler, Conf}};
+use macroquad::{miniquad::conf::Platform, window::Conf};
 use client::Client;
 
 pub mod client;

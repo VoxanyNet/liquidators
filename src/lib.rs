@@ -1,11 +1,9 @@
-use std::{collections::HashMap, path::Iter, time::Instant};
+use std::{collections::HashMap, time::Instant};
 
 use diff::Diff;
 use ears::Sound;
-use game_state::GameState;
-use gamelibrary::{texture_loader::TextureLoader, time::Time};
+use gamelibrary::texture_loader::TextureLoader;
 use macroquad::math::{Rect, Vec2};
-use rapier2d::prelude::{ColliderHandle, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
 pub mod game_state;

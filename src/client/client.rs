@@ -1,15 +1,12 @@
-use std::{collections::HashMap, time::{Duration, Instant}};
+use std::time::{Duration, Instant};
 
-use diff::Diff;
-use ears::{AudioController, Sound};
 use gamelibrary::{sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics};
 use liquidators_lib::{game_state::GameState, level::Level, player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
-use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{colors, Color, WHITE}, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, time::get_fps, window::screen_width};
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{colors, Color, WHITE}, input::{self, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, time::get_fps, window::screen_width};
 use rand::prelude::SliceRandom;
 
 
 use rand::thread_rng;
-use serde::{Deserialize, Serialize};
 
 // Return a random color
 pub fn random_color() -> Color {

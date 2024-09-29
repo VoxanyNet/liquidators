@@ -1,8 +1,8 @@
 use diff::Diff;
 use gamelibrary::{space::Space, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{input::is_key_released, math::{Rect, Vec2}};
+use macroquad::math::{Rect, Vec2};
 use nalgebra::vector;
-use rapier2d::prelude::{collider, rigid_body, ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
 use crate::level::Level;

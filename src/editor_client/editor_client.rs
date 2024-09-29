@@ -1,10 +1,8 @@
 use std::{fs, time::Instant};
 
-use gamelibrary::{macroquad_to_rapier, menu::Button, mouse_world_pos, rapier_mouse_world_pos, sync::client::SyncClient, texture_loader::TextureLoader, uuid};
-use liquidators_lib::{brick::Brick, level::Level, radio::RadioBuilder, shotgun::Shotgun, structure::{self, Structure}};
-use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, RED, WHITE}, input::{self, is_key_down, is_key_pressed, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel}, math::Rect, text::draw_text, time::get_fps, window::screen_width};
-use nalgebra::vector;
-use rapier2d::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder};
+use gamelibrary::{menu::Button, sync::client::SyncClient, texture_loader::TextureLoader, uuid};
+use liquidators_lib::level::Level;
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, WHITE}, input::{self, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel}, math::Rect, text::draw_text, time::get_fps, window::screen_width};
 use gamelibrary::traits::HasPhysics;
 
 pub struct EditorClient {

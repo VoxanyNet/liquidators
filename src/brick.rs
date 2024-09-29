@@ -1,11 +1,9 @@
-use std::collections::HashMap;
 
 use diff::Diff;
-use ears::{AudioController, Sound};
 use gamelibrary::{rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{audio::{load_sound, play_sound}, input::{self, is_key_released, is_mouse_button_pressed}, math::{Rect, Vec2}};
-use nalgebra::{vector, Vector};
-use rapier2d::prelude::{rigid_body, ActiveEvents, ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
+use macroquad::{input::{self, is_mouse_button_pressed}, math::{Rect, Vec2}};
+use nalgebra::vector;
+use rapier2d::prelude::{ActiveEvents, ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
 use crate::{level::Level, TickContext};

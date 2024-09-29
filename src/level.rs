@@ -1,13 +1,13 @@
-use std::{collections::HashMap, fs, hash::RandomState, time::Instant};
+use std::fs;
 
 use diff::Diff;
-use gamelibrary::{macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, time::Time, traits::HasPhysics};
-use macroquad::{audio::Sound, color::RED, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}};
+use gamelibrary::{macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
+use macroquad::{color::RED, input::{self, is_key_pressed, is_key_released}, math::Rect};
 use nalgebra::vector;
-use rapier2d::prelude::{collider, ColliderBuilder, ColliderHandle, RigidBody, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{brick::{self, Brick}, game_state::GameState, player::Player, radio::{Radio, RadioBuilder}, shotgun::Shotgun, structure::Structure, TickContext};
+use crate::{brick::{Brick}, player::Player, radio::{Radio, RadioBuilder}, shotgun::Shotgun, structure::Structure, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(

@@ -1,11 +1,11 @@
 use diff::Diff;
-use gamelibrary::{macroquad_to_rapier, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::WHITE, input::{is_key_down, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Vec2}, texture::DrawTextureParams};
-use nalgebra::{vector, ComplexField};
+use gamelibrary::{rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
+use macroquad::{input::{is_key_down, is_mouse_button_down, KeyCode}, math::{vec2, Vec2}};
+use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{brick::Brick, game_state::GameState, level::Level, shotgun::Shotgun, TickContext};
+use crate::{brick::Brick, level::Level, shotgun::Shotgun, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(

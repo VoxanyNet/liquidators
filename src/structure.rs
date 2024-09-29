@@ -1,8 +1,8 @@
 use diff::Diff;
 use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::{DARKGRAY, RED}, input::{self, is_key_down, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}};
+use macroquad::{color::{DARKGRAY, RED}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}};
 use nalgebra::vector;
-use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, math::Rotation, prelude::{ColliderBuilder, RigidBodyBuilder}};
+use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
 
 use crate::level::Level;
