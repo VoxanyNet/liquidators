@@ -1,11 +1,12 @@
 use diff::Diff;
 use gamelibrary::{rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{input::{is_key_down, is_mouse_button_down, KeyCode}, math::{vec2, Vec2}};
-use nalgebra::vector;
+use gilrs::{ev::Code, Button, Gamepad};
+use macroquad::{input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}};
+use nalgebra::{vector, Rotation, Rotation2};
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{brick::Brick, level::Level, shotgun::Shotgun, TickContext};
+use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -20,7 +21,8 @@ pub struct Player {
     pub dragging: bool,
     pub drag_offset: Option<Vec2>,
     pub max_speed: Vec2,
-    pub shotgun: Option<Shotgun>
+    pub shotgun: Option<Shotgun>,
+    pub portal_gun: PortalGun
 }
 
 impl Player {
@@ -29,7 +31,7 @@ impl Player {
 
         let rigid_body = RigidBodyBuilder::dynamic()
             .position(vector![position.x, position.y].into())
-            //.lock_rotations()
+            .soft_ccd_prediction(20.)
             .build();
 
         let collider = ColliderBuilder::cuboid(18., 15.).mass(7000.).build();
@@ -46,16 +48,34 @@ impl Player {
                 selected: false,
                 dragging: false,
                 drag_offset: None,
-                max_speed: vec2(150., 80.),
-                shotgun: None
+                max_speed: vec2(350., 80.),
+                shotgun: None,
+                portal_gun: PortalGun::new()
+                
             }
         )
     }
 
     pub fn tick(&mut self, level: &mut Level, ctx: &mut TickContext) {
-        self.launch_brick(level, ctx);
+        //self.launch_brick(level, ctx);
         self.control(level, ctx);
+        self.update_portal_gun_pos(&level.space);
+        self.fire_portal_gun(ctx.camera_rect, &mut level.portal_bullets);
         
+    }
+
+    pub fn fire_portal_gun(&mut self, camera_rect: &Rect, portal_bullets: &mut Vec<PortalBullet>) {
+        if is_mouse_button_released(macroquad::input::MouseButton::Left) {
+            self.portal_gun.fire(camera_rect, portal_bullets);
+        }
+    }
+
+    pub fn update_portal_gun_pos(&mut self, space: &Space) {
+
+        let body = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap();
+
+        self.portal_gun.position.x = body.position().translation.x;
+        self.portal_gun.position.y = body.position().translation.y;
     }
 
     pub fn launch_brick(&mut self, level: &mut Level, ctx: &mut TickContext) {
@@ -91,8 +111,8 @@ impl Player {
 
     }
 
-    pub fn jump(&mut self, rigid_body: &mut RigidBody) {
-        if is_key_down(KeyCode::Space) {
+    pub fn jump(&mut self, rigid_body: &mut RigidBody, gamepad: Option<Gamepad>) {
+        if is_key_down(KeyCode::Space) || gamepad.map_or(false, |gamepad| {gamepad.is_pressed(gilrs::Button::South)}) {
 
             // dont allow if moving if falling or jumping
 
@@ -120,10 +140,17 @@ impl Player {
     pub fn control(&mut self, level: &mut Level, ctx: &mut TickContext) {
 
         let rigid_body = level.space.rigid_body_set.get_mut(self.rigid_body).unwrap();
-        
-        self.jump(rigid_body);
 
-        if is_key_down(KeyCode::A) {
+        let gamepad: Option<Gamepad<'_>> = match ctx.active_gamepad {
+            Some(active_gamepad) => {
+                Some(ctx.gilrs.gamepad(*active_gamepad))
+            },
+            None => None,
+        };
+
+        self.jump(rigid_body, gamepad);
+
+        if is_key_down(KeyCode::A) || gamepad.map_or(false, |gamepad| {gamepad.is_pressed(gilrs::Button::DPadLeft)}) {
 
             if rigid_body.linvel().x < -self.max_speed.x {
                 return
@@ -143,7 +170,7 @@ impl Player {
 
         }
 
-        if is_key_down(KeyCode::D) {
+        if is_key_down(KeyCode::D) || gamepad.map_or(false, |gamepad| {gamepad.is_pressed(gilrs::Button::DPadRight)}) {
 
             if rigid_body.linvel().x > self.max_speed.x {
                 return
@@ -161,6 +188,13 @@ impl Player {
                 true
             )
         }
+
+        // if gamepad.map_or(false, |gamepad| {gamepad.is_pressed(gilrs::Button::RightTrigger)}) {
+        //     rigid_body.set_rotation(
+        //         Rotation, wake_up
+        //     );
+        // }
+
     }
 
     pub async fn draw(&self, space: &Space, textures: &mut TextureLoader) {

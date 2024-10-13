@@ -1,8 +1,9 @@
-use std::time::{Duration, Instant};
+use std::{fs, time::{Duration, Instant}};
 
 use gamelibrary::{sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics};
+use gilrs::{Event, GamepadId, Gilrs};
 use liquidators_lib::{game_state::GameState, level::Level, player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
-use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{colors, Color, WHITE}, input::{self, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, time::get_fps, window::screen_width};
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{colors, Color, WHITE}, input::{self, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, miniquad::window::{set_mouse_cursor, set_window_size}, prelude::{camera::mouse, debug}, text::draw_text, texture::{draw_texture, draw_texture_ex, DrawTextureParams}, time::get_fps, window::screen_width};
 use rand::prelude::SliceRandom;
 
 
@@ -30,12 +31,18 @@ pub struct Client {
     pub square_color: Color,
     pub sync_client: SyncClient<GameState>,
     pub last_sync: Instant,
-    pub camera_rect: Rect
+    pub camera_rect: Rect,
+    pub gilrs: Gilrs,
+    pub active_gamepad: Option<GamepadId>
 }
 
 impl Client {
 
     pub fn tick(&mut self) {
+
+        if is_key_released(KeyCode::R) || self.active_gamepad.map_or(false, |active_gamepad| {self.gilrs.gamepad(active_gamepad).is_pressed(gilrs::Button::Start)}){
+            self.reset_level();
+        }
 
         let mut tick_context = TickContext {
             is_host: &mut self.is_host,
@@ -43,8 +50,12 @@ impl Client {
             uuid: &self.uuid,
             camera_offset: &mut self.camera_offset,
             last_tick: &self.last_tick,
-            camera_rect: &self.camera_rect
+            camera_rect: &self.camera_rect,
+            active_gamepad: &self.active_gamepad,
+            gilrs: &mut self.gilrs
         };
+
+        
 
         self.game_state.tick(
             &mut tick_context
@@ -55,6 +66,8 @@ impl Client {
         if is_key_released(KeyCode::B) {
             self.game_state.level = Level::from_save("level.bin".to_string());
         }
+
+        self.gilrs.next_event();
 
         self.save_state();
 
@@ -100,9 +113,27 @@ impl Client {
         self.sync_client.sync(&mut self.game_state);
     }
 
+    pub fn reset_level(&mut self) {
+        println!("resetting");
+        let reset_level: Level = bitcode::deserialize(&fs::read("level.bin").unwrap()).unwrap();
+
+        self.game_state.level = reset_level;
+
+        for structure in self.game_state.level.structures.iter_mut() {
+            structure.owner = Some(self.uuid.clone())
+        }
+
+        for brick in self.game_state.level.bricks.iter_mut() {
+            brick.owner = Some(self.uuid.clone());
+        }
+
+        Player::spawn(&mut self.game_state.level.players, &mut self.game_state.level.space, self.uuid.clone(), &vec2(100., 300.));
+
+    }
+
     pub async fn run(&mut self) {
 
-        prevent_quit();
+        //prevent_quit();
 
         loop {
 
@@ -123,16 +154,20 @@ impl Client {
             // only sync 30 tps
             // this could probably be optimized but this is more readable
             if self.last_sync.elapsed().as_secs_f32() > 1./60. {
+
+                let then = Instant::now();
                 self.sync_client.sync(&mut self.game_state);
 
+                let elapsed = then.elapsed();
+                println!("{}", elapsed.as_micros());
                 self.last_sync = Instant::now();
             }            
 
             // calculate the time we need to sleep to lock the framerate at 120
-            let sleep_duration = Duration::from_millis(7).saturating_sub(self.last_tick.elapsed());
+            //let sleep_duration = Duration::from_millis(7).saturating_sub(self.last_tick.elapsed());
             
 
-            std::thread::sleep(sleep_duration);
+            //std::thread::sleep(sleep_duration);
     
         }
     }
@@ -140,6 +175,8 @@ impl Client {
  
     pub async fn draw(&mut self) {
 
+        
+    
         draw_text(format!("fps: {}", get_fps()).as_str(), screen_width() - 120., 25., 30., WHITE);
         
         let mut camera = Camera2D::from_display_rect(self.camera_rect);
@@ -148,7 +185,8 @@ impl Client {
         set_camera(
             &camera
         );
-        
+
+    
         self.game_state.draw(&mut self.textures).await;
 
         set_default_camera();
@@ -158,16 +196,23 @@ impl Client {
 
     pub fn connect(url: &str) -> Self {
 
+        debug!("test");
+
+
+
         let mut camera_rect = Rect::new(0., 300., 1280., 720.);
-
-        camera_rect.w /= 1.5;
-        camera_rect.h /= 1.5;
-
+        
         let uuid = gamelibrary::uuid();
 
         println!("{}", uuid);
         
         let (sync_client, mut game_state): (SyncClient<GameState>, GameState) = SyncClient::connect(url);
+
+        //let mut game_state: GameState = bitcode::deserialize(&fs::read("level.bin").unwrap()).unwrap();
+
+        #[cfg(target_arch = "wasm32")]
+        web_sys::console::log_1(&"CEXected!".into());
+       
 
         // if we are the first player to join, we take ownership of everything
         if game_state.level.players.len() == 0 {
@@ -181,6 +226,12 @@ impl Client {
         }
 
         Player::spawn(&mut game_state.level.players, &mut game_state.level.space, uuid.clone(), &vec2(100., 300.));
+
+        let gilrs = Gilrs::new().unwrap();
+
+        let mut active_gamepad: Option<GamepadId> = None; 
+
+        active_gamepad = gilrs.gamepads().next().map_or(None, |gamepad|{Some(gamepad.0)});
         
         Self {
             game_state,
@@ -194,7 +245,9 @@ impl Client {
             square_color: random_color(),
             sync_client,
             last_sync: Instant::now(),
-            camera_rect
+            camera_rect,
+            gilrs,
+            active_gamepad
         }
     }
 

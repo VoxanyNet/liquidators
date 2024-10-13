@@ -13,7 +13,7 @@ use crate::{level::Level, TickContext};
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct Brick {
-    sounds: Vec<ears::Sound>,
+    //sounds: Vec<ears::Sound>,
     collider: ColliderHandle,
     body: RigidBodyHandle,
     selected: bool,
@@ -54,7 +54,7 @@ impl Brick {
             editor_owner: None,
             owner,
             previous_velocity: Vec2::ZERO,
-            sounds: vec![]
+            //sounds: vec![]
         }
     }
 

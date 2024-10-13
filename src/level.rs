@@ -7,7 +7,7 @@ use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{brick::{Brick}, player::Player, radio::{Radio, RadioBuilder}, shotgun::Shotgun, structure::Structure, TickContext};
+use crate::{brick::Brick, player::Player, portal::Portal, portal_bullet::{self, PortalBullet}, radio::{Radio, RadioBuilder}, shotgun::Shotgun, structure::Structure, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -19,7 +19,9 @@ pub struct Level {
     pub space: Space,
     pub bricks: Vec<Brick>,
     pub radios: Vec<Radio>,
-    pub shotguns: Vec<Shotgun>
+    pub shotguns: Vec<Shotgun>,
+    pub portal_bullets: Vec<PortalBullet>,
+    pub portals: Vec<Portal>
 }
 
 impl Level {
@@ -30,7 +32,9 @@ impl Level {
             players: vec![],
             space: Space::new(),
             radios: vec![],
-            shotguns: vec![]
+            shotguns: vec![],
+            portal_bullets: vec![],
+            portals: vec![],
         };
     
         level.space.gravity.y = -980.;
@@ -54,6 +58,29 @@ impl Level {
         
         let mut owned_bodies: Vec<RigidBodyHandle> = vec![];
         let mut owned_colliders: Vec<ColliderHandle> = vec![];
+
+        let mut portal_bullet_index = 0;
+
+        
+        while portal_bullet_index < self.portal_bullets.len() {
+            let portal_bullet = self.portal_bullets.remove(portal_bullet_index);
+
+            let portal_bullet = portal_bullet.tick(self);
+
+            if let Some(portal_bullet) = portal_bullet {
+                self.portal_bullets.insert(portal_bullet_index, portal_bullet);
+
+                portal_bullet_index += 1;
+            }
+
+            
+        }
+
+        for portal_index in 0..self.portals.len() {
+            let portal = self.portals.remove(portal_index);
+
+            self.portals.insert(portal_index, portal);
+        }
 
         for player_index in 0..self.players.len() {
 
@@ -204,6 +231,7 @@ impl Level {
                     .position(
                         vector![rapier_mouse_world_pos.x, rapier_mouse_world_pos.y].into()
                     )
+                    .soft_ccd_prediction(20.)
             );
 
             let collider = ColliderBuilder::cuboid(20., 20.)
@@ -250,6 +278,7 @@ impl Level {
         }
     }
     pub async fn draw(&self, textures: &mut TextureLoader) {
+
         for structure in self.structures.iter() {
 
             let texture_path = structure.sprite_path.clone();
@@ -263,6 +292,14 @@ impl Level {
 
         for brick in &self.bricks {
             brick.draw(&self.space, textures).await;
+        }
+
+        for portal_bullet in &self.portal_bullets {
+            portal_bullet.draw().await;
+        }
+
+        for portal in self.portals.iter() {
+            portal.draw(&self.space).await
         }
     }
 }

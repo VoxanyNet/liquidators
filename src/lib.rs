@@ -1,8 +1,8 @@
-use std::{collections::HashMap, time::Instant};
+use std::time::Instant;
 
 use diff::Diff;
-use ears::Sound;
 use gamelibrary::texture_loader::TextureLoader;
+use gilrs::{GamepadId, Gilrs};
 use macroquad::math::{Rect, Vec2};
 use serde::{Deserialize, Serialize};
 
@@ -16,7 +16,9 @@ pub mod radio;
 pub mod chat;
 pub mod vec_remove_iter;
 pub mod brick;
-
+pub mod portal;
+pub mod portal_bullet;
+pub mod portal_gun;
 
 
 pub struct TickContext<'a> {
@@ -25,12 +27,9 @@ pub struct TickContext<'a> {
     pub last_tick: &'a Instant,
     pub uuid: &'a String,
     pub camera_rect: &'a Rect,
-    pub camera_offset: &'a mut Vec2
-}
-
-// used to reference the same a Sound instance across multiple clients
-pub struct SoundLoader {
-    sounds: HashMap<SoundHandle, Sound>
+    pub camera_offset: &'a mut Vec2,
+    pub gilrs: &'a mut Gilrs,
+    pub active_gamepad: &'a Option<GamepadId>
 }
 
 #[derive(PartialEq, Serialize, Deserialize, Diff)]

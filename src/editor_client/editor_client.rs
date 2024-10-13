@@ -208,6 +208,8 @@ impl EditorClient {
 
         loop { 
 
+            println!("{}", self.level.structures.len());
+
             self.tick();
 
             self.draw().await;

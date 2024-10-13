@@ -2,6 +2,7 @@ use diff::Diff;
 use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
 use macroquad::{color::{DARKGRAY, RED}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}};
 use nalgebra::vector;
+use parry2d::math::Rotation;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
 
@@ -32,12 +33,14 @@ impl Structure {
                 .position(
                     vector![pos.x, pos.y].into()
                 )
+                .soft_ccd_prediction(20.)
         );
 
         let collider = ColliderBuilder::cuboid(20., 20.)
             .mass(10.)
             .restitution(0.)
             .build();
+        
 
         let collider_handle = space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut space.rigid_body_set);
 

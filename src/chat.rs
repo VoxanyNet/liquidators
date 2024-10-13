@@ -35,13 +35,13 @@ impl Chat {
 
         // iterate through messages in reverse order
         for (index, message) in self.messages.iter().rev().enumerate() {
-            draw_text(
-                &message.content, 
-                origin.x + 30., 
-                (origin.y - (index as f32 * 30.)) - 30., // newest messages are draw at the bottom. we start at 10 pixels above bottom of screen
-                30., 
-                WHITE
-            )
+            // draw_text(
+            //     &message.content, 
+            //     origin.x + 30., 
+            //     (origin.y - (index as f32 * 30.)) - 30., // newest messages are draw at the bottom. we start at 10 pixels above bottom of screen
+            //     30., 
+            //     WHITE
+            // )
         }
     }
 }
