@@ -1,5 +1,8 @@
 
-use macroquad::{input::show_mouse, miniquad::conf::Platform, window::Conf};
+use std::{fs, panic, time::Instant};
+
+use liquidators_lib::game_state::GameState;
+use macroquad::{input::{prevent_quit, show_mouse}, miniquad::conf::Platform, window::Conf};
 use client::Client;
 
 pub mod client;
@@ -9,7 +12,7 @@ fn window_conf() -> Conf {
         window_title: "Game".to_owned(),
         window_width: 1280,
         window_height: 720,
-        window_resizable: true,
+        window_resizable: false,
         platform: Platform::default(),
         fullscreen: true,
         ..Default::default()
@@ -21,7 +24,8 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    let mut client = Client::connect("ws://0.0.0.0:5556");
+    let mut client = Client::connect("ws://0.0.0.0:5556").await; 
+
 
     client.run().await;
 

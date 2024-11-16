@@ -55,7 +55,7 @@ impl PortalBullet {
         match portal_structure {
             Some(portal_structure) => {
 
-                let structure_body = level.space.rigid_body_set.get(portal_structure.rigid_body_handle).unwrap();
+                let _structure_body = level.space.rigid_body_set.get(portal_structure.rigid_body_handle).unwrap();
 
                 let portal = Portal {
                     attached_collider: portal_structure.collider_handle.clone(),

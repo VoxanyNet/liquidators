@@ -7,23 +7,23 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chrono = "0.4.35"
+chrono = { version = "0.4.35", features = ["serde"] }
 diff-struct = "0.5.3"
 macroquad = {git = "https://github.com/VoxanyNet/macroquad", rev = "73db4a93f90f41942995ef757499ed61f3ff6085"}
 nalgebra = {git = "https://github.com/VoxanyNet/nalgebra", rev = "c57d898ac19a01ac5ad2d6da5f98dea91257ac9e"}
 rapier2d = { git = "https://github.com/VoxanyNet/rapier", rev = "54b56a9a72d223b407a01c97865067eaa3d5e0e4", features = ["serde-serialize"] }
 serde = { version = "1.0.205", features = ["serde_derive"] }
 lz4_flex = { version = "0.11", default-features = false }
-ewebsock = "0.7.0"
-gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "9724a958a4919b0b72f7364482e4e6a35a7ffaca"}
+# ewebsock = "0.7.0"
+#amelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "a02215033159a0d2441bad9f5ebeae0639be3e1f"}
 parry2d = {git = "https://github.com/VoxanyNet/parry", rev = "10a5155cb735ca3d2e912473b22bad2f2ad5889e"}
-#gamelibrary ={ path = "../gamelibrary"}
+gamelibrary ={ path = "../gamelibrary"}
 bitcode = { version = "0.6.0", features = ["serde"] }
-rand = "0.8.5"
 tungstenite = "0.23.0"
 fxhash = "0.2.1"
 reqwest = { version = "0.12.5", features = ["blocking"] }
 gilrs = "0.11.0"
+web-time = "1.1.0"
 web-sys = { version = "0.3.72", features = ["console"] }
 
 # [[bin]]

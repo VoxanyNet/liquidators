@@ -1,10 +1,10 @@
 
 use diff::Diff;
-use gamelibrary::texture_loader::TextureLoader;
+use gamelibrary::{mouse_world_pos, rapier_mouse_world_pos, texture_loader::TextureLoader};
 use macroquad::input::is_key_released;
 use serde::{Deserialize, Serialize};
 
-use crate::{chat::Chat, level::Level, TickContext};
+use crate::{brick::Brick, chat::Chat, level::Level, structure::Structure, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, Clone, PartialEq)]
 #[diff(attr(
@@ -26,12 +26,20 @@ impl GameState {
         }
     }
 
+    pub fn spawn_brick(&mut self, ctx: &mut TickContext) {
+        if is_key_released(macroquad::input::KeyCode::E) {
+            self.level.structures.push(Structure::new(rapier_mouse_world_pos(ctx.camera_rect), &mut self.level.space, ctx.uuid.clone()));
+        }
+    }
+
     pub fn tick(
         &mut self,
         ctx: &mut TickContext
     ) { 
 
         self.level.tick(ctx);
+
+        self.spawn_brick(ctx);
 
         if is_key_released(macroquad::input::KeyCode::Backspace) {
             self.chat.add_message("Test".to_string(), "Super cool!".to_string())

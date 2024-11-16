@@ -1,12 +1,12 @@
 use diff::Diff;
-use gamelibrary::{rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{current_unix_millis, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::{ev::Code, Button, Gamepad};
 use macroquad::{input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}};
 use nalgebra::{vector, Rotation, Rotation2};
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, TickContext};
+use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -32,9 +32,13 @@ impl Player {
         let rigid_body = RigidBodyBuilder::dynamic()
             .position(vector![position.x, position.y].into())
             .soft_ccd_prediction(20.)
+            .ccd_enabled(true)
+            .lock_rotations()
             .build();
 
-        let collider = ColliderBuilder::cuboid(18., 15.).mass(7000.).build();
+        let collider = ColliderBuilder::cuboid(18., 15.)
+            .mass(100.)
+            .build();
 
         let rigid_body_handle = space.rigid_body_set.insert(rigid_body);
         let collider_handle = space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut space.rigid_body_set);
@@ -59,14 +63,58 @@ impl Player {
     pub fn tick(&mut self, level: &mut Level, ctx: &mut TickContext) {
         //self.launch_brick(level, ctx);
         self.control(level, ctx);
+        self.update_selected(&mut level.space, &ctx.camera_rect);
+        self.update_is_dragging(&mut level.space, &ctx.camera_rect);
+        self.update_drag(&mut level.space, &ctx.camera_rect);
+        self.own_nearby_structures(level, ctx);
+        
         self.update_portal_gun_pos(&level.space);
         self.fire_portal_gun(ctx.camera_rect, &mut level.portal_bullets);
         
     }
 
+    pub fn own_nearby_structures(&mut self, level: &mut Level, ctx: &mut TickContext) {
+        // take ownership of nearby structures to avoid network physics delay
+
+        let our_body = level.space.rigid_body_set.get(self.rigid_body).unwrap();
+
+        for structure in &mut level.structures {
+            let structure_body = level.space.rigid_body_set.get(structure.rigid_body_handle).unwrap();
+
+            let body_distance = structure_body.position().translation.vector - our_body.position().translation.vector;
+
+            // if the other body is within 100 units, we take ownership of it
+            if body_distance.abs().magnitude() > 100. {
+                continue;
+            }
+
+            match &mut structure.owner {
+                Some(owner) => {
+
+                    // take ownership if we dont already own it
+                    if owner == ctx.uuid {
+                        continue;    
+                    }
+
+                    if current_unix_millis() - structure.last_ownership_change < 2 {
+                        continue;
+                    }
+
+                    println!("taking ownership of structure!");
+                        
+                    *owner = ctx.uuid.clone();
+
+                }
+                None => {
+                    structure.owner = Some(ctx.uuid.clone())
+                },
+            }
+
+        }
+    }
     pub fn fire_portal_gun(&mut self, camera_rect: &Rect, portal_bullets: &mut Vec<PortalBullet>) {
         if is_mouse_button_released(macroquad::input::MouseButton::Left) {
-            self.portal_gun.fire(camera_rect, portal_bullets);
+            //self.portal_gun.fire(camera_rect, portal_bullets);
         }
     }
 
@@ -141,12 +189,7 @@ impl Player {
 
         let rigid_body = level.space.rigid_body_set.get_mut(self.rigid_body).unwrap();
 
-        let gamepad: Option<Gamepad<'_>> = match ctx.active_gamepad {
-            Some(active_gamepad) => {
-                Some(ctx.gilrs.gamepad(*active_gamepad))
-            },
-            None => None,
-        };
+        let gamepad: Option<Gamepad<'_>> = None;
 
         self.jump(rigid_body, gamepad);
 
@@ -164,7 +207,7 @@ impl Player {
             }
 
             rigid_body.set_linvel(
-                vector![rigid_body.linvel().x - 40., rigid_body.linvel().y],
+                vector![rigid_body.linvel().x - 10., rigid_body.linvel().y],
                 true
             );
 
@@ -184,7 +227,7 @@ impl Player {
             }
 
             rigid_body.set_linvel(
-                vector![rigid_body.linvel().x + 40., rigid_body.linvel().y],
+                vector![rigid_body.linvel().x + 10., rigid_body.linvel().y],
                 true
             )
         }

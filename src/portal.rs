@@ -1,7 +1,7 @@
 use diff::Diff;
 use gamelibrary::{rapier_to_macroquad, space::Space};
-use macroquad::{color::BLUE, math::{Rect, Vec2}, shapes::draw_line};
-use rapier2d::prelude::{ColliderHandle, RigidBodyHandle};
+use macroquad::math::Vec2;
+use rapier2d::prelude::ColliderHandle;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -22,9 +22,10 @@ impl Portal {
             collider.position().translation.y
         );
 
-        let collider_pos_macroquad = rapier_to_macroquad(&collider_pos);
+        let _collider_pos_macroquad = rapier_to_macroquad(&collider_pos);
 
         // ROTATE LINE WITH ANGLE OF ROTATION FOR COLLIDER
+        // or just draw a square jutting out underneath dummy
 
     
 

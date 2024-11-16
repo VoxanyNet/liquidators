@@ -210,6 +210,7 @@ dependencies = [
  "iana-time-zone",
  "js-sys",
  "num-traits",
+ "serde",
  "wasm-bindgen",
  "windows-targets 0.52.6",
 ]
@@ -556,7 +557,6 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
-source = "git+https://github.com/VoxanyNet/gamelibrary?rev=9724a958a4919b0b72f7364482e4e6a35a7ffaca#9724a958a4919b0b72f7364482e4e6a35a7ffaca"
 dependencies = [
  "bitcode",
  "chrono",
@@ -574,7 +574,9 @@ dependencies = [
  "serde_yaml",
  "tungstenite",
  "uuid",
+ "wasm-bindgen-futures",
  "web-sys",
+ "web-time",
 ]
 
 [[package]]
@@ -945,7 +947,6 @@ dependencies = [
  "bitcode",
  "chrono",
  "diff-struct",
- "ewebsock",
  "fxhash",
  "gamelibrary",
  "gilrs",
@@ -953,12 +954,12 @@ dependencies = [
  "macroquad",
  "nalgebra",
  "parry2d",
- "rand",
  "rapier2d",
  "reqwest",
  "serde",
  "tungstenite",
  "web-sys",
+ "web-time",
 ]
 
 [[package]]
@@ -2169,9 +2170,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-futures"
-version = "0.4.42"
+version = "0.4.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76bc14366121efc8dbb487ab05bcc9d346b3b5ec0eaa76e46594cabbe51762c0"
+checksum = "cc7ec4f8827a71586374db3e87abdb5a2bb3a15afed140221307c3ec06b1f63b"
 dependencies = [
  "cfg-if",
  "js-sys",
@@ -2213,6 +2214,16 @@ name = "web-sys"
 version = "0.3.72"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f6488b90108c040df0fe62fa815cbdee25124641df01814dd7282749234c6112"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "web-time"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
 dependencies = [
  "js-sys",
  "wasm-bindgen",

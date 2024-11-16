@@ -19,7 +19,7 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
     
-    let mut editor = EditorClient::connect("ws://0.0.0.0:5557");
+    let mut editor = EditorClient::connect("ws://0.0.0.0:5557").await;
 
     editor.run().await;
 

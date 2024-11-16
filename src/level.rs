@@ -251,7 +251,8 @@ impl Level {
                 dragging: false,
                 owner: None,
                 drag_offset: None,
-                sprite_path: "assets/structure/brick_block.png".to_string()
+                sprite_path: "assets/structure/brick_block.png".to_string(),
+                last_ownership_change: 0
             };
             
             self.structures.push(new_structure);

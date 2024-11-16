@@ -1,6 +1,6 @@
 use std::{fs, time::Instant};
 
-use gamelibrary::{menu::Button, sync::client::SyncClient, texture_loader::TextureLoader, uuid};
+use gamelibrary::{log, menu::Button, sync::client::SyncClient, texture_loader::TextureLoader, uuid};
 use liquidators_lib::level::Level;
 use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, WHITE}, input::{self, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel}, math::Rect, text::draw_text, time::get_fps, window::screen_width};
 use gamelibrary::traits::HasPhysics;
@@ -19,11 +19,11 @@ pub struct EditorClient {
 
 impl EditorClient {
 
-    pub fn connect(url: &str) -> Self {
+    pub async fn connect(url: &str) -> Self {
 
         let uuid = uuid();
 
-        let (sync_client, level): (SyncClient<Level>, Level) = SyncClient::connect(url);
+        let (sync_client, level): (SyncClient<Level>, Level) = SyncClient::connect(url).await;
         
         let save_button = Button::new(
             "Save".into(),
@@ -208,7 +208,7 @@ impl EditorClient {
 
         loop { 
 
-            println!("{}", self.level.structures.len());
+            log(format!("{}", self.level.structures.len()).as_str());
 
             self.tick();
 

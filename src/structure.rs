@@ -1,8 +1,8 @@
+use chrono::{DateTime, Utc};
 use diff::Diff;
 use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::{DARKGRAY, RED}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}};
+use macroquad::{color::{DARKGRAY, RED}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, miniquad::date::now};
 use nalgebra::vector;
-use parry2d::math::Rotation;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
 
@@ -22,23 +22,26 @@ pub struct Structure {
     pub drag_offset: Option<Vec2>,
     pub owner: Option<String>,
     pub editor_owner: String,
-    pub sprite_path: String
+    pub sprite_path: String,
+    pub last_ownership_change: u64
 }
 
 impl Structure {
 
     pub fn new(pos: Vec2, space: &mut Space, owner: String) -> Self {
+
+
         let rigid_body_handle = space.rigid_body_set.insert(
             RigidBodyBuilder::dynamic()
                 .position(
                     vector![pos.x, pos.y].into()
                 )
+                .ccd_enabled(true)
                 .soft_ccd_prediction(20.)
         );
 
         let collider = ColliderBuilder::cuboid(20., 20.)
-            .mass(10.)
-            .restitution(0.)
+            .mass(100.)
             .build();
         
 
@@ -52,9 +55,10 @@ impl Structure {
             menu: None,
             selected: false,
             dragging: false,
-            owner: None,
+            owner: Some(owner),
             drag_offset: None,
-            sprite_path: "assets/structure/brick_block.png".to_string()
+            sprite_path: "assets/structure/brick_block.png".to_string(),
+            last_ownership_change: 0
         }
     }
 

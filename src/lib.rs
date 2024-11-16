@@ -1,5 +1,6 @@
 use std::time::Instant;
 
+use console::Console;
 use diff::Diff;
 use gamelibrary::texture_loader::TextureLoader;
 use gilrs::{GamepadId, Gilrs};
@@ -19,17 +20,18 @@ pub mod brick;
 pub mod portal;
 pub mod portal_bullet;
 pub mod portal_gun;
+pub mod console;
 
 
 pub struct TickContext<'a> {
     pub is_host: &'a mut bool,
     pub textures: &'a mut TextureLoader,
-    pub last_tick: &'a Instant,
+    pub last_tick: &'a web_time::Instant,
     pub uuid: &'a String,
     pub camera_rect: &'a Rect,
     pub camera_offset: &'a mut Vec2,
-    pub gilrs: &'a mut Gilrs,
-    pub active_gamepad: &'a Option<GamepadId>
+    pub active_gamepad: &'a Option<GamepadId>,
+    pub console: &'a mut Console
 }
 
 #[derive(PartialEq, Serialize, Deserialize, Diff)]
