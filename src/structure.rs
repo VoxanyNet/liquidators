@@ -108,7 +108,7 @@ impl Structure {
         if self.editor_owner == *editor_uuid {
 
             match &mut self.menu {
-                Some(menu) => menu.update(camera_rect),
+                Some(menu) => menu.update(Some(camera_rect)),
                 None => {}
             }
 
@@ -164,7 +164,7 @@ impl Structure {
 
     pub async fn debug_draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
         self.draw_outline(space, 10.).await;
-        self.draw_texture(space, texture_path, textures).await;
+        self.draw_texture(space, texture_path, textures, false, false).await;
 
         match &self.menu {
             Some(menu) => menu.draw().await,
@@ -173,7 +173,7 @@ impl Structure {
     }
 
     pub async fn draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
-        self.draw_texture(space, texture_path, textures).await;
+        self.draw_texture(space, texture_path, textures, false, false).await;
     }
 
 }

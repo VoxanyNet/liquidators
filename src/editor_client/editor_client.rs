@@ -105,8 +105,8 @@ impl EditorClient {
     }
 
     fn handle_buttons(&mut self) {
-        self.save_button.update(&self.camera_rect);   
-        self.load_button.update(&self.camera_rect);
+        self.save_button.update(Some(&self.camera_rect));   
+        self.load_button.update(Some(&self.camera_rect));
 
         if self.save_button.clicked {
             fs::write("level.bin", bitcode::serialize(&self.level).unwrap()).unwrap();

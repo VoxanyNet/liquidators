@@ -46,7 +46,7 @@ impl Shotgun {
     }
     pub async fn draw(&self, space: &Space, textures: &mut TextureLoader) {
 
-        self.draw_texture(space, &self.sprite, textures).await;
+        self.draw_texture(space, &self.sprite, textures, false, false).await;
 
     }
 }

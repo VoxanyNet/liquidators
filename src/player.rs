@@ -1,12 +1,21 @@
 use diff::Diff;
-use gamelibrary::{current_unix_millis, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{animation::{Frames, TrackedFrames}, current_unix_millis, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::{ev::Code, Button, Gamepad};
-use macroquad::{input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}};
+use macroquad::{color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, texture::{draw_texture_ex, DrawTextureParams}};
 use nalgebra::{vector, Rotation, Rotation2};
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
 use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure, TickContext};
+
+#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
+#[diff(attr(
+    #[derive(Serialize, Deserialize)]
+))]
+pub enum Facing {
+    Right,
+    Left
+}
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -22,7 +31,80 @@ pub struct Player {
     pub drag_offset: Option<Vec2>,
     pub max_speed: Vec2,
     pub shotgun: Option<Shotgun>,
-    pub portal_gun: PortalGun
+    pub portal_gun: PortalGun,
+    pub animation_handler: PlayerAnimationHandler,
+    pub walk_frame_progess: f32,
+    pub idle_frame_progress: f32,
+    pub facing: Facing
+}
+
+#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
+#[diff(attr(
+    #[derive(Serialize, Deserialize)]
+))]
+pub enum PlayerAnimationState {
+    Walking,
+    Idle,
+}
+
+#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
+#[diff(attr(
+    #[derive(Serialize, Deserialize)]
+))]
+// used to track the state of player animation
+pub struct PlayerAnimationHandler {
+    state: PlayerAnimationState,
+    pub walking_frames: TrackedFrames,
+    pub idle_frames: TrackedFrames
+}
+
+impl PlayerAnimationHandler {
+
+    pub fn new(initial_state: PlayerAnimationState) -> Self {
+        
+        Self {
+            state: initial_state,
+            walking_frames: TrackedFrames::load_from_directory(&"assets/player/walk".to_string()),
+            idle_frames: TrackedFrames::load_from_directory(&"assets/player/idle".to_string())
+        }
+    }
+
+    pub fn get_current_frame(&self) -> &String {
+        match self.state {
+            PlayerAnimationState::Walking => {
+                self.walking_frames.current_frame()
+            },
+            PlayerAnimationState::Idle => {
+                self.idle_frames.current_frame()
+            }
+        }
+    }
+
+    pub fn set_frame(&mut self, state: PlayerAnimationState, new_frame_index: usize) {
+        match state {
+            PlayerAnimationState::Walking => {
+                self.walking_frames.set_frame(new_frame_index);
+            },
+            PlayerAnimationState::Idle => {
+                self.idle_frames.set_frame(new_frame_index);
+            }
+        }
+    }
+
+    pub fn set_animation_state(&mut self, new_state: PlayerAnimationState) {
+        self.state = new_state;
+    }
+
+    pub fn next_frame(&mut self, state: PlayerAnimationState) {
+        match state {
+            PlayerAnimationState::Walking => {
+                self.walking_frames.next_frame();
+            },
+            PlayerAnimationState::Idle => {
+                self.idle_frames.next_frame();
+            }
+        }
+    }
 }
 
 impl Player {
@@ -36,7 +118,7 @@ impl Player {
             .lock_rotations()
             .build();
 
-        let collider = ColliderBuilder::cuboid(18., 15.)
+        let collider = ColliderBuilder::cuboid(21., 30.)
             .mass(100.)
             .build();
 
@@ -54,7 +136,11 @@ impl Player {
                 drag_offset: None,
                 max_speed: vec2(350., 80.),
                 shotgun: None,
-                portal_gun: PortalGun::new()
+                portal_gun: PortalGun::new(),
+                animation_handler: PlayerAnimationHandler::new(PlayerAnimationState::Walking),
+                walk_frame_progess: 0.,
+                idle_frame_progress: 0.,
+                facing: Facing::Right
                 
             }
         )
@@ -67,12 +153,63 @@ impl Player {
         self.update_is_dragging(&mut level.space, &ctx.camera_rect);
         self.update_drag(&mut level.space, &ctx.camera_rect);
         self.own_nearby_structures(level, ctx);
-        
+        self.update_walk_animation(&mut level.space);
         self.update_portal_gun_pos(&level.space);
         self.fire_portal_gun(ctx.camera_rect, &mut level.portal_bullets);
+        self.update_idle_animation(&mut level.space);
+        self.change_facing_direction(&level.space);
         
     }
 
+    pub fn change_facing_direction(&mut self, space: &Space) {
+        let velocity = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().linvel();
+
+        if velocity.x > 0. {
+            self.facing = Facing::Right
+        }
+
+        if velocity.x < 0. {
+            self.facing = Facing::Left
+        }
+    }
+    pub fn update_idle_animation(&mut self, space: &mut Space) {
+
+        let velocity = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().linvel();
+
+        if velocity.x == 0. {
+
+            self.idle_frame_progress += 0.1; 
+            
+            self.animation_handler.set_animation_state(PlayerAnimationState::Idle);
+
+            if self.idle_frame_progress > 1. {
+                self.animation_handler.next_frame(PlayerAnimationState::Idle);
+                self.idle_frame_progress = 0.;
+            }
+            
+        }
+
+    }
+    pub fn update_walk_animation(&mut self, space: &mut Space) {
+        let velocity = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().linvel();
+
+        if velocity.x.abs() > 0. {
+            self.walk_frame_progess += velocity.x.abs() / 2000.;
+
+            self.animation_handler.set_animation_state(PlayerAnimationState::Walking);
+        }
+
+        if self.walk_frame_progess > 1. {
+            self.animation_handler.next_frame(PlayerAnimationState::Walking);
+
+            self.walk_frame_progess = 0.;
+        }
+        
+
+        
+
+
+    }
     pub fn own_nearby_structures(&mut self, level: &mut Level, ctx: &mut TickContext) {
         // take ownership of nearby structures to avoid network physics delay
 
@@ -242,7 +379,16 @@ impl Player {
 
     pub async fn draw(&self, space: &Space, textures: &mut TextureLoader) {
 
-        self.draw_texture(&space, &self.sprite_path, textures).await;
+        let mut flip_x = false;
+        
+        match self.facing {
+            Facing::Left => {
+                flip_x = true
+            }
+            _ => {},
+        }
+
+        self.draw_texture(&space, &self.animation_handler.get_current_frame(), textures, flip_x, false).await;
     }
 }
 

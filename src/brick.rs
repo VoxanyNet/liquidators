@@ -97,13 +97,13 @@ impl Brick {
 
     pub async fn editor_draw(&self, space: &Space, textures: &mut TextureLoader) {
         self.draw_outline(space, 3.).await;
-        self.draw_texture(space, &self.texture_path, textures).await;
+        self.draw_texture(space, &self.texture_path, textures, false, false).await;
         
 
     } 
 
     pub async fn draw(&self, space: &Space, textures: &mut TextureLoader) {
-        self.draw_texture(space, &self.texture_path, textures).await;
+        self.draw_texture(space, &self.texture_path, textures, false, false).await;
     }
 }
 
