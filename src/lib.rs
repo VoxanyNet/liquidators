@@ -1,5 +1,3 @@
-use std::time::Instant;
-
 use console::Console;
 use diff::Diff;
 use gamelibrary::texture_loader::TextureLoader;
@@ -21,6 +19,8 @@ pub mod portal;
 pub mod portal_bullet;
 pub mod portal_gun;
 pub mod console;
+pub mod sky;
+pub mod boat;
 
 
 pub struct TickContext<'a> {

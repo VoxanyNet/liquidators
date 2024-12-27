@@ -1,7 +1,7 @@
 use diff::Diff;
 use gamelibrary::{animation::{Frames, TrackedFrames}, current_unix_millis, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::{ev::Code, Button, Gamepad};
-use macroquad::{color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, texture::{draw_texture_ex, DrawTextureParams}};
+use macroquad::{color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, texture::{draw_texture_ex, DrawTextureParams}, time::get_frame_time};
 use nalgebra::{vector, Rotation, Rotation2};
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
@@ -178,7 +178,7 @@ impl Player {
 
         if velocity.x == 0. {
 
-            self.idle_frame_progress += 0.1; 
+            self.idle_frame_progress += 10. * get_frame_time(); 
             
             self.animation_handler.set_animation_state(PlayerAnimationState::Idle);
 
@@ -194,7 +194,7 @@ impl Player {
         let velocity = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().linvel();
 
         if velocity.x.abs() > 0. {
-            self.walk_frame_progess += velocity.x.abs() / 2000.;
+            self.walk_frame_progess += (velocity.x.abs() * get_frame_time()) / 8.;
 
             self.animation_handler.set_animation_state(PlayerAnimationState::Walking);
         }

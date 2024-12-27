@@ -3,7 +3,7 @@ use std::fs;
 use gamelibrary::{animation_loader::AnimationLoader, log, sync::client::SyncClient, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, game_state::GameState, level::Level, player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
-use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, window::screen_width};
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, window::{screen_height, screen_width}};
 
 pub struct Client {
     pub game_state: GameState,
@@ -18,7 +18,7 @@ pub struct Client {
     pub last_sync: web_time::Instant,
     pub camera_rect: Rect,
     pub active_gamepad: Option<GamepadId>,
-    pub console: Console,
+    pub console: Console
 }
 
 impl Client {
@@ -53,9 +53,9 @@ impl Client {
         
         self.update_camera();
 
-        if is_key_released(KeyCode::B) {
-            self.game_state.level = Level::from_save("level.bin".to_string());
-        }
+        // if is_key_released(KeyCode::B) {
+        //     self.game_state.level = Level::from_save("level.yaml".to_string());
+        // }
 
         self.save_state();
 
@@ -159,8 +159,6 @@ impl Client {
 
  
     pub async fn draw(&mut self) {
-
-        
     
         //draw_text(format!("fps: {}", get_fps()).as_str(), screen_width() - 120., 25., 30., WHITE);
         draw_text(format!("uuid: {}", self.uuid).as_str(), screen_width() - 120., 25., 30., WHITE);
@@ -185,7 +183,7 @@ impl Client {
     pub async fn connect(url: &str) -> Self {
 
 
-        let camera_rect = Rect::new(0., 300., 1280., 720.);
+        let camera_rect = Rect::new(0., 200., screen_width() / 1.50, screen_height() / 1.5);
         
         let uuid = gamelibrary::uuid();
 

@@ -12,7 +12,7 @@ impl Server {
 
         let mut game_state = GameState::empty();
 
-        game_state.level = Level::from_save("level.bin".to_string());
+        game_state.level = Level::from_save("level.yaml".to_string());
 
         let sync_server = SyncServer::new(address, game_state);
         

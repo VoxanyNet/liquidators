@@ -5,3 +5,5 @@ only step owned bodies in the editor
 make sound positional per client
 
 stop time temporarily
+
+purchase planks that are physics objects that you can place on top of your boat

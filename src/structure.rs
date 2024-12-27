@@ -23,7 +23,7 @@ pub struct Structure {
     pub owner: Option<String>,
     pub editor_owner: String,
     pub sprite_path: String,
-    pub last_ownership_change: u64
+    pub last_ownership_change: u64,
 }
 
 impl Structure {

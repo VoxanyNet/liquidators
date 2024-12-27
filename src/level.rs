@@ -7,7 +7,7 @@ use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{brick::Brick, player::Player, portal::Portal, portal_bullet::{self, PortalBullet}, radio::{Radio, RadioBuilder}, shotgun::Shotgun, structure::Structure, TickContext};
+use crate::{boat::{self, Boat}, brick::Brick, player::Player, portal::Portal, portal_bullet::{self, PortalBullet}, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::{self, Sky}, structure::Structure, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -21,7 +21,10 @@ pub struct Level {
     pub radios: Vec<Radio>,
     pub shotguns: Vec<Shotgun>,
     pub portal_bullets: Vec<PortalBullet>,
-    pub portals: Vec<Portal>
+    pub portals: Vec<Portal>,
+    pub sky: Sky,
+    #[serde(default)]
+    pub boats: Vec<Boat>
 }
 
 impl Level {
@@ -35,6 +38,8 @@ impl Level {
             shotguns: vec![],
             portal_bullets: vec![],
             portals: vec![],
+            sky: Sky::new(),
+            boats: vec![]
         };
     
         level.space.gravity.y = -980.;
@@ -46,7 +51,8 @@ impl Level {
         
         let bytes = fs::read(path).unwrap();
 
-        let level: Self = bitcode::deserialize(&bytes).unwrap();
+
+        let level: Self = serde_yaml::from_slice(&bytes).unwrap();
         
         level
     }
@@ -56,6 +62,16 @@ impl Level {
         ctx: &mut TickContext,
     ) {
         
+        if is_key_released(input::KeyCode::B) {
+
+            println!("spawning boat");
+
+            let mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);
+
+            Boat::spawn(mouse_pos, ctx.uuid.clone(), &mut self.space, &mut self.boats);
+
+        }
+
         let mut owned_bodies: Vec<RigidBodyHandle> = vec![];
         let mut owned_colliders: Vec<ColliderHandle> = vec![];
 
@@ -81,6 +97,21 @@ impl Level {
 
             self.portals.insert(portal_index, portal);
         }
+
+        for boat_index in 0..self.boats.len() {
+
+
+            let boat = self.boats.remove(boat_index);
+
+            if boat.owner == *ctx.uuid {
+                owned_bodies.push(boat.rigid_body_handle);
+                owned_colliders.push(boat.collider_handle);
+            }
+            
+            self.boats.insert(boat_index, boat);
+        }
+
+        println!("{}", self.boats.len());
 
         for player_index in 0..self.players.len() {
 
@@ -262,6 +293,7 @@ impl Level {
 
     pub async fn editor_draw(&self, textures: &mut TextureLoader) {
         for structure in &self.structures {
+
             let texture_path = structure.sprite_path.clone() ;
             structure.debug_draw(&self.space, &texture_path, textures).await;
         }
@@ -280,6 +312,8 @@ impl Level {
     }
     pub async fn draw(&self, textures: &mut TextureLoader) {
 
+        //self.sky.draw();
+
         for structure in self.structures.iter() {
 
             let texture_path = structure.sprite_path.clone();
@@ -287,8 +321,20 @@ impl Level {
             structure.draw(&self.space, &texture_path, textures).await;
         }
 
+        for boat in &self.boats {
+            boat.draw_hitbox(&self.space)
+        }
+
+        for boat in &self.boats {
+            boat.draw_top(&self.space, textures).await
+        }
+
         for player in self.players.iter() {
             player.draw(&self.space, textures).await;
+        }
+
+        for boat in &self.boats {
+            boat.draw_bottom(&self.space, textures).await
         }
 
         for brick in &self.bricks {

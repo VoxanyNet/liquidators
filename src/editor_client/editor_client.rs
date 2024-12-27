@@ -108,13 +108,15 @@ impl EditorClient {
         self.save_button.update(Some(&self.camera_rect));   
         self.load_button.update(Some(&self.camera_rect));
 
+        
+
         if self.save_button.clicked {
-            fs::write("level.bin", bitcode::serialize(&self.level).unwrap()).unwrap();
+            fs::write("level.yaml", serde_yaml::to_string(&self.level).unwrap()).unwrap();
         }
 
         if self.load_button.clicked {
-            self.level = bitcode::deserialize(
-                &fs::read("level.bin").unwrap()
+            self.level = serde_yaml::from_slice(
+                &fs::read("level.yaml").unwrap()
             ).unwrap()
         }
     }
