@@ -6,7 +6,7 @@ use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
 
-use crate::level::Level;
+use crate::{level::Level, Grabbable, TickContext};
 
 #[derive(Serialize, serde::Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -24,8 +24,14 @@ pub struct Structure {
     pub editor_owner: String,
     pub sprite_path: String,
     pub last_ownership_change: u64,
+    pub grabbing: bool
 }
 
+impl Grabbable for Structure {
+    fn grabbing(&mut self) -> &mut bool {
+        &mut self.grabbing
+    }
+}
 impl Structure {
 
     pub fn new(pos: Vec2, space: &mut Space, owner: String) -> Self {
@@ -58,7 +64,8 @@ impl Structure {
             owner: Some(owner),
             drag_offset: None,
             sprite_path: "assets/structure/brick_block.png".to_string(),
-            last_ownership_change: 0
+            last_ownership_change: 0,
+            grabbing: false
         }
     }
 
@@ -85,6 +92,31 @@ impl Structure {
         menu.add_button("Zero Velocity".to_string());
 
         self.menu = Some(menu);
+    }
+
+    pub fn tick(&mut self, level: &mut Level, ctx: &mut TickContext) {
+
+        if self.owner.is_none() {
+            return;
+        }
+
+        if *ctx.uuid == self.owner.clone().unwrap() {
+            // we need to have a more efficient way of finding the currently controlled player
+            for player in &level.players {
+                if player.owner == *ctx.uuid {
+
+                    let reference_body = player.rigid_body;
+
+                    self.update_grabbing(&mut level.space, ctx.camera_rect, Vec2::new(250., 250.), reference_body);
+
+                    break;
+
+                }
+            }
+
+            self.update_grab_velocity(&mut level.space);
+        }
+        
     }
 
     pub fn update_editor_owner(&mut self, editor_uuid: &String, space: &mut Space, camera_rect: &Rect) {

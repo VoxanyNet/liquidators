@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, time::Instant};
 
 use diff::Diff;
 use gamelibrary::{macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
@@ -61,15 +61,11 @@ impl Level {
         &mut self,
         ctx: &mut TickContext,
     ) {
-        
+
         if is_key_released(input::KeyCode::B) {
+            Shotgun::spawn(&mut self.space, rapier_mouse_world_pos(ctx.camera_rect), &mut self.shotguns, ctx.uuid.clone());
 
-            println!("spawning boat");
-
-            let mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);
-
-            Boat::spawn(mouse_pos, ctx.uuid.clone(), &mut self.space, &mut self.boats);
-
+            println!("spawning shotgun: {}", self.shotguns.len());
         }
 
         let mut owned_bodies: Vec<RigidBodyHandle> = vec![];
@@ -92,6 +88,19 @@ impl Level {
             
         }
 
+        for shotgun_index in 0..self.shotguns.len() {
+
+            let mut shotgun = self.shotguns.remove(shotgun_index);
+
+            shotgun.tick(self, ctx);
+
+            owned_bodies.push(shotgun.rigid_body);
+            owned_colliders.push(shotgun.collider);
+
+            self.shotguns.insert(shotgun_index, shotgun);
+
+        }
+
         for portal_index in 0..self.portals.len() {
             let portal = self.portals.remove(portal_index);
 
@@ -111,8 +120,6 @@ impl Level {
             self.boats.insert(boat_index, boat);
         }
 
-        println!("{}", self.boats.len());
-
         for player_index in 0..self.players.len() {
 
             let mut player = self.players.remove(player_index);
@@ -128,7 +135,9 @@ impl Level {
         }
 
         for structure_index in 0..self.structures.len() {
-            let structure = self.structures.remove(structure_index);
+            let mut structure = self.structures.remove(structure_index);
+
+            structure.tick(self, ctx);
 
             match &structure.owner {
                 Some(owner) => {
@@ -173,7 +182,7 @@ impl Level {
         self.editor_spawn_structure(camera_rect, uuid);
         self.editor_spawn_brick(camera_rect, uuid);
         self.editor_spawn_radio(camera_rect, uuid);
-        self.editor_spawn_shotgun(camera_rect);
+        self.editor_spawn_shotgun(camera_rect, uuid);
 
         for structure_index in 0..self.structures.len() {
             let mut structure = self.structures.remove(structure_index);
@@ -227,12 +236,10 @@ impl Level {
         );
     }
 
-    pub fn editor_spawn_shotgun(&mut self, camera_rect: &Rect) {
+    pub fn editor_spawn_shotgun(&mut self, camera_rect: &Rect, uuid: &String) {
 
         if is_key_pressed(input::KeyCode::P) {
-            let shotgun = Shotgun::new(&mut self.space, rapier_mouse_world_pos(camera_rect));
-
-            self.shotguns.push(shotgun);
+            Shotgun::spawn(&mut self.space, rapier_mouse_world_pos(camera_rect), &mut self.shotguns, uuid.clone());
 
         }
     }
@@ -273,6 +280,7 @@ impl Level {
             let collider_handle = self.space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut self.space.rigid_body_set);
 
             let new_structure = Structure { 
+                grabbing: false,
                 editor_owner: uuid.clone(),
                 rigid_body_handle: rigid_body_handle,
                 collider_handle: collider_handle,
@@ -313,6 +321,10 @@ impl Level {
     pub async fn draw(&self, textures: &mut TextureLoader) {
 
         //self.sky.draw();
+
+        for shotgun in &self.shotguns {
+            shotgun.draw(&self.space, textures).await;
+        }
 
         for structure in self.structures.iter() {
 

@@ -201,6 +201,10 @@ impl Client {
             for brick in game_state.level.bricks.iter_mut() {
                 brick.owner = Some(uuid.clone());
             }
+            
+            for shotgun in game_state.level.shotguns.iter_mut() {
+                shotgun.owner = uuid.clone();
+            }
         }
 
         Player::spawn(&mut game_state.level.players, &mut game_state.level.space, uuid.clone(), &vec2(100., 300.));

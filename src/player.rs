@@ -3,7 +3,7 @@ use gamelibrary::{animation::{Frames, TrackedFrames}, current_unix_millis, rapie
 use gilrs::{ev::Code, Button, Gamepad};
 use macroquad::{color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, texture::{draw_texture_ex, DrawTextureParams}, time::get_frame_time};
 use nalgebra::{vector, Rotation, Rotation2};
-use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBody, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{ColliderBuilder, ColliderHandle, QueryFilter, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
 use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure, TickContext};
@@ -146,6 +146,28 @@ impl Player {
         )
     }
 
+    pub fn pickup_shotgun(&mut self, level: &mut Level, ctx: &mut TickContext) {
+
+        let player_shape = level.space.collider_set.get(self.collider).unwrap().shape();
+        let player_pos = level.space.rigid_body_set.get(self.rigid_body).unwrap().position();
+
+        let colliding_collider = match level.space.query_pipeline.intersection_with_shape(
+            &level.space.rigid_body_set,
+            &level.space.collider_set,
+            player_pos, 
+            player_shape, 
+            QueryFilter::default()
+        ) {
+            Some(collider_collider) => collider_collider,
+            None => return,
+        };
+
+        // for shotgun_index in &level.shotguns {
+        //     if shotgun.collider == colliding_collider {
+                
+        //     }
+        // }
+    }
     pub fn tick(&mut self, level: &mut Level, ctx: &mut TickContext) {
         //self.launch_brick(level, ctx);
         self.control(level, ctx);
@@ -216,6 +238,11 @@ impl Player {
         let our_body = level.space.rigid_body_set.get(self.rigid_body).unwrap();
 
         for structure in &mut level.structures {
+
+            if current_unix_millis() - structure.last_ownership_change < 2 {
+                continue;
+            }
+
             let structure_body = level.space.rigid_body_set.get(structure.rigid_body_handle).unwrap();
 
             let body_distance = structure_body.position().translation.vector - our_body.position().translation.vector;
@@ -231,10 +258,6 @@ impl Player {
                     // take ownership if we dont already own it
                     if owner == ctx.uuid {
                         continue;    
-                    }
-
-                    if current_unix_millis() - structure.last_ownership_change < 2 {
-                        continue;
                     }
 
                     println!("taking ownership of structure!");
