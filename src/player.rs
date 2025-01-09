@@ -6,7 +6,7 @@ use nalgebra::{vector, Rotation, Rotation2};
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, QueryFilter, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure, TickContext};
+use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure::{self, Structure}, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -168,18 +168,18 @@ impl Player {
         //     }
         // }
     }
-    pub fn tick(&mut self, level: &mut Level, ctx: &mut TickContext) {
+    pub fn tick(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext) {
         //self.launch_brick(level, ctx);
-        self.control(level, ctx);
-        self.update_selected(&mut level.space, &ctx.camera_rect);
-        self.update_is_dragging(&mut level.space, &ctx.camera_rect);
-        self.update_drag(&mut level.space, &ctx.camera_rect);
-        self.own_nearby_structures(level, ctx);
-        self.update_walk_animation(&mut level.space);
-        self.update_portal_gun_pos(&level.space);
-        self.fire_portal_gun(ctx.camera_rect, &mut level.portal_bullets);
-        self.update_idle_animation(&mut level.space);
-        self.change_facing_direction(&level.space);
+        self.control(space, ctx);
+        self.update_selected(space, &ctx.camera_rect);
+        self.update_is_dragging(space, &ctx.camera_rect);
+        self.update_drag(space, &ctx.camera_rect);
+        self.own_nearby_structures(space, structures, ctx);
+        self.update_walk_animation(space);
+        self.update_portal_gun_pos(&space);
+        //self.fire_portal_gun(ctx.camera_rect, &mut portal_bullets);
+        self.update_idle_animation(space);
+        self.change_facing_direction(&space);
         
     }
 
@@ -232,18 +232,18 @@ impl Player {
 
 
     }
-    pub fn own_nearby_structures(&mut self, level: &mut Level, ctx: &mut TickContext) {
+    pub fn own_nearby_structures(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext) {
         // take ownership of nearby structures to avoid network physics delay
 
-        let our_body = level.space.rigid_body_set.get(self.rigid_body).unwrap();
+        let our_body = space.rigid_body_set.get(self.rigid_body).unwrap();
 
-        for structure in &mut level.structures {
+        for structure in structures {
 
             if current_unix_millis() - structure.last_ownership_change < 2 {
                 continue;
             }
 
-            let structure_body = level.space.rigid_body_set.get(structure.rigid_body_handle).unwrap();
+            let structure_body = space.rigid_body_set.get(structure.rigid_body_handle).unwrap();
 
             let body_distance = structure_body.position().translation.vector - our_body.position().translation.vector;
 
@@ -345,9 +345,9 @@ impl Player {
         }
     }
 
-    pub fn control(&mut self, level: &mut Level, ctx: &mut TickContext) {
+    pub fn control(&mut self, space: &mut Space, ctx: &mut TickContext) {
 
-        let rigid_body = level.space.rigid_body_set.get_mut(self.rigid_body).unwrap();
+        let rigid_body = space.rigid_body_set.get_mut(self.rigid_body).unwrap();
 
         let gamepad: Option<Gamepad<'_>> = None;
 

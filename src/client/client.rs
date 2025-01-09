@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, time::Instant};
 
 use gamelibrary::{animation_loader::AnimationLoader, log, sync::client::SyncClient, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
@@ -131,8 +131,12 @@ impl Client {
                 break;
             }
 
+            let then = Instant::now();
+
             self.tick(); 
 
+            println!("{}", then.elapsed().as_secs());
+            
             if is_key_released(KeyCode::H) {
                 log("paused");
             }

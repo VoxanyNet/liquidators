@@ -6,7 +6,7 @@ use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
 
-use crate::{level::Level, Grabbable, TickContext};
+use crate::{level::Level, player::Player, Grabbable, TickContext};
 
 #[derive(Serialize, serde::Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -94,27 +94,27 @@ impl Structure {
         self.menu = Some(menu);
     }
 
-    pub fn tick(&mut self, level: &mut Level, ctx: &mut TickContext) {
-
+    pub fn tick(&mut self, ctx: &mut TickContext, space: &mut Space, players: &Vec<Player>) {
+        
         if self.owner.is_none() {
             return;
         }
 
         if *ctx.uuid == self.owner.clone().unwrap() {
             // we need to have a more efficient way of finding the currently controlled player
-            for player in &level.players {
+            for player in players {
                 if player.owner == *ctx.uuid {
 
                     let reference_body = player.rigid_body;
 
-                    self.update_grabbing(&mut level.space, ctx.camera_rect, Vec2::new(250., 250.), reference_body);
+                    self.update_grabbing(space, ctx.camera_rect, Vec2::new(250., 250.), reference_body);
 
                     break;
 
                 }
             }
 
-            self.update_grab_velocity(&mut level.space);
+            self.update_grab_velocity(space);
         }
         
     }

@@ -71,73 +71,47 @@ impl Level {
         let mut owned_bodies: Vec<RigidBodyHandle> = vec![];
         let mut owned_colliders: Vec<ColliderHandle> = vec![];
 
-        let mut portal_bullet_index = 0;
-
         
-        while portal_bullet_index < self.portal_bullets.len() {
-            let portal_bullet = self.portal_bullets.remove(portal_bullet_index);
+        for portal_bullet in &mut self.portal_bullets {
 
-            let portal_bullet = portal_bullet.tick(self);
-
-            if let Some(portal_bullet) = portal_bullet {
-                self.portal_bullets.insert(portal_bullet_index, portal_bullet);
-
-                portal_bullet_index += 1;
-            }
-
+            portal_bullet.tick();
             
         }
 
-        for shotgun_index in 0..self.shotguns.len() {
+        for shotgun in &mut self.shotguns {
 
-            let mut shotgun = self.shotguns.remove(shotgun_index);
-
-            shotgun.tick(self, ctx);
+            shotgun.tick(&mut self.players, &mut self.space, ctx);
 
             owned_bodies.push(shotgun.rigid_body);
             owned_colliders.push(shotgun.collider);
 
-            self.shotguns.insert(shotgun_index, shotgun);
-
         }
 
-        for portal_index in 0..self.portals.len() {
-            let portal = self.portals.remove(portal_index);
+        for boat in &self.boats {
 
-            self.portals.insert(portal_index, portal);
-        }
-
-        for boat_index in 0..self.boats.len() {
-
-
-            let boat = self.boats.remove(boat_index);
 
             if boat.owner == *ctx.uuid {
                 owned_bodies.push(boat.rigid_body_handle);
                 owned_colliders.push(boat.collider_handle);
             }
             
-            self.boats.insert(boat_index, boat);
         }
 
-        for player_index in 0..self.players.len() {
-
-            let mut player = self.players.remove(player_index);
+        for player in &mut self.players {
 
             if player.owner == *ctx.uuid {
-                player.tick(self, ctx);
+                player.tick(&mut self.space, &mut self.structures, ctx);
 
                 owned_bodies.push(player.rigid_body);
                 owned_colliders.push(player.collider);
             }            
 
-            self.players.insert(player_index, player);
         }
 
-        for structure_index in 0..self.structures.len() {
-            let mut structure = self.structures.remove(structure_index);
+        for structure in &mut self.structures {
 
-            structure.tick(self, ctx);
+            structure.tick(ctx, &mut self.space, &self.players);
+            
 
             match &structure.owner {
                 Some(owner) => {
@@ -148,14 +122,11 @@ impl Level {
                 },
                 None => {},
             }
-
-            self.structures.insert(structure_index, structure);
         }  
 
-        for brick_index in 0..self.bricks.len() {
-            let mut brick = self.bricks.remove(brick_index);
+        for brick in &mut self.bricks {
 
-            brick.tick(self, ctx);
+            brick.tick(ctx);
             
             match &brick.owner {
                 Some(owner) => {
@@ -169,8 +140,6 @@ impl Level {
                 },
                 None => {},
             }
-
-            self.bricks.insert(brick_index, brick);
         }
 
         self.space.step(ctx.last_tick.elapsed(), &owned_bodies, &owned_colliders);

@@ -5,7 +5,7 @@ use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{level::Level, Grabbable, TickContext};
+use crate::{level::Level, player::Player, Grabbable, TickContext};
 
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -60,23 +60,23 @@ impl Shotgun {
         })
     }
 
-    pub fn tick(&mut self, level: &mut Level, ctx: &mut TickContext) {
+    pub fn tick(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
 
         if *ctx.uuid == self.owner {
             // we need to have a more efficient way of finding the currently controlled player
-            for player in &level.players {
+            for player in players {
                 if player.owner == *ctx.uuid {
 
                     let reference_body = player.rigid_body;
 
-                    self.update_grabbing(&mut level.space, ctx.camera_rect, Vec2::new(250., 250.), reference_body);
+                    self.update_grabbing(space, ctx.camera_rect, Vec2::new(250., 250.), reference_body);
 
                     break;
 
                 }
             }
 
-            self.update_grab_velocity(&mut level.space);
+            self.update_grab_velocity(space);
         }
 
         

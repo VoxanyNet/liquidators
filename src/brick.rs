@@ -58,7 +58,7 @@ impl Brick {
         }
     }
 
-    pub fn tick(&mut self, _level: &mut Level, ctx: &mut TickContext) {
+    pub fn tick(&mut self, ctx: &mut TickContext) {
 
         match &self.owner {
             Some(owner) => {

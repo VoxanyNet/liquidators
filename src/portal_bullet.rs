@@ -18,60 +18,58 @@ pub struct PortalBullet {
 
 impl PortalBullet {
 
-    pub fn tick(mut self, level: &mut Level) -> Option<PortalBullet> {
+    pub fn tick(&mut self) {
         self.position.x += self.direction.x * 4.;
         self.position.y += self.direction.y * 4.;
 
-        let bullet = self.attempt_portal_spawn(level);
-
-        return bullet;
+        //let bullet = self.attempt_portal_spawn(level);
         
     }
 
-    fn attempt_portal_spawn(self, level: &mut Level) -> Option<Self> {
+    // fn attempt_portal_spawn(self, portals: &mut Vec<Portal>, space: &mut Space, structures: &mut Vec<Structure>) -> Option<Self> {
 
-        let mut portal_structure: Option<&Structure> = None;
+    //     let mut portal_structure: Option<&Structure> = None;
 
-        level.space.query_pipeline.intersections_with_point(
-            &level.space.rigid_body_set, 
-            &level.space.collider_set, 
-            &vector![self.position.x, self.position.y].into(), 
-            QueryFilter::default(), 
-            |collider_handle| {
-                // look for corresponding structure
-                for structure in &level.structures {
-                    if structure.collider_handle == collider_handle {
-                        portal_structure = Some(structure);
+    //     space.query_pipeline.intersections_with_point(
+    //         &space.rigid_body_set, 
+    //         &space.collider_set, 
+    //         &vector![self.position.x, self.position.y].into(), 
+    //         QueryFilter::default(), 
+    //         |collider_handle| {
+    //             // look for corresponding structure
+    //             for structure in structures {
+    //                 if structure.collider_handle == collider_handle {
+    //                     portal_structure = Some(structure);
 
-                        return false
-                    }
+    //                     return false
+    //                 }
 
-                }
+    //             }
 
-                return true
-            }
-        );
+    //             return true
+    //         }
+    //     );
 
-        match portal_structure {
-            Some(portal_structure) => {
+    //     match portal_structure {
+    //         Some(portal_structure) => {
 
-                let _structure_body = level.space.rigid_body_set.get(portal_structure.rigid_body_handle).unwrap();
+    //             let _structure_body = space.rigid_body_set.get(portal_structure.rigid_body_handle).unwrap();
 
-                let portal = Portal {
-                    attached_collider: portal_structure.collider_handle.clone(),
-                };
+    //             let portal = Portal {
+    //                 attached_collider: portal_structure.collider_handle.clone(),
+    //             };
 
-                level.portals.push(portal);
+    //             portals.push(portal);
 
-                return None
-            },
-            None => {
-                return Some(self)
-            },
-        }
+    //             return None
+    //         },
+    //         None => {
+    //             return Some(self)
+    //         },
+    //     }
 
         
-    }
+    // }
     pub async fn draw(&self) {
 
         let macroquad_pos = rapier_to_macroquad(&self.position);
