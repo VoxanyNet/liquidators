@@ -1,7 +1,7 @@
 use std::{fs, time::Instant};
 
 use diff::Diff;
-use gamelibrary::{macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, texture_loader::TextureLoader, traits::HasPhysics};
 use macroquad::{color::RED, input::{self, is_key_pressed, is_key_released}, math::Rect};
 use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
@@ -97,14 +97,20 @@ impl Level {
             
         }
 
-        for player in &mut self.players {
+        let mut players_iter = SwapIter::new(&mut self.players);
+
+        while players_iter.not_done() {
+
+            let (players, mut player) = players_iter.next();
 
             if player.owner == *ctx.uuid {
-                player.tick(&mut self.space, &mut self.structures, ctx);
+                player.tick(&mut self.space, &mut self.structures, ctx, players);
 
                 owned_bodies.push(player.rigid_body);
                 owned_colliders.push(player.collider);
-            }            
+            }       
+
+            players_iter.restore(player);   
 
         }
 

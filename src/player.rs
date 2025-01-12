@@ -1,9 +1,11 @@
+use std::clone;
+
 use diff::Diff;
 use gamelibrary::{animation::{Frames, TrackedFrames}, current_unix_millis, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::{ev::Code, Button, Gamepad};
 use macroquad::{color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, texture::{draw_texture_ex, DrawTextureParams}, time::get_frame_time};
 use nalgebra::{vector, Rotation, Rotation2};
-use rapier2d::prelude::{ColliderBuilder, ColliderHandle, QueryFilter, RigidBody, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{ColliderBuilder, ColliderHandle, InteractionGroups, QueryFilter, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
 use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure::{self, Structure}, TickContext};
@@ -30,7 +32,7 @@ pub struct Player {
     pub dragging: bool,
     pub drag_offset: Option<Vec2>,
     pub max_speed: Vec2,
-    pub shotgun: Option<Shotgun>,
+    shotgun: Option<Shotgun>,
     pub portal_gun: PortalGun,
     pub animation_handler: PlayerAnimationHandler,
     pub walk_frame_progess: f32,
@@ -125,17 +127,23 @@ impl Player {
         let rigid_body_handle = space.rigid_body_set.insert(rigid_body);
         let collider_handle = space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut space.rigid_body_set);
 
+        let shotgun = Shotgun::new(space, *position, owner.clone());
+        // we dont want the shotgun to collide with anything
+        space.collider_set.get_mut(shotgun.collider).unwrap().set_collision_groups(
+            InteractionGroups::none()
+        );
+
         players.push(
             Player {
                 rigid_body: rigid_body_handle,
                 collider: collider_handle,
                 sprite_path: "assets/player/idle.png".to_string(),
-                owner,
+                owner: owner.clone(),
                 selected: false,
                 dragging: false,
                 drag_offset: None,
                 max_speed: vec2(350., 80.),
-                shotgun: None,
+                shotgun: Some(shotgun),
                 portal_gun: PortalGun::new(),
                 animation_handler: PlayerAnimationHandler::new(PlayerAnimationState::Walking),
                 walk_frame_progess: 0.,
@@ -168,7 +176,28 @@ impl Player {
         //     }
         // }
     }
-    pub fn tick(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext) {
+
+    pub fn update_shotgun_pos(&mut self, space: &mut Space) {
+
+        let shotgun = match &self.shotgun {
+            Some(shotgun) => shotgun,
+            None => return,
+        };
+
+        let player_pos = {
+            space.rigid_body_set.get(self.rigid_body).unwrap().translation().clone()
+        };
+
+        let shotgun_body = space.rigid_body_set.get_mut(shotgun.rigid_body).unwrap();
+
+        
+
+        shotgun_body.set_position(
+            vector![player_pos.x, player_pos.y].into(), 
+            true
+        );
+    }
+    pub fn tick(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext, players: &mut Vec<Player>) {
         //self.launch_brick(level, ctx);
         self.control(space, ctx);
         self.update_selected(space, &ctx.camera_rect);
@@ -180,7 +209,22 @@ impl Player {
         //self.fire_portal_gun(ctx.camera_rect, &mut portal_bullets);
         self.update_idle_animation(space);
         self.change_facing_direction(&space);
+        self.print_angle(space, ctx);
+        self.update_shotgun_pos(space);
         
+    }
+
+    pub fn print_angle(&self, space: &Space, ctx: &mut TickContext) {
+        
+        let player_body = space.rigid_body_set.get(self.rigid_body).unwrap();
+        let mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);
+
+        let distance_to_mouse = Vec2::new(
+            mouse_pos.x - player_body.translation().x,
+            mouse_pos.y - player_body.translation().y 
+        );
+
+        println!("{}", distance_to_mouse.y.atan2(distance_to_mouse.x));
     }
 
     pub fn change_facing_direction(&mut self, space: &Space) {
@@ -409,6 +453,13 @@ impl Player {
                 flip_x = true
             }
             _ => {},
+        }
+
+        match &self.shotgun {
+            Some(shotgun) => {
+                shotgun.draw(space, textures).await;
+            },
+            None => {},
         }
 
         self.draw_texture(&space, &self.animation_handler.get_current_frame(), textures, flip_x, false).await;

@@ -135,7 +135,7 @@ impl Client {
 
             self.tick(); 
 
-            println!("{}", then.elapsed().as_secs());
+            println!("{}", then.elapsed().as_micros());
             
             if is_key_released(KeyCode::H) {
                 log("paused");

@@ -20,7 +20,8 @@ pub struct Shotgun {
     pub dragging: bool,
     pub drag_offset: Option<Vec2>,
     pub grabbing: bool,
-    pub owner: String
+    pub owner: String,
+    pub picked_up: bool
 }
 
 impl Grabbable for Shotgun {
@@ -31,8 +32,7 @@ impl Grabbable for Shotgun {
 
 impl Shotgun {
 
-    pub fn spawn(space: &mut Space, pos: Vec2, shotguns: &mut Vec<Shotgun>, owner: String) {
-
+    pub fn new(space: &mut Space, pos: Vec2, owner: String) -> Self {
         let rigid_body = space.rigid_body_set.insert(
             RigidBodyBuilder::dynamic()
                 .ccd_enabled(true)
@@ -48,7 +48,8 @@ impl Shotgun {
             &mut space.rigid_body_set
         );
 
-        shotguns.push(Self {
+        Self {
+            picked_up: false,
             collider,
             rigid_body,
             sprite: "assets/shotgun.png".to_string(),
@@ -57,29 +58,49 @@ impl Shotgun {
             drag_offset: None,
             grabbing: false,
             owner
-        })
+        }
+    }
+
+    pub fn spawn(space: &mut Space, pos: Vec2, shotguns: &mut Vec<Shotgun>, owner: String) {
+
+        shotguns.push(
+            Self::new(space, pos, owner)
+        );
     }
 
     pub fn tick(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
 
-        if *ctx.uuid == self.owner {
-            // we need to have a more efficient way of finding the currently controlled player
-            for player in players {
-                if player.owner == *ctx.uuid {
+        self.grab(players, space, ctx);
+    }   
 
-                    let reference_body = player.rigid_body;
+    pub fn fire(&mut self) {
+        
+    }
 
-                    self.update_grabbing(space, ctx.camera_rect, Vec2::new(250., 250.), reference_body);
-
-                    break;
-
-                }
-            }
-
-            self.update_grab_velocity(space);
+    pub fn grab(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
+        if *ctx.uuid != self.owner {
+            return;
         }
 
-        
+        if self.picked_up {
+            return;
+        }
+
+        // we need to have a more efficient way of finding the currently controlled player
+        for player in players {
+            if player.owner == *ctx.uuid {
+
+                let reference_body = player.rigid_body;
+
+                self.update_grabbing(space, ctx.camera_rect, Vec2::new(250., 250.), reference_body);
+
+                break;
+
+            }
+        }
+
+        self.update_grab_velocity(space);
+
     }
 
     pub async fn draw(&self, space: &Space, textures: &mut TextureLoader) {
