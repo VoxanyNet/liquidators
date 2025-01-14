@@ -90,10 +90,6 @@ pub trait Grabbable: HasPhysics {
 
         *self.grabbing() = true;
 
-        
-
-
-
     }
 }
 

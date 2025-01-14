@@ -190,12 +190,23 @@ impl Player {
 
         let shotgun_body = space.rigid_body_set.get_mut(shotgun.rigid_body).unwrap();
 
-        
+        let shotgun_collider = space.collider_set.get(shotgun.collider).unwrap(); 
 
+        let player_collider = space.collider_set.get(self.collider).unwrap();
+
+        let shotgun_length = shotgun_collider.shape().as_cuboid().unwrap().half_extents.x;
+        let player_length = player_collider.shape().as_cuboid().unwrap().half_extents.x;
+        
+        let shotgun_offset = match self.facing {
+            Facing::Right => shotgun_length + player_length,
+            Facing::Left => -1. * (shotgun_length + player_length),
+        };
+        
         shotgun_body.set_position(
-            vector![player_pos.x, player_pos.y].into(), 
+            vector![player_pos.x + shotgun_offset, player_pos.y].into(), 
             true
         );
+
     }
     pub fn tick(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext, players: &mut Vec<Player>) {
         //self.launch_brick(level, ctx);
@@ -457,7 +468,7 @@ impl Player {
 
         match &self.shotgun {
             Some(shotgun) => {
-                shotgun.draw(space, textures).await;
+                shotgun.draw(space, textures, flip_x).await;
             },
             None => {},
         }
