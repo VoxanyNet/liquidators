@@ -34,6 +34,18 @@ impl Grabbable for Structure {
 }
 impl Structure {
 
+    pub fn despawn(self, space: &mut Space) {
+        // removes the body AND the collider!
+        space.rigid_body_set.remove(
+            self.rigid_body_handle, 
+            &mut space.island_manager, 
+            &mut space.collider_set, 
+            &mut space.impulse_joint_set, 
+            &mut space.multibody_joint_set, 
+            true
+        );
+    } 
+
     pub fn new(pos: Vec2, space: &mut Space, owner: String) -> Self {
 
 

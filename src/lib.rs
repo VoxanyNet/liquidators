@@ -42,9 +42,8 @@ pub trait Grabbable: HasPhysics {
 
         let mouse_movement = mouse_delta_position();
 
-        println!("{}", mouse_movement);
 
-        println!("{}", vector![current_velocity.x - (mouse_movement.x * 1000.), current_velocity.y + (mouse_movement.y * 1000.)].to_string());
+        //println!("{}", vector![current_velocity.x - (mouse_movement.x * 1000.), current_velocity.y + (mouse_movement.y * 1000.)].to_string());
 
         body.set_linvel(
             vector![current_velocity.x + (mouse_movement.x * -1000.), current_velocity.y + (mouse_movement.y * 1000.)].into(), 

@@ -134,8 +134,7 @@ impl Client {
             let then = Instant::now();
 
             self.tick(); 
-
-            println!("{}", then.elapsed().as_micros());
+            
             
             if is_key_released(KeyCode::H) {
                 log("paused");

@@ -1,7 +1,8 @@
-use std::clone;
+use std::{clone, time::Instant};
 
 use diff::Diff;
-use gamelibrary::{animation::{Frames, TrackedFrames}, current_unix_millis, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
+use futures::future;
+use gamelibrary::{animation::{Frames, TrackedFrames}, current_unix_millis, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::{ev::Code, Button, Gamepad};
 use macroquad::{color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, texture::{draw_texture_ex, DrawTextureParams}, time::get_frame_time};
 use nalgebra::{vector, Rotation, Rotation2};
@@ -47,6 +48,7 @@ pub struct Player {
 pub enum PlayerAnimationState {
     Walking,
     Idle,
+    GunRun
 }
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -56,8 +58,9 @@ pub enum PlayerAnimationState {
 // used to track the state of player animation
 pub struct PlayerAnimationHandler {
     state: PlayerAnimationState,
-    pub walking_frames: TrackedFrames,
-    pub idle_frames: TrackedFrames
+    walking_frames: TrackedFrames,
+    idle_frames: TrackedFrames,
+    gunrun_frames: TrackedFrames
 }
 
 impl PlayerAnimationHandler {
@@ -67,7 +70,8 @@ impl PlayerAnimationHandler {
         Self {
             state: initial_state,
             walking_frames: TrackedFrames::load_from_directory(&"assets/player/walk".to_string()),
-            idle_frames: TrackedFrames::load_from_directory(&"assets/player/idle".to_string())
+            idle_frames: TrackedFrames::load_from_directory(&"assets/player/idle".to_string()),
+            gunrun_frames: TrackedFrames::load_from_directory(&"assets/player/gunrun".to_string())
         }
     }
 
@@ -78,6 +82,9 @@ impl PlayerAnimationHandler {
             },
             PlayerAnimationState::Idle => {
                 self.idle_frames.current_frame()
+            },
+            PlayerAnimationState::GunRun => {
+                self.gunrun_frames.current_frame()
             }
         }
     }
@@ -89,12 +96,19 @@ impl PlayerAnimationHandler {
             },
             PlayerAnimationState::Idle => {
                 self.idle_frames.set_frame(new_frame_index);
+            },
+            PlayerAnimationState::GunRun => {
+                self.gunrun_frames.set_frame(new_frame_index);
             }
         }
     }
 
     pub fn set_animation_state(&mut self, new_state: PlayerAnimationState) {
         self.state = new_state;
+    }
+
+    pub fn get_animation_state(&self) -> PlayerAnimationState {
+        self.state.clone()
     }
 
     pub fn next_frame(&mut self, state: PlayerAnimationState) {
@@ -104,12 +118,27 @@ impl PlayerAnimationHandler {
             },
             PlayerAnimationState::Idle => {
                 self.idle_frames.next_frame();
+            },
+            PlayerAnimationState::GunRun => {
+                self.gunrun_frames.next_frame();
             }
         }
     }
 }
 
 impl Player {
+
+    pub fn despawn(self, space: &mut Space) {
+        // removes the body AND the collider!
+        space.rigid_body_set.remove(
+            self.rigid_body, 
+            &mut space.island_manager, 
+            &mut space.collider_set, 
+            &mut space.impulse_joint_set, 
+            &mut space.multibody_joint_set, 
+            true
+        );
+    } 
 
     pub fn spawn(players: &mut Vec<Player>, space: &mut Space, owner: String, position: &Vec2) {
 
@@ -139,7 +168,7 @@ impl Player {
                 collider: collider_handle,
                 sprite_path: "assets/player/idle.png".to_string(),
                 owner: owner.clone(),
-                selected: false,
+                selected: false, 
                 dragging: false,
                 drag_offset: None,
                 max_speed: vec2(350., 80.),
@@ -222,6 +251,53 @@ impl Player {
         self.change_facing_direction(&space);
         self.print_angle(space, ctx);
         self.update_shotgun_pos(space);
+        self.delete_structure(structures, space, ctx);
+        self.update_hitbox_size(space, ctx);
+        
+    }
+
+    pub fn update_hitbox_size(&mut self, space: &mut Space, ctx: &mut TickContext) {
+        let current_frame = self.animation_handler.get_current_frame();
+
+        let texture = futures::executor::block_on(ctx.textures.get(current_frame));
+
+        let then = Instant::now();
+        let collider = space.collider_set.get_mut(self.collider).unwrap();
+
+        let collider_shape = collider.shape_mut().as_cuboid_mut().unwrap();
+        println!("time to get shape: {:?}", then.elapsed());
+        
+        if collider_shape.half_extents.x != texture.size().x {
+            collider_shape.half_extents.x = texture.size().x;
+        }
+
+        if collider_shape.half_extents.y != texture.size().y {
+            collider_shape.half_extents.y = texture.size().y;
+        }   
+        
+    }
+
+    pub fn delete_structure(&mut self, structures: &mut Vec<Structure>, space: &mut Space, ctx: &mut TickContext) {
+        if !is_key_released(KeyCode::Backspace) {
+            return
+        }
+
+        let mut structures_iter = SwapIter::new(structures);
+
+        let then = Instant::now();
+        while structures_iter.not_done() {
+            let (structures, mut structure) = structures_iter.next();
+
+            if structure.contains_point(space, rapier_mouse_world_pos(ctx.camera_rect)) {
+                structure.despawn(space);
+
+                continue;
+            }
+
+            structures_iter.restore(structure);
+        }
+
+        println!("iterate over structures: {:?}", then.elapsed());
         
     }
 
@@ -235,7 +311,6 @@ impl Player {
             mouse_pos.y - player_body.translation().y 
         );
 
-        println!("{}", distance_to_mouse.y.atan2(distance_to_mouse.x));
     }
 
     pub fn change_facing_direction(&mut self, space: &Space) {
@@ -255,7 +330,7 @@ impl Player {
 
         if velocity.x == 0. {
 
-            self.idle_frame_progress += 10. * get_frame_time(); 
+            self.idle_frame_progress += 5. * get_frame_time(); 
             
             self.animation_handler.set_animation_state(PlayerAnimationState::Idle);
 
@@ -271,13 +346,23 @@ impl Player {
         let velocity = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().linvel();
 
         if velocity.x.abs() > 0. {
-            self.walk_frame_progess += (velocity.x.abs() * get_frame_time()) / 8.;
+            self.walk_frame_progess += (velocity.x.abs() * get_frame_time()) / 20.;
 
-            self.animation_handler.set_animation_state(PlayerAnimationState::Walking);
+            self.animation_handler.set_animation_state(PlayerAnimationState::GunRun);
         }
 
         if self.walk_frame_progess > 1. {
-            self.animation_handler.next_frame(PlayerAnimationState::Walking);
+
+            // this all seems pretty stupid
+            let animation_state = self.animation_handler.get_animation_state();
+
+            match animation_state {
+                PlayerAnimationState::Walking => {},
+                PlayerAnimationState::GunRun => {},
+                _ => return
+            }
+
+            self.animation_handler.next_frame(animation_state);
 
             self.walk_frame_progess = 0.;
         }
@@ -473,7 +558,25 @@ impl Player {
             None => {},
         }
 
+        let position = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().translation();
+
+        match self.animation_handler.get_animation_state() {
+            PlayerAnimationState::GunRun => {
+                self.draw_texture(&space, &"assets/player/gunrunarm_bottom.png".to_string(), textures, flip_x, false).await;
+            },
+            _ => {}
+        }
+        
+
         self.draw_texture(&space, &self.animation_handler.get_current_frame(), textures, flip_x, false).await;
+
+        match self.animation_handler.get_animation_state() {
+            PlayerAnimationState::GunRun => {
+                self.draw_texture(&space, &"assets/player/gunrunarm_top.png".to_string(), textures, flip_x, false).await;
+            },
+            _ => {}
+        }
+        
     }
 }
 
