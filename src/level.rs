@@ -293,7 +293,7 @@ impl Level {
             brick.editor_draw(&self.space, textures).await
         }
     }
-    pub async fn draw(&self, textures: &mut TextureLoader) {
+    pub async fn draw(&self, textures: &mut TextureLoader, camera_rect: &Rect) {
 
         //self.sky.draw();
 
@@ -317,7 +317,10 @@ impl Level {
         }
 
         for player in self.players.iter() {
-            player.draw(&self.space, textures).await;
+            
+            let then = Instant::now();
+            player.draw(&self.space, textures, camera_rect).await;
+            println!("{:?}", then.elapsed());
         }
 
         for boat in &self.boats {

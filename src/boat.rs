@@ -35,6 +35,7 @@ impl Boat {
             .mass(1000.)
             .build();
 
+    
         let rigid_body_handle = space.rigid_body_set.insert(rigid_body);
 
         let collider_handle = space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut space.rigid_body_set);

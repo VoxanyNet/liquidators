@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use diff::Diff;
 use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
 use macroquad::{color::{DARKGRAY, RED}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, miniquad::date::now};
-use nalgebra::vector;
+use nalgebra::{vector, Const, OPoint};
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
 
@@ -108,6 +108,18 @@ impl Structure {
 
     pub fn tick(&mut self, ctx: &mut TickContext, space: &mut Space, players: &Vec<Player>) {
         
+        let collider = space.collider_set.get(self.collider_handle).unwrap();
+        let body_transform = space.rigid_body_set.get(self.rigid_body_handle).unwrap().position();
+
+        let verts = collider.shape().as_cuboid().unwrap().to_polyline();
+
+        let world_verts: Vec<OPoint<f32, Const<2>>> = verts
+            .iter()
+            .map(|vertex| body_transform.transform_point(vertex))
+            .collect();
+
+        println!("{:?}", world_verts);
+
         if self.owner.is_none() {
             return;
         }
@@ -208,7 +220,7 @@ impl Structure {
 
     pub async fn debug_draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
         self.draw_outline(space, 10.).await;
-        self.draw_texture(space, texture_path, textures, false, false).await;
+        self.draw_texture(space, texture_path, textures, false, false, 0.).await;
 
         match &self.menu {
             Some(menu) => menu.draw().await,
@@ -217,7 +229,7 @@ impl Structure {
     }
 
     pub async fn draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
-        self.draw_texture(space, texture_path, textures, false, false).await;
+        self.draw_texture(space, texture_path, textures, false, false, 0.).await;
     }
 
 }

@@ -23,6 +23,7 @@ pub mod portal_gun;
 pub mod console;
 pub mod sky;
 pub mod boat;
+pub mod arm;
 
 pub trait Grabbable: HasPhysics {
 

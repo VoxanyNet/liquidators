@@ -174,7 +174,7 @@ impl Client {
         );
 
     
-        self.game_state.draw(&mut self.textures).await;
+        self.game_state.draw(&mut self.textures, &self.camera_rect).await;
 
         set_default_camera();
 

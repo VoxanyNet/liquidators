@@ -25,7 +25,7 @@ pub struct Radio {
 impl Radio {
 
     pub async fn draw(&self, textures: &mut TextureLoader, space: &Space) {
-        self.draw_texture(space, &self.texture_path.clone(), textures, false, false).await;
+        self.draw_texture(space, &self.texture_path.clone(), textures, false, false, 0.).await;
     }
 
     pub fn tick_editor(&mut self, level: &mut Level, camera_rect: &Rect, client_uuid: &String) {
