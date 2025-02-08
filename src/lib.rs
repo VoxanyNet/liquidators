@@ -4,7 +4,7 @@ use gamelibrary::{rapier_mouse_world_pos, space::Space, texture_loader::TextureL
 use gilrs::{GamepadId, Gilrs};
 use macroquad::{input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}, prelude::camera::mouse};
 use nalgebra::vector;
-use rapier2d::prelude::RigidBodyHandle;
+use rapier2d::prelude::{ColliderHandle, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
 pub mod game_state;
@@ -101,7 +101,9 @@ pub struct TickContext<'a> {
     pub camera_rect: &'a Rect,
     pub camera_offset: &'a mut Vec2,
     pub active_gamepad: &'a Option<GamepadId>,
-    pub console: &'a mut Console
+    pub console: &'a mut Console,
+    pub owned_rigid_bodies: &'a mut Vec<RigidBodyHandle>,
+    pub owned_colliders: &'a mut Vec<ColliderHandle>
 }
 
 #[derive(PartialEq, Serialize, Deserialize, Diff)]

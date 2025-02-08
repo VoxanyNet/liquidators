@@ -2,7 +2,7 @@ use std::{fs, time::Instant};
 
 use diff::Diff;
 use gamelibrary::{macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::RED, input::{self, is_key_pressed, is_key_released}, math::Rect};
+use macroquad::{color::RED, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}};
 use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
@@ -62,15 +62,25 @@ impl Level {
         ctx: &mut TickContext,
     ) {
 
+        
+        if is_key_down(KeyCode::C) {
+
+            let mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);
+
+            for (_, rigid_body) in self.space.rigid_body_set.iter_mut() {
+
+                let distance_to_mouse = Vec2::new((mouse_pos.x - rigid_body.translation().x), (mouse_pos.y - rigid_body.translation().y));
+
+                rigid_body.apply_impulse(vector![distance_to_mouse.x * 5., distance_to_mouse.y * 5.].into(), true);
+
+            }
+        }
+
         if is_key_released(input::KeyCode::B) {
             Shotgun::spawn(&mut self.space, rapier_mouse_world_pos(ctx.camera_rect), &mut self.shotguns, ctx.uuid.clone());
 
             println!("spawning shotgun: {}", self.shotguns.len());
         }
-
-        let mut owned_bodies: Vec<RigidBodyHandle> = vec![];
-        let mut owned_colliders: Vec<ColliderHandle> = vec![];
-
         
         for portal_bullet in &mut self.portal_bullets {
 
@@ -80,21 +90,12 @@ impl Level {
 
         for shotgun in &mut self.shotguns {
 
+            if shotgun.owner != *ctx.uuid {
+                continue;
+            }
+
             shotgun.tick(&mut self.players, &mut self.space, ctx);
 
-            owned_bodies.push(shotgun.rigid_body);
-            owned_colliders.push(shotgun.collider);
-
-        }
-
-        for boat in &self.boats {
-
-
-            if boat.owner == *ctx.uuid {
-                owned_bodies.push(boat.rigid_body_handle);
-                owned_colliders.push(boat.collider_handle);
-            }
-            
         }
 
         let mut players_iter = SwapIter::new(&mut self.players);
@@ -103,12 +104,14 @@ impl Level {
 
             let (players, mut player) = players_iter.next();
 
-            if player.owner == *ctx.uuid {
-                player.tick(&mut self.space, &mut self.structures, ctx, players);
+            if player.owner != *ctx.uuid {
+                players_iter.restore(player);
+                
+                continue;
+            }
 
-                owned_bodies.push(player.rigid_body);
-                owned_colliders.push(player.collider);
-            }       
+            player.tick(&mut self.space, &mut self.structures, ctx, players);
+                
 
             players_iter.restore(player);   
 
@@ -118,37 +121,25 @@ impl Level {
 
             structure.tick(ctx, &mut self.space, &self.players);
             
-
-            match &structure.owner {
-                Some(owner) => {
-                    if owner == ctx.uuid {
-                        owned_bodies.push(structure.rigid_body_handle);
-                        owned_colliders.push(structure.collider_handle);
-                    }
-                },
-                None => {},
-            }
         }  
 
         for brick in &mut self.bricks {
 
-            brick.tick(ctx);
-            
-            match &brick.owner {
+
+            match brick.owner.clone() {
                 Some(owner) => {
-
-
-                    if owner == ctx.uuid { 
-                        
-                        owned_bodies.push(*brick.rigid_body_handle());
-                        owned_colliders.push(*brick.collider_handle());
+                    if owner != *ctx.uuid {
+                        continue;
                     }
                 },
-                None => {},
+                None => continue,
             }
+
+            brick.tick(ctx);
+            
         }
 
-        self.space.step(ctx.last_tick.elapsed(), &owned_bodies, &owned_colliders);
+        self.space.step(ctx.last_tick.elapsed(), &ctx.owned_rigid_bodies, &ctx.owned_colliders);
         
     }
 
@@ -266,7 +257,8 @@ impl Level {
                 owner: None,
                 drag_offset: None,
                 sprite_path: "assets/structure/brick_block.png".to_string(),
-                last_ownership_change: 0
+                last_ownership_change: 0,
+                particles: vec![]
             };
             
             self.structures.push(new_structure);
@@ -317,10 +309,7 @@ impl Level {
         }
 
         for player in self.players.iter() {
-            
-            let then = Instant::now();
             player.draw(&self.space, textures, camera_rect).await;
-            println!("{:?}", then.elapsed());
         }
 
         for boat in &self.boats {

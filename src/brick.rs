@@ -60,14 +60,8 @@ impl Brick {
 
     pub fn tick(&mut self, ctx: &mut TickContext) {
 
-        match &self.owner {
-            Some(owner) => {
-                if ctx.uuid == owner {
-
-                }
-            },
-            None => {},
-        }
+        ctx.owned_rigid_bodies.push(*self.rigid_body_handle());
+        ctx.owned_colliders.push(*self.collider_handle());
         
     }
 

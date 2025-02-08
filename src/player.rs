@@ -1,12 +1,14 @@
 use std::{clone, time::Instant};
 
+use parry2d::math::Real;
 use diff::Diff;
 use futures::future;
-use gamelibrary::{animation::{Frames, TrackedFrames}, current_unix_millis, draw_texture_rapier, rapier_mouse_world_pos, rapier_to_macroquad, rotate_point, space::Space, swapiter::SwapIter, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{animation::{Frames, TrackedFrames}, current_unix_millis, draw_texture_rapier, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, rotate_point, space::Space, swapiter::SwapIter, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::{ev::Code, Button, Gamepad};
 use macroquad::{camera::Camera2D, color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, texture::{draw_texture_ex, DrawTextureParams}, time::get_frame_time};
-use nalgebra::{vector, Rotation, Rotation2};
-use rapier2d::prelude::{ColliderBuilder, ColliderHandle, InteractionGroups, QueryFilter, RigidBody, RigidBodyBuilder, RigidBodyHandle};
+use nalgebra::{vector, Isometry, Rotation, Rotation2, UnitComplex};
+use parry2d::math::Point;
+use rapier2d::prelude::{ColliderBuilder, ColliderHandle, InteractionGroups, MotorModel, QueryFilter, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
 use crate::{arm::Arm, brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure::{self, Structure}, TickContext};
@@ -40,8 +42,9 @@ pub struct Player {
     pub idle_frame_progress: f32,
     pub facing: Facing,
     pub arm_angle: f32,
-    // pub left_arm: Arm,
-    // pub right_arm: Arm
+    pub left_arm: Arm,
+    pub sprite_scale: f32
+    //pub right_arm: Arm
 }
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -132,6 +135,8 @@ impl PlayerAnimationHandler {
 impl Player {
 
     pub fn despawn(self, space: &mut Space) {
+
+        // fortnite battle pass why do i suffer so much from these stupid small annoyances if i was just like that but not with all this shit then i would be so much more productive i am a slave to my physical body i wish for nothing more that to be free from the prison that is my body dear god save me from this existence i am more than this
         // removes the body AND the collider!
         space.rigid_body_set.remove(
             self.rigid_body, 
@@ -143,8 +148,9 @@ impl Player {
         );
     } 
 
-    pub fn spawn(players: &mut Vec<Player>, space: &mut Space, owner: String, position: &Vec2) {
+    pub fn spawn(players: &mut Vec<Player>, space: &mut Space, owner: String, position: &Vec2, textures: &mut TextureLoader) {
 
+        let sprite_scale = 2.2;
         let rigid_body = RigidBodyBuilder::dynamic()
             .position(vector![position.x, position.y].into())
             .soft_ccd_prediction(20.)
@@ -165,7 +171,15 @@ impl Player {
             InteractionGroups::none()
         );
 
-        //let left_arm = Arm::new(space, rigid_body_handle, body_anchor_point, arm_anchor_point, initial_pos, textures, sprite_path, sprite_scale);
+        let left_arm = Arm::new(
+            space, 
+            rigid_body_handle, 
+            Point::<Real>::new(2. * sprite_scale, 7. * sprite_scale), 
+            Point::<Real>::new(0., 9.),
+            textures, 
+            "assets/player/gunrunarm_bottom.png".to_string(), 
+            1.75
+        );
 
         players.push(
             Player {
@@ -183,7 +197,9 @@ impl Player {
                 walk_frame_progess: 0.,
                 idle_frame_progress: 0.,
                 facing: Facing::Right,
-                arm_angle: 0.
+                arm_angle: 0.,
+                left_arm,
+                sprite_scale
             }
         )
     }
@@ -269,8 +285,16 @@ impl Player {
 
         self.update_arm_angle(space, ctx.camera_rect);
         
+        self.add_owned_physics(ctx);
+
+        self.left_arm.tick(ctx);
+        
     }
 
+    pub fn add_owned_physics(&self, ctx: &mut TickContext) {
+        ctx.owned_rigid_bodies.push(self.rigid_body);
+        ctx.owned_colliders.push(self.collider);
+    }
     pub fn update_hitbox_size(&mut self, space: &mut Space, ctx: &mut TickContext) {
         let current_frame = self.animation_handler.get_current_frame();
 
@@ -314,50 +338,49 @@ impl Player {
         
     }
 
-    pub fn angle_to_mouse(&self, space: &Space, camera_rect: &Rect) -> f32 {
-        
-        let player_body = space.rigid_body_set.get(self.rigid_body).unwrap();
-        let mouse_pos = rapier_mouse_world_pos(camera_rect);
-
-        let distance_to_mouse = Vec2::new(
-            mouse_pos.x - player_body.translation().x,
-            mouse_pos.y - player_body.translation().y 
-        );
-
-        distance_to_mouse.x.atan2(distance_to_mouse.y)
-
-    }
-
     pub fn update_arm_angle(&mut self, space: &mut Space, camera_rect: &Rect) {
-    
-        self.arm_angle = self.angle_to_mouse(space, camera_rect) - 1.3;
 
-        //println!("{}", self.angle_to_mouse(space, camera_rect));
 
-        return;
+        let body_pos = space.rigid_body_set.get(self.rigid_body).unwrap().translation().clone();
+
+        let left_arm_body = space.rigid_body_set.get_mut(self.left_arm.get_rigid_body_handle()).unwrap();
+
+        let left_arm_body_pos = left_arm_body.translation();
+
+        let angle_to_mouse = get_angle_to_mouse(Vec2::new(body_pos.x, body_pos.y), camera_rect);
+
+        println!("{}", angle_to_mouse);
 
         // need to restrict arm angle depending on facing
-        match self.facing {
-            Facing::Right => {
-                self.arm_angle = self.arm_angle.clamp(0.2 - 1.3, 2.7 - 1.3);
-            },
-            Facing::Left => {
-                self.arm_angle = self.arm_angle.clamp(-2.7 - 1.3, -0.8 - 1.3)
-            },
-        }
+        // let angle_to_mouse = match self.facing {
+        //     _ => {
+        //         angle_to_mouse.clamp(0.36, 3.0)
+        //     },
+        //     // Facing::Left => {
+        //     //     angle_to_mouse.clamp(-2.7 - 1.3, -0.8 - 1.3)
+        //     // },
+        // };
 
-        println!("{}", self.arm_angle);
+        let left_arm_joint = space.impulse_joint_set.get_mut(self.left_arm.get_joint_handle()).unwrap();
+
+        left_arm_body.set_rotation(UnitComplex::new(-angle_to_mouse + 1.7), true);
+
+        left_arm_joint.data.as_revolute_mut().unwrap().set_motor_position(self.arm_angle, 1.0, 1.);
+        
+        //println!("{}", self.angle_to_mouse(space, camera_rect));
+
+        
         
     }
 
     pub fn change_facing_direction(&mut self, space: &Space) {
         let velocity = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().linvel();
 
-        if velocity.x > 0. {
+        if velocity.x > 0.5 {
             self.facing = Facing::Right
         }
 
-        if velocity.x < 0. {
+        if velocity.x < -0.5 {
             self.facing = Facing::Left
         }
     }
@@ -593,12 +616,12 @@ impl Player {
         //self.draw_collider(space).await;
 
         // draw shotgun (we update its position every tick)
-        match &self.shotgun {
-            Some(shotgun) => {
-                shotgun.draw(space, textures, flip_x).await;
-            },
-            None => {},
-        }
+        // match &self.shotgun {
+        //     Some(shotgun) => {
+        //         shotgun.draw(space, textures, flip_x).await;
+        //     },
+        //     None => {},
+        // }
 
         // get the player position. all draws for the player are relative to this
         let player_position = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().translation();
@@ -611,66 +634,13 @@ impl Player {
                 
                 let texture_scale = 1.75;
 
-                // get the texture for the bottom arm
-                let texture = textures.get(&"assets/player/gunrunarm_bottom.png".to_string()).await;
-
-                // parameters for drawing arm
-                let mut params = DrawTextureParams::default();
-
-                // bottom arm draw pos starts at the center of the player's body, and then we modify it to be where we want it
-                // this is in RAPIER COORDINATES, not macroquad
-                // this value is where the TOP LEFT of the texture is
-                let mut bottom_arm_draw_pos = Vec2::new(player_position.x, player_position.y);
-
-                // set the size the bottom arm - just multiply the dimensions of the texture by a value so its not stretched / squashed
-                params.dest_size = Some(
-                    Vec2::new(texture.size().x * texture_scale, texture.size().y * texture_scale)
-                );
-
-                // set the angle of the arm to the arm angle set in the tick method
-                params.rotation = self.arm_angle;
-
-                // move the draw position up by 16 pixels, we want the arm to sit slightly higher than the center of the body
-                bottom_arm_draw_pos.y += 16.;
-
-                bottom_arm_draw_pos.x -= 7.;
                 
-                
-                // calculate the position where we are going to actually draw the arm, we need this for the next step
-                // this position is the top left of the texture
-                let macroquad_draw_pos = rapier_to_macroquad(&bottom_arm_draw_pos);
-                
-                // set the pivot point of the arm to the shoulder instead of the center of arm
-                // this pivot point is relative to the screen space, not the texture, thats why we needed the draw pos
-
-                params.pivot = Some(
-                    Vec2::new(
-                        macroquad_draw_pos.x,
-                        macroquad_draw_pos.y + (4.5 * texture_scale) // we want to pivot slightly lower than the top left of the arm, so we add to the y value because we are in macroquad coords. also we need to scale it by the number we used in the dest_size value
-                    )
-                );
-
-                params.flip_y = match self.facing {
-                    Facing::Right => false,
-                    Facing::Left => true,
-                };
-
-                println!("bottom arm: {:?}", params.pivot);
-                
-                // actually draw the texture
-                draw_texture_rapier(
-                    texture, 
-                    bottom_arm_draw_pos.x, 
-                    bottom_arm_draw_pos.y, 
-                    WHITE, 
-                    params
-                );
             },
             _ => {}
         }   
 
         
-        let texture = textures.get(self.animation_handler.get_current_frame()).await;
+        let texture = textures.get(self.animation_handler.get_current_frame()).await.weak_clone();
 
         let mut draw_params = DrawTextureParams::default();
 
@@ -679,10 +649,10 @@ impl Player {
         );
         draw_params.flip_x = flip_x;
         
-        self.draw_collider(space).await;
+        //self.draw_collider(space).await;
 
-        let mut draw_offset_x = 0.;
-        let mut draw_offset_y = 0.;
+        let mut draw_offset_x: f32 = 0.;
+        let mut draw_offset_y: f32 = 0.;
 
         match self.animation_handler.get_animation_state() {
             PlayerAnimationState::Walking => {
@@ -700,12 +670,14 @@ impl Player {
         }
 
         draw_texture_rapier(
-            texture, 
+            &texture, 
             player_position.x + draw_offset_x, 
             player_position.y + draw_offset_y, 
             WHITE, 
             draw_params
         );
+
+        self.left_arm.draw(space, textures).await;
 
 
         // draw top arm
@@ -715,59 +687,7 @@ impl Player {
 
                 let texture_scale = 2.5;
 
-                // get the texture for the top arm
-                let texture = textures.get(&"assets/player/gunrunarm_top.png".to_string()).await;
-
-                // parameters for drawing arm
-                let mut params = DrawTextureParams::default();
-
-                // top arm draw pos starts at the center of the player's body, and then we modify it to be where we want it
-                // this is in RAPIER COORDINATES, not macroquad
-                // this value is where the TOP LEFT of the texture is
-                let mut top_arm_draw_pos = Vec2::new(player_position.x, player_position.y);
-
-                // set the size the bottom arm - just multiply the dimensions of the texture by a value so its not stretched / squashed
-                params.dest_size = Some(
-                    Vec2::new(texture.size().x * texture_scale, texture.size().y * texture_scale)
-                );
                 
-                // set the angle of the arm to the arm angle set in the tick method
-                params.rotation = self.arm_angle;
-
-                top_arm_draw_pos.x -= 7.;
-
-                // we want the top arm to sit above the center of the body
-                top_arm_draw_pos.y += 16.;
-
-                // calculate the position where we are going to actually draw the arm, we need this for the next step
-                // this position is the top left of the texture
-                let macroquad_draw_pos = rapier_to_macroquad(&top_arm_draw_pos);
-
-
-                // set the pivot point of the arm to the shoulder instead of the center of arm
-                // this pivot point is relative to the screen space, not the texture, thats why we needed the draw pos
-                params.pivot = Some(
-                    Vec2::new(
-                        macroquad_draw_pos.x + (2.5 * texture_scale), 
-                        macroquad_draw_pos.y + (3. * texture_scale) // also we need to scale it by the number we used in the dest_size value
-                    )
-                );
-
-                println!("top arm: {:?}", params.pivot);
-                
-
-                params.flip_y = match self.facing {
-                    Facing::Right => false,
-                    Facing::Left => true,
-                };
-                
-                draw_texture_rapier(
-                    texture, 
-                    top_arm_draw_pos.x, 
-                    top_arm_draw_pos.y, 
-                    WHITE, 
-                    params
-                );
 
             },
             _ => {}

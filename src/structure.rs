@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use diff::Diff;
 use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::{DARKGRAY, RED}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, miniquad::date::now};
+use macroquad::{color::{DARKGRAY, RED, WHITE}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, miniquad::date::now, shapes::draw_circle};
 use nalgebra::{vector, Const, OPoint};
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
@@ -24,7 +24,8 @@ pub struct Structure {
     pub editor_owner: String,
     pub sprite_path: String,
     pub last_ownership_change: u64,
-    pub grabbing: bool
+    pub grabbing: bool,
+    pub particles: Vec<Vec2>
 }
 
 impl Grabbable for Structure {
@@ -77,7 +78,8 @@ impl Structure {
             drag_offset: None,
             sprite_path: "assets/structure/brick_block.png".to_string(),
             last_ownership_change: 0,
-            grabbing: false
+            grabbing: false,
+            particles: vec![]
         }
     }
 
@@ -111,14 +113,8 @@ impl Structure {
         let collider = space.collider_set.get(self.collider_handle).unwrap();
         let body_transform = space.rigid_body_set.get(self.rigid_body_handle).unwrap().position();
 
-        let verts = collider.shape().as_cuboid().unwrap().to_polyline();
-
-        let world_verts: Vec<OPoint<f32, Const<2>>> = verts
-            .iter()
-            .map(|vertex| body_transform.transform_point(vertex))
-            .collect();
-
-        println!("{:?}", world_verts);
+        let body = space.rigid_body_set.get(self.rigid_body_handle).unwrap();
+        
 
         if self.owner.is_none() {
             return;
@@ -139,6 +135,16 @@ impl Structure {
             }
 
             self.update_grab_velocity(space);
+        }
+
+        match &self.owner {
+            Some(owner) => {
+                if owner == ctx.uuid {
+                    ctx.owned_rigid_bodies.push(self.rigid_body_handle);
+                    ctx.owned_colliders.push(self.collider_handle);
+                }
+            },
+            None => {},
         }
         
     }
@@ -230,6 +236,10 @@ impl Structure {
 
     pub async fn draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
         self.draw_texture(space, texture_path, textures, false, false, 0.).await;
+
+        for particle in &self.particles {
+            draw_circle(particle.x, particle.y, 20., WHITE);
+        }
     }
 
 }

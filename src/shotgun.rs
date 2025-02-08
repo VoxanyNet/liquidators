@@ -71,6 +71,9 @@ impl Shotgun {
     pub fn tick(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
 
         self.grab(players, space, ctx);
+
+        ctx.owned_rigid_bodies.push(self.rigid_body);
+        ctx.owned_colliders.push(self.collider);
     }   
 
     pub fn fire(&mut self) {
@@ -78,9 +81,6 @@ impl Shotgun {
     }
 
     pub fn grab(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
-        if *ctx.uuid != self.owner {
-            return;
-        }
 
         if self.picked_up {
             return;

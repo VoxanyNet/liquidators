@@ -3,7 +3,7 @@ use std::{fs, time::Instant};
 use gamelibrary::{animation_loader::AnimationLoader, log, sync::client::SyncClient, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, game_state::GameState, level::Level, player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
-use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, window::{screen_height, screen_width}};
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, time::get_fps, window::{screen_height, screen_width}};
 
 pub struct Client {
     pub game_state: GameState,
@@ -39,7 +39,9 @@ impl Client {
             last_tick: &self.last_tick,
             camera_rect: &self.camera_rect,
             active_gamepad: &self.active_gamepad,
-            console: &mut self.console
+            console: &mut self.console,
+            owned_rigid_bodies: &mut vec![],
+            owned_colliders: &mut vec![]
         };
 
 
@@ -115,7 +117,7 @@ impl Client {
             brick.owner = Some(self.uuid.clone());
         }
 
-        Player::spawn(&mut self.game_state.level.players, &mut self.game_state.level.space, self.uuid.clone(), &vec2(100., 300.));
+        Player::spawn(&mut self.game_state.level.players, &mut self.game_state.level.space, self.uuid.clone(), &vec2(100., 300.), &mut self.textures);
 
     }
 
@@ -135,6 +137,7 @@ impl Client {
 
             self.tick(); 
             
+            //println!("FPS: {}", 1. / then.elapsed().as_secs_f64());
             
             if is_key_released(KeyCode::H) {
                 log("paused");
@@ -163,8 +166,8 @@ impl Client {
  
     pub async fn draw(&mut self) {
     
-        //draw_text(format!("fps: {}", get_fps()).as_str(), screen_width() - 120., 25., 30., WHITE);
-        draw_text(format!("uuid: {}", self.uuid).as_str(), screen_width() - 120., 25., 30., WHITE);
+        draw_text(format!("fps: {}", get_fps()).as_str(), screen_width() - 120., 25., 30., WHITE);
+        //draw_text(format!("uuid: {}", self.uuid).as_str(), screen_width() - 120., 25., 30., WHITE);
         
         let mut camera = Camera2D::from_display_rect(self.camera_rect);
         camera.zoom.y = -camera.zoom.y;
@@ -185,6 +188,8 @@ impl Client {
 
     pub async fn connect(url: &str) -> Self {
 
+
+        let mut textures = TextureLoader::new();
 
         let camera_rect = Rect::new(0., 200., screen_width() / 1.50, screen_height() / 1.5);
         
@@ -210,7 +215,7 @@ impl Client {
             }
         }
 
-        Player::spawn(&mut game_state.level.players, &mut game_state.level.space, uuid.clone(), &vec2(100., 300.));
+        Player::spawn(&mut game_state.level.players, &mut game_state.level.space, uuid.clone(), &vec2(100., 300.), &mut textures);
 
         //let gilrs = Gilrs::new().unwrap();
 
@@ -221,7 +226,7 @@ impl Client {
         Self {
             game_state,
             is_host: true,
-            textures: TextureLoader::new(), 
+            textures, 
             animations: AnimationLoader::new(),
             last_tick: web_time::Instant::now(),
             uuid,
