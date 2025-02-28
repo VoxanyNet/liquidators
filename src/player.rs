@@ -3,7 +3,7 @@ use std::{clone, time::Instant};
 use parry2d::math::Real;
 use diff::Diff;
 use futures::future;
-use gamelibrary::{animation::{Frames, TrackedFrames}, current_unix_millis, draw_texture_rapier, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, rotate_point, space::Space, swapiter::SwapIter, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{animation::{Frames, TrackedFrames}, current_unix_millis, draw_texture_rapier, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, rotate_point, space::Space, swapiter::SwapIter, syncsound::{SoundHandle, Sounds}, texture_loader::TextureLoader, traits::{draw_hitbox, HasPhysics}};
 use gilrs::{ev::Code, Button, Gamepad};
 use macroquad::{camera::Camera2D, color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, texture::{draw_texture_ex, DrawTextureParams}, time::get_frame_time};
 use nalgebra::{vector, Isometry, Rotation, Rotation2, UnitComplex};
@@ -43,8 +43,9 @@ pub struct Player {
     pub facing: Facing,
     pub arm_angle: f32,
     pub left_arm: Arm,
-    pub sprite_scale: f32
-    //pub right_arm: Arm
+    pub right_arm: Arm,
+    pub sprite_scale: f32,
+    pub sound: SoundHandle
 }
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -174,12 +175,26 @@ impl Player {
         let left_arm = Arm::new(
             space, 
             rigid_body_handle, 
-            Point::<Real>::new(2. * sprite_scale, 7. * sprite_scale), 
-            Point::<Real>::new(0., 9.),
+            Point::<Real>::new(0. * sprite_scale, 2. * sprite_scale), 
+            Point::<Real>::new(0., 0.),
             textures, 
             "assets/player/gunrunarm_bottom.png".to_string(), 
             1.75
         );
+
+        let right_arm = Arm::new(
+            space,
+            rigid_body_handle,
+            Point::<Real>::new(0. * sprite_scale, 2. * sprite_scale),
+            Point::<Real>::new(0., 0.),
+            textures,
+            "assets/player/gunrunarm_top.png".to_string(),
+            1.75
+        );
+
+        let mut sound = SoundHandle::new("assets/sounds/mono.wav", [0.,0.,0.]);
+
+        sound.play();
 
         players.push(
             Player {
@@ -199,9 +214,15 @@ impl Player {
                 facing: Facing::Right,
                 arm_angle: 0.,
                 left_arm,
-                sprite_scale
+                right_arm,
+                sprite_scale,
+                sound
             }
         )
+    }
+
+    pub fn sync_sound(&mut self, sounds: &mut Sounds) {
+        sounds.sync_sound(&self.sound);
     }
 
     pub fn pickup_shotgun(&mut self, level: &mut Level, ctx: &mut TickContext) {
@@ -281,6 +302,8 @@ impl Player {
         self.change_facing_direction(&space);
         self.update_shotgun_pos(space);
         self.delete_structure(structures, space, ctx);
+        self.update_arm_anchor_pos(space);
+        self.sync_sound(ctx.sounds);
         //self.update_hitbox_size(space, ctx);
 
         self.update_arm_angle(space, ctx.camera_rect);
@@ -288,6 +311,7 @@ impl Player {
         self.add_owned_physics(ctx);
 
         self.left_arm.tick(ctx);
+        self.right_arm.tick(ctx);
         
     }
 
@@ -342,35 +366,18 @@ impl Player {
 
 
         let body_pos = space.rigid_body_set.get(self.rigid_body).unwrap().translation().clone();
-
-        let left_arm_body = space.rigid_body_set.get_mut(self.left_arm.get_rigid_body_handle()).unwrap();
-
-        let left_arm_body_pos = left_arm_body.translation();
-
         let angle_to_mouse = get_angle_to_mouse(Vec2::new(body_pos.x, body_pos.y), camera_rect);
 
-        println!("{}", angle_to_mouse);
-
-        // need to restrict arm angle depending on facing
-        // let angle_to_mouse = match self.facing {
-        //     _ => {
-        //         angle_to_mouse.clamp(0.36, 3.0)
-        //     },
-        //     // Facing::Left => {
-        //     //     angle_to_mouse.clamp(-2.7 - 1.3, -0.8 - 1.3)
-        //     // },
-        // };
-
-        let left_arm_joint = space.impulse_joint_set.get_mut(self.left_arm.get_joint_handle()).unwrap();
-
+        // left arm
+        let left_arm_body = space.rigid_body_set.get_mut(self.left_arm.get_rigid_body_handle()).unwrap();
         left_arm_body.set_rotation(UnitComplex::new(-angle_to_mouse + 1.7), true);
 
-        left_arm_joint.data.as_revolute_mut().unwrap().set_motor_position(self.arm_angle, 1.0, 1.);
-        
-        //println!("{}", self.angle_to_mouse(space, camera_rect));
 
-        
-        
+        // right arm
+        let right_arm_body = space.rigid_body_set.get_mut(self.right_arm.get_rigid_body_handle()).unwrap();
+        right_arm_body.set_rotation(UnitComplex::new(-angle_to_mouse + 1.7), true);
+
+        // need to restrict arm angle depending on facing
     }
 
     pub fn change_facing_direction(&mut self, space: &Space) {
@@ -401,6 +408,34 @@ impl Player {
             
         }
 
+    }
+    /// Update arm anchor pos depending on facing direction
+    pub fn update_arm_anchor_pos(&mut self, space: &mut Space) {
+        let arm_anchor_pos = match self.facing {
+            Facing::Right => Point::<Real>::new(0. * self.sprite_scale, 2. * self.sprite_scale),
+            Facing::Left => Point::<Real>::new(3. * self.sprite_scale, 7. * self.sprite_scale),
+        };
+
+        let left_arm_joint = space.impulse_joint_set.get_mut(
+            self.left_arm.get_joint_handle()
+        )
+            .unwrap()
+            .data
+            .as_revolute_mut()
+            .unwrap();
+
+        left_arm_joint.set_local_anchor1(arm_anchor_pos);
+
+        let right_arm_joint = space.impulse_joint_set.get_mut(
+            self.right_arm.get_joint_handle()
+        )
+            .unwrap()
+            .data
+            .as_revolute_mut()
+            .unwrap();
+
+        right_arm_joint.set_local_anchor1(arm_anchor_pos);
+        
     }
     pub fn update_walk_animation(&mut self, space: &mut Space) {
         let velocity = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().linvel();
@@ -602,6 +637,7 @@ impl Player {
 
     pub async fn draw(&self, space: &Space, textures: &mut TextureLoader, camera_rect: &Rect) {
 
+        //draw_hitbox(space, self.rigid_body, self.collider);
         // we use this to determine if we need to flip the texture for the body
         let mut flip_x = false;
         
@@ -677,7 +713,8 @@ impl Player {
             draw_params
         );
 
-        self.left_arm.draw(space, textures).await;
+        self.left_arm.draw(space, textures, &self.facing).await;
+        self.right_arm.draw(space, textures, &self.facing).await;
 
 
         // draw top arm
@@ -692,7 +729,6 @@ impl Player {
             },
             _ => {}
         }
-
         
         
     }

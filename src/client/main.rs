@@ -30,7 +30,6 @@ async fn main() {
 
     let mut client = Client::connect("ws://0.0.0.0:5556").await; 
 
-
     client.run().await;
 
 }

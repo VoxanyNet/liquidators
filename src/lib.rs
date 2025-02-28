@@ -1,6 +1,6 @@
 use console::Console;
 use diff::Diff;
-use gamelibrary::{rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{rapier_mouse_world_pos, space::Space, syncsound::Sounds, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::{GamepadId, Gilrs};
 use macroquad::{input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}, prelude::camera::mouse};
 use nalgebra::vector;
@@ -103,7 +103,8 @@ pub struct TickContext<'a> {
     pub active_gamepad: &'a Option<GamepadId>,
     pub console: &'a mut Console,
     pub owned_rigid_bodies: &'a mut Vec<RigidBodyHandle>,
-    pub owned_colliders: &'a mut Vec<ColliderHandle>
+    pub owned_colliders: &'a mut Vec<ColliderHandle>,
+    pub sounds: &'a mut Sounds
 }
 
 #[derive(PartialEq, Serialize, Deserialize, Diff)]

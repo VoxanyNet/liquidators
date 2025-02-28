@@ -7,7 +7,7 @@ use rapier2d::prelude::{ColliderBuilder, ColliderHandle, ImpulseJointHandle, Int
 use parry2d::math::Real;
 use serde::{Deserialize, Serialize};
 
-use crate::TickContext;
+use crate::{player::Facing, TickContext};
 
 #[derive(Clone, Serialize, Deserialize, Diff, PartialEq)]
 #[diff(attr(
@@ -25,8 +25,8 @@ impl Arm {
     pub fn new(
         space: &mut Space, 
         body_rigid_body_handle: RigidBodyHandle,
-        body_anchor_point: Point<Real>, 
-        mut arm_anchor_point: Point<Real>,
+        body_anchor_point: Point<Real>, // this is relative to the center
+        arm_anchor_point_offset_from_top_left: Point<Real>, // this is relative to the top left
         textures: &mut TextureLoader,
         sprite_path: String,
         sprite_scale: f32
@@ -35,9 +35,6 @@ impl Arm {
         // doesnt need an initial position because the position is determined by the joint
         let rigid_body = RigidBodyBuilder::dynamic()
             .build();
-
-        arm_anchor_point.x *= sprite_scale;
-        arm_anchor_point.y *= sprite_scale;
 
         let texture = futures::executor::block_on(textures.get(&sprite_path));
 
@@ -54,14 +51,14 @@ impl Arm {
         let collider_handle = space.collider_set.insert_with_parent(collider, arm_rigid_body_handle, &mut space.rigid_body_set);
 
         let arm_anchor_point = {
-            let mut top_left = collider_top_left_pos(space, collider_handle);
+            let arm_collider_top_left = collider_top_left_pos(space, collider_handle);
 
-            top_left.x -= 8.;
-            
-
-            top_left
-            
+            Vec2::new(
+                arm_collider_top_left.x + (arm_anchor_point_offset_from_top_left.x * sprite_scale), 
+                arm_collider_top_left.y + (arm_anchor_point_offset_from_top_left.y * sprite_scale)
+            )
         };
+
         let joint = RevoluteJointBuilder::new()
             .local_anchor1(body_anchor_point)
             .local_anchor2(vector![arm_anchor_point.x, arm_anchor_point.y].into())
@@ -91,16 +88,23 @@ impl Arm {
         self.rigid_body_handle
     }
 
-    pub async fn draw(&self, space: &Space, textures: &mut TextureLoader) {
+    pub async fn draw(&self, space: &Space, textures: &mut TextureLoader, facing: &Facing) {
 
         let body = space.rigid_body_set.get(self.rigid_body_handle).unwrap();
         let collider = space.collider_set.get(self.collider_handle).unwrap();
         let shape = collider.shape().as_cuboid().unwrap();
 
         let mut draw_params = DrawTextureParams::default();
+
+        //draw_hitbox(space, self.rigid_body_handle, self.collider_handle);
         
         // this is dumb because we are getting the texture from the cache twice here but here we are
         let texture = futures::executor::block_on(textures.get(&self.sprite_path));
+
+        draw_params.flip_y = match facing {
+            Facing::Right => false,
+            Facing::Left => true,
+        };
 
         draw_params.dest_size = Some(
             Vec2::new(texture.width() * self.sprite_scale, texture.height() * self.sprite_scale)

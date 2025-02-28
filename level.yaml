@@ -15,7 +15,7 @@ structures:
   dragging: false
   drag_offset: null
   owner: null
-  editor_owner: '2751748512'
+  editor_owner: '3365440938'
   sprite_path: assets/structure/brick_block.png
   last_ownership_change: 0
   grabbing: false
@@ -34,15 +34,15 @@ space:
               - 1.0
               - 0.0
               translation:
-              - 611.0
-              - 49.0
+              - 622.0
+              - 56.0
             next_position:
               rotation:
               - 1.0
               - 0.0
               translation:
-              - 611.0
-              - 49.0
+              - 622.0
+              - 56.0
           mprops:
             flags: ''
             local_mprops:
@@ -53,8 +53,8 @@ space:
               inv_principal_inertia_sqrt: 0.019364918
             additional_local_mprops: null
             world_com:
-            - 611.0
-            - 49.0
+            - 622.0
+            - 56.0
             effective_inv_mass:
             - 0.1
             - 0.1
@@ -129,8 +129,8 @@ space:
           coll_type: Solid
           shape: !Cuboid
             half_extents:
-            - 570.0
-            - 21.0
+            - 580.0
+            - 20.0
           mprops: !Mass 10.0
           changes: MODIFIED | LOCAL_MASS_PROPERTIES | PARENT | POSITION | GROUPS | SHAPE | TYPE | PARENT_EFFECTIVE_DOMINANCE | ENABLED_OR_DISABLED
           parent:
@@ -149,8 +149,8 @@ space:
             - 1.0
             - 0.0
             translation:
-            - 321.0
-            - 49.0
+            - 62.0
+            - 56.0
           material:
             friction: 0.5
             restitution: 0.0
@@ -279,28 +279,28 @@ space:
     qbvh:
       root_aabb:
         mins:
-        - -260.4
-        - 27.58
+        - -529.6
+        - 35.6
         maxs:
-        - 902.4
-        - 70.42
+        - 653.6
+        - 76.4
       nodes:
       - simd_aabb:
           mins:
-          - - -260.4
+          - - -529.6
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 27.58
+          - - 35.6
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 902.4
+          - - 653.6
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 70.42
+          - - 76.4
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
@@ -315,20 +315,20 @@ space:
         flags: 0
       - simd_aabb:
           mins:
-          - - -260.4
+          - - -529.6
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 27.58
+          - - 35.6
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 902.4
+          - - 653.6
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 70.42
+          - - 76.4
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38

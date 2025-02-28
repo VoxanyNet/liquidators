@@ -1,6 +1,6 @@
 use std::{fs, time::Instant};
 
-use gamelibrary::{animation_loader::AnimationLoader, log, sync::client::SyncClient, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{animation_loader::AnimationLoader, log, sync::client::SyncClient, syncsound::Sounds, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, game_state::GameState, level::Level, player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
 use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, time::get_fps, window::{screen_height, screen_width}};
@@ -18,7 +18,8 @@ pub struct Client {
     pub last_sync: web_time::Instant,
     pub camera_rect: Rect,
     pub active_gamepad: Option<GamepadId>,
-    pub console: Console
+    pub console: Console,
+    pub sounds: Sounds
 }
 
 impl Client {
@@ -41,7 +42,8 @@ impl Client {
             active_gamepad: &self.active_gamepad,
             console: &mut self.console,
             owned_rigid_bodies: &mut vec![],
-            owned_colliders: &mut vec![]
+            owned_colliders: &mut vec![],
+            sounds: &mut self.sounds
         };
 
 
@@ -236,7 +238,8 @@ impl Client {
             camera_rect,
             active_gamepad,
             sync_client,
-            console: Console::new()
+            console: Console::new(),
+            sounds: Sounds::new()
         }
     }
 
