@@ -137,7 +137,12 @@ impl Client {
 
             let then = Instant::now();
 
-            self.tick(); 
+            // only tick maximum 120 times per second to avoid glitchyness
+            if self.last_tick.elapsed().as_secs_f32() > 1./120. {
+                self.tick();
+
+                // self.tick() updates self.last_tick automatically unlike self.last_sync
+            }
             
             //println!("FPS: {}", 1. / then.elapsed().as_secs_f64());
             

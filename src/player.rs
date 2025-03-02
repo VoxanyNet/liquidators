@@ -194,7 +194,7 @@ impl Player {
 
         let mut sound = SoundHandle::new("assets/sounds/mono.wav", [0.,0.,0.]);
 
-        sound.play();
+        //sound.play();
 
         players.push(
             Player {
