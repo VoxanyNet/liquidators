@@ -607,7 +607,7 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
-source = "git+https://github.com/VoxanyNet/gamelibrary?rev=e3426a65d093fb502b734a53520e68a5f4ce9d8b#e3426a65d093fb502b734a53520e68a5f4ce9d8b"
+source = "git+https://github.com/VoxanyNet/gamelibrary?rev=13953c537652b9a9359e11915bd4d7b182b408e4#13953c537652b9a9359e11915bd4d7b182b408e4"
 dependencies = [
  "bitcode",
  "chrono",
@@ -1016,6 +1016,7 @@ dependencies = [
  "rapier2d",
  "reqwest",
  "serde",
+ "serde_json",
  "serde_yaml",
  "tungstenite",
  "web-sys",
@@ -1517,7 +1518,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.22.0"
-source = "git+https://github.com/VoxanyNet/rapier?rev=e7cc8ce6a83fab217a8d1c8d1d76c477c5bec0e4#e7cc8ce6a83fab217a8d1c8d1d76c477c5bec0e4"
+source = "git+https://github.com/VoxanyNet/rapier?rev=712fd74b4785ab374eff218554b18cffd5cfba24#712fd74b4785ab374eff218554b18cffd5cfba24"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1743,9 +1744,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.128"
+version = "1.0.140"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ff5456707a1de34e7e37f2a6fd3d3f808c318259cbd01ab6377795054b483d8"
+checksum = "20068b6e96dc6c9bd23e01df8827e6c7e1f2fddd43c21810382803c136b99373"
 dependencies = [
  "itoa",
  "memchr",

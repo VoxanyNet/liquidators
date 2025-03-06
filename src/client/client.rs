@@ -206,6 +206,19 @@ impl Client {
         
         let (sync_client, mut game_state): (SyncClient<GameState>, GameState) = SyncClient::connect(url).await;
     
+        let rigid_body_set = &mut game_state.level.space.rigid_body_set;
+        // we will start allocating OUR rigid bodies starting at the end of the current set
+        let new_free_list_head = rigid_body_set.bodies.capacity();
+        // reserve 500 entries in the rigid body and collider sets
+        rigid_body_set.bodies.reserve(500);
+        // this is only client side
+        rigid_body_set.bodies.set_free_list_head(new_free_list_head as u32);
+
+        // do the same for collider set
+        let collider_set = &mut game_state.level.space.collider_set;
+        let new_free_list_head = collider_set.colliders.capacity();
+        collider_set.colliders.reserve(500);
+        collider_set.colliders.set_free_list_head(new_free_list_head as u32);
 
         // if we are the first player to join, we take ownership of everything
         if game_state.level.players.len() == 0 {
@@ -229,6 +242,8 @@ impl Client {
         let mut active_gamepad: Option<GamepadId> = None; 
 
         // active_gamepad = gilrs.gamepads().next().map_or(None, |gamepad|{Some(gamepad.0)});
+
+        println!("{}", "fortnite");
         
         Self {
             game_state,
@@ -256,9 +271,9 @@ impl Client {
     fn save_state(&mut self) {
         if is_key_released(macroquad::input::KeyCode::F5) {
 
-            let game_state_binary = bitcode::serialize(&self.game_state).unwrap();
+            let game_state_json = serde_json::to_string_pretty(&self.game_state).unwrap();
 
-            std::fs::write("state.bin", game_state_binary).unwrap();
+            std::fs::write("state.json", game_state_json).unwrap();
         }
 
         if is_key_released(macroquad::input::KeyCode::F6) {
