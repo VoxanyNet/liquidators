@@ -11,11 +11,11 @@ chrono = { version = "0.4.35", features = ["serde"] }
 diff-struct = "0.5.3"
 macroquad = {git = "https://github.com/VoxanyNet/macroquad", rev = "73db4a93f90f41942995ef757499ed61f3ff6085"}
 nalgebra = {git = "https://github.com/VoxanyNet/nalgebra", rev = "c57d898ac19a01ac5ad2d6da5f98dea91257ac9e"}
-rapier2d = { git = "https://github.com/VoxanyNet/rapier", rev = "3a570f15980902372ac0275f2e552566810771e7", features = ["serde-serialize"] }
+rapier2d = { git = "https://github.com/VoxanyNet/rapier", rev = "e7cc8ce6a83fab217a8d1c8d1d76c477c5bec0e4", features = ["serde-serialize"] }
 serde = { version = "1.0.205", features = ["serde_derive"] }
 lz4_flex = { version = "0.11", default-features = false }
 # ewebsock = "0.7.0"
-gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "c90b16f51408fc8c2dbe627747c847081ee50d9a"}
+gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "e3426a65d093fb502b734a53520e68a5f4ce9d8b"}
 parry2d = {git = "https://github.com/VoxanyNet/parry", rev = "10a5155cb735ca3d2e912473b22bad2f2ad5889e"}
 #gamelibrary ={ path = "../gamelibrary"}
 bitcode = { version = "0.6.0", features = ["serde"] }

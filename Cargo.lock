@@ -607,7 +607,7 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
-source = "git+https://github.com/VoxanyNet/gamelibrary?rev=c90b16f51408fc8c2dbe627747c847081ee50d9a#c90b16f51408fc8c2dbe627747c847081ee50d9a"
+source = "git+https://github.com/VoxanyNet/gamelibrary?rev=e3426a65d093fb502b734a53520e68a5f4ce9d8b#e3426a65d093fb502b734a53520e68a5f4ce9d8b"
 dependencies = [
  "bitcode",
  "chrono",
@@ -1517,7 +1517,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.22.0"
-source = "git+https://github.com/VoxanyNet/rapier?rev=3a570f15980902372ac0275f2e552566810771e7#3a570f15980902372ac0275f2e552566810771e7"
+source = "git+https://github.com/VoxanyNet/rapier?rev=e7cc8ce6a83fab217a8d1c8d1d76c477c5bec0e4#e7cc8ce6a83fab217a8d1c8d1d76c477c5bec0e4"
 dependencies = [
  "approx",
  "arrayvec",
