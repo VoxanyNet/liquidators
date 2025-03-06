@@ -1,8 +1,8 @@
 use diff::Diff;
 use gamelibrary::{rapier_to_macroquad, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::WHITE, math::Vec2, text, texture::{draw_texture_ex, DrawTextureParams}};
+use macroquad::{color::WHITE, math::Vec2, texture::{draw_texture_ex, DrawTextureParams}};
 use nalgebra::vector;
-use rapier2d::prelude::{Collider, ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]

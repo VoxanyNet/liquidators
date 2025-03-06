@@ -1,8 +1,8 @@
 use console::Console;
 use diff::Diff;
 use gamelibrary::{rapier_mouse_world_pos, space::Space, syncsound::Sounds, texture_loader::TextureLoader, traits::HasPhysics};
-use gilrs::{GamepadId, Gilrs};
-use macroquad::{input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}, prelude::camera::mouse};
+use gilrs::GamepadId;
+use macroquad::{input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}};
 use nalgebra::vector;
 use rapier2d::prelude::{ColliderHandle, RigidBodyHandle};
 use serde::{Deserialize, Serialize};

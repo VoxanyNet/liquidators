@@ -6,7 +6,7 @@ use nalgebra::vector;
 use rapier2d::prelude::{ActiveEvents, ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{level::Level, TickContext};
+use crate::TickContext;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(

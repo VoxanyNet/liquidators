@@ -1,9 +1,9 @@
-use std::{fs, time::Instant};
+use std::fs;
 
 use gamelibrary::{animation_loader::AnimationLoader, log, sync::client::SyncClient, syncsound::Sounds, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, game_state::GameState, level::Level, player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
-use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, time::get_fps, window::{screen_height, screen_width}};
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, time::get_fps, window::{screen_height, screen_width}};
 
 pub struct Client {
     pub game_state: GameState,
@@ -135,7 +135,7 @@ impl Client {
                 break;
             }
 
-            let then = Instant::now();
+            //let then = Instant::now();
 
             // only tick maximum 120 times per second to avoid glitchyness
             if self.last_tick.elapsed().as_secs_f32() > 1./120. {
@@ -239,7 +239,7 @@ impl Client {
 
         //let gilrs = Gilrs::new().unwrap();
 
-        let mut active_gamepad: Option<GamepadId> = None; 
+        let active_gamepad: Option<GamepadId> = None; 
 
         // active_gamepad = gilrs.gamepads().next().map_or(None, |gamepad|{Some(gamepad.0)});
 

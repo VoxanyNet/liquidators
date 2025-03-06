@@ -1,10 +1,10 @@
 
 use diff::Diff;
-use gamelibrary::{mouse_world_pos, rapier_mouse_world_pos, texture_loader::TextureLoader};
+use gamelibrary::{rapier_mouse_world_pos, texture_loader::TextureLoader};
 use macroquad::{input::is_key_released, math::Rect};
 use serde::{Deserialize, Serialize};
 
-use crate::{brick::Brick, chat::Chat, level::Level, structure::Structure, TickContext};
+use crate::{chat::Chat, level::Level, structure::Structure, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, Clone, PartialEq)]
 #[diff(attr(

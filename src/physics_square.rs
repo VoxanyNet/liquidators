@@ -100,7 +100,7 @@ impl PhysicsSquare {
         Some(self)
     }
 
-    pub fn tick(&mut self, game_state: &mut GameState, ctx: &mut TickContext) {
+    pub fn tick(&mut self, game_state: &mut GameState, _ctx: &mut TickContext) {
 
         let rigid_body = game_state.level.space.rigid_body_set.get_mut(self.rigid_body_handle).expect("shit");
 

@@ -1,8 +1,8 @@
 use diff::Diff;
-use gamelibrary::{collider_top_left_pos, draw_texture_rapier, rapier_to_macroquad, space::Space, texture_loader::TextureLoader, traits::{draw_hitbox, draw_texture_onto_physics_body, HasPhysics}};
-use macroquad::{color::{GREEN, RED, WHITE}, math::Vec2, shapes::draw_circle, texture::DrawTextureParams};
+use gamelibrary::{collider_top_left_pos, draw_texture_rapier, space::Space, texture_loader::TextureLoader};
+use macroquad::{color::WHITE, math::Vec2, texture::DrawTextureParams};
 use nalgebra::vector;
-use parry2d::math::{Isometry, Point};
+use parry2d::math::Point;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, ImpulseJointHandle, InteractionGroups, RevoluteJointBuilder, RigidBodyBuilder, RigidBodyHandle};
 use parry2d::math::Real;
 use serde::{Deserialize, Serialize};
@@ -123,17 +123,6 @@ impl Arm {
             WHITE, 
             draw_params
         );
-
-        let joint = space.impulse_joint_set.get(self.joint_handle).unwrap();
-
-        let body_pos = space.rigid_body_set.get(joint.body1).unwrap().translation();
-        let arm_pos = space.rigid_body_set.get(self.get_rigid_body_handle()).unwrap().translation();
-
-        let body_pos_macroquad = rapier_to_macroquad(&Vec2::new(body_pos.x, body_pos.y));
-        let arm_pos_macroquad = rapier_to_macroquad(&Vec2::new(arm_pos.x, arm_pos.y));
-
-        let body_anchor = joint.data.local_anchor1();
-        let arm_anchor = joint.data.local_anchor2();
 
         //draw_circle(body_anchor.x + body_pos_macroquad.x, body_anchor.y + body_pos_macroquad.y, 10., RED);
         //draw_circle(arm_anchor.x + arm_pos_macroquad.x, arm_anchor.y + arm_pos_macroquad.y, 5., GREEN);

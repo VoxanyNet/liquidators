@@ -1,13 +1,13 @@
-use std::{fs, time::Instant};
+use std::fs;
 
 use diff::Diff;
 use gamelibrary::{macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, texture_loader::TextureLoader, traits::HasPhysics};
 use macroquad::{color::RED, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}};
 use nalgebra::vector;
-use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::{boat::{self, Boat}, brick::Brick, player::Player, portal::Portal, portal_bullet::{self, PortalBullet}, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::{self, Sky}, structure::Structure, TickContext};
+use crate::{boat::Boat, brick::Brick, player::Player, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -69,7 +69,7 @@ impl Level {
 
             for (_, rigid_body) in self.space.rigid_body_set.iter_mut() {
 
-                let distance_to_mouse = Vec2::new((mouse_pos.x - rigid_body.translation().x), (mouse_pos.y - rigid_body.translation().y));
+                let distance_to_mouse = Vec2::new(mouse_pos.x - rigid_body.translation().x, mouse_pos.y - rigid_body.translation().y);
 
                 rigid_body.apply_impulse(vector![distance_to_mouse.x * 5., distance_to_mouse.y * 5.].into(), true);
 

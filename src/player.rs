@@ -1,17 +1,16 @@
-use std::{clone, time::Instant};
+use std::time::Instant;
 
 use parry2d::math::Real;
 use diff::Diff;
-use futures::future;
-use gamelibrary::{animation::{Frames, TrackedFrames}, current_unix_millis, draw_texture_rapier, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, rotate_point, space::Space, swapiter::SwapIter, syncsound::{SoundHandle, Sounds}, texture_loader::TextureLoader, traits::{draw_hitbox, HasPhysics}};
-use gilrs::{ev::Code, Button, Gamepad};
-use macroquad::{camera::Camera2D, color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, texture::{draw_texture_ex, DrawTextureParams}, time::get_frame_time};
-use nalgebra::{vector, Isometry, Rotation, Rotation2, UnitComplex};
+use gamelibrary::{animation::TrackedFrames, current_unix_millis, draw_texture_rapier, get_angle_to_mouse, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, syncsound::{SoundHandle, Sounds}, texture_loader::TextureLoader, traits::HasPhysics};
+use gilrs::Gamepad;
+use macroquad::{color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, texture::DrawTextureParams, time::get_frame_time};
+use nalgebra::{vector, UnitComplex};
 use parry2d::math::Point;
-use rapier2d::prelude::{ColliderBuilder, ColliderHandle, InteractionGroups, MotorModel, QueryFilter, RigidBody, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{ColliderBuilder, ColliderHandle, InteractionGroups, QueryFilter, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{arm::Arm, brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure::{self, Structure}, TickContext};
+use crate::{arm::Arm, brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure::Structure, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -192,9 +191,7 @@ impl Player {
             1.75
         );
 
-        let mut sound = SoundHandle::new("assets/sounds/mono.wav", [0.,0.,0.]);
-
-        //sound.play();
+        let sound = SoundHandle::new("assets/sounds/mono.wav", [0.,0.,0.]);
 
         players.push(
             Player {
@@ -225,12 +222,12 @@ impl Player {
         sounds.sync_sound(&self.sound);
     }
 
-    pub fn pickup_shotgun(&mut self, level: &mut Level, ctx: &mut TickContext) {
+    pub fn pickup_shotgun(&mut self, level: &mut Level, _ctx: &mut TickContext) {
 
         let player_shape = level.space.collider_set.get(self.collider).unwrap().shape();
         let player_pos = level.space.rigid_body_set.get(self.rigid_body).unwrap().position();
 
-        let colliding_collider = match level.space.query_pipeline.intersection_with_shape(
+        let _colliding_collider = match level.space.query_pipeline.intersection_with_shape(
             &level.space.rigid_body_set,
             &level.space.collider_set,
             player_pos, 
@@ -248,47 +245,7 @@ impl Player {
         // }
     }
 
-    pub fn update_shotgun_pos(&mut self, space: &mut Space) {
-
-        let shotgun = match &self.shotgun {
-            Some(shotgun) => shotgun,
-            None => return,
-        };
-        
-        let player_pos = {
-            space.rigid_body_set.get(self.rigid_body).unwrap().translation().clone()
-        };
-
-        let shotgun_body = space.rigid_body_set.get_mut(shotgun.rigid_body).unwrap();
-
-        let shotgun_collider = space.collider_set.get(shotgun.collider).unwrap(); 
-
-        let player_collider = space.collider_set.get(self.collider).unwrap();
-
-        
-
-        let shotgun_length = shotgun_collider.shape().as_cuboid().unwrap().half_extents.x;
-        let player_length = player_collider.shape().as_cuboid().unwrap().half_extents.x;
-        
-        let shotgun_offset = match self.facing {
-            Facing::Right => shotgun_length + player_length,
-            Facing::Left => -1. * (shotgun_length + player_length),
-        };
-        
-        // shotgun_body.set_position(
-        //     vector![player_pos.x + shotgun_offset, player_pos.y].into(), 
-        //     true
-        // );
-
-
-        let new_pos = rotate_point(vec2(shotgun_body.translation().x, shotgun_body.translation().y), vec2(player_pos.x, player_pos.y), self.arm_angle);
-
-        shotgun_body.set_position(
-            vector![new_pos.x, new_pos.y].into(), true
-        );
-
-    }
-    pub fn tick(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext, players: &mut Vec<Player>) {
+    pub fn tick(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext, _players: &mut Vec<Player>) {
         //self.launch_brick(level, ctx);
         self.control(space, ctx);
         self.update_selected(space, &ctx.camera_rect);
@@ -300,7 +257,6 @@ impl Player {
         //self.fire_portal_gun(ctx.camera_rect, &mut portal_bullets);
         self.update_idle_animation(space);
         self.change_facing_direction(&space);
-        self.update_shotgun_pos(space);
         self.delete_structure(structures, space, ctx);
         self.update_arm_anchor_pos(space);
         self.sync_sound(ctx.sounds);
@@ -347,7 +303,7 @@ impl Player {
 
         let then = Instant::now();
         while structures_iter.not_done() {
-            let (structures, mut structure) = structures_iter.next();
+            let (_structures, mut structure) = structures_iter.next();
 
             if structure.contains_point(space, rapier_mouse_world_pos(ctx.camera_rect)) {
                 structure.despawn(space);
@@ -507,7 +463,7 @@ impl Player {
 
         }
     }
-    pub fn fire_portal_gun(&mut self, camera_rect: &Rect, portal_bullets: &mut Vec<PortalBullet>) {
+    pub fn fire_portal_gun(&mut self, _camera_rect: &Rect, _portal_bullets: &mut Vec<PortalBullet>) {
         if is_mouse_button_released(macroquad::input::MouseButton::Left) {
             //self.portal_gun.fire(camera_rect, portal_bullets);
         }
@@ -580,7 +536,7 @@ impl Player {
         }
     }
 
-    pub fn control(&mut self, space: &mut Space, ctx: &mut TickContext) {
+    pub fn control(&mut self, space: &mut Space, _ctx: &mut TickContext) {
 
         let rigid_body = space.rigid_body_set.get_mut(self.rigid_body).unwrap();
 
@@ -663,17 +619,6 @@ impl Player {
         let player_position = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().translation();
 
         // arms are drawn seperately from the body because they move to follow the camera
-        
-        // check if we need to draw bottom arm
-        match self.animation_handler.get_animation_state() {
-            PlayerAnimationState::GunRun => {
-                
-                let texture_scale = 1.75;
-
-                
-            },
-            _ => {}
-        }   
 
         
         let texture = textures.get(self.animation_handler.get_current_frame()).await.weak_clone();
