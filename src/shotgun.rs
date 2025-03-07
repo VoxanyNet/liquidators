@@ -5,7 +5,7 @@ use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{level::Level, player::Player, Grabbable, TickContext};
+use crate::{player::Player, Grabbable, TickContext};
 
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]

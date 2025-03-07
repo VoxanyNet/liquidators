@@ -591,7 +591,7 @@ impl Player {
 
     }
 
-    pub async fn draw(&self, space: &Space, textures: &mut TextureLoader, camera_rect: &Rect) {
+    pub async fn draw(&self, space: &Space, textures: &mut TextureLoader, _camera_rect: &Rect) {
 
         //draw_hitbox(space, self.rigid_body, self.collider);
         // we use this to determine if we need to flip the texture for the body
@@ -632,8 +632,8 @@ impl Player {
         
         //self.draw_collider(space).await;
 
-        let mut draw_offset_x: f32 = 0.;
-        let mut draw_offset_y: f32 = 0.;
+        let draw_offset_x: f32;
+        let draw_offset_y: f32;
 
         match self.animation_handler.get_animation_state() {
             PlayerAnimationState::Walking => {
@@ -667,7 +667,7 @@ impl Player {
 
             PlayerAnimationState::GunRun => {
 
-                let texture_scale = 2.5;
+                let _texture_scale = 2.5;
 
                 
 

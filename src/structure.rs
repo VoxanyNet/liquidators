@@ -1,8 +1,7 @@
-use chrono::{DateTime, Utc};
 use diff::Diff;
 use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::{DARKGRAY, RED, WHITE}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, miniquad::date::now, shapes::draw_circle};
-use nalgebra::{vector, Const, OPoint};
+use macroquad::{color::{DARKGRAY, RED, WHITE}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, shapes::draw_circle};
+use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
 
@@ -110,10 +109,10 @@ impl Structure {
 
     pub fn tick(&mut self, ctx: &mut TickContext, space: &mut Space, players: &Vec<Player>) {
         
-        let collider = space.collider_set.get(self.collider_handle).unwrap();
-        let body_transform = space.rigid_body_set.get(self.rigid_body_handle).unwrap().position();
+        // let collider = space.collider_set.get(self.collider_handle).unwrap();
+        // let body_transform = space.rigid_body_set.get(self.rigid_body_handle).unwrap().position();
 
-        let body = space.rigid_body_set.get(self.rigid_body_handle).unwrap();
+        // let body = space.rigid_body_set.get(self.rigid_body_handle).unwrap();
         
 
         if self.owner.is_none() {

@@ -1,11 +1,8 @@
 use diff::Diff;
-use gamelibrary::{rapier_to_macroquad, space::Space};
+use gamelibrary::rapier_to_macroquad;
 use macroquad::{color::BLUE, math::Vec2, shapes::draw_circle};
-use nalgebra::vector;
-use rapier2d::prelude::{ColliderHandle, QueryFilter};
 use serde::{Deserialize, Serialize};
 
-use crate::{level::Level, portal::Portal, structure::{self, Structure}};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
