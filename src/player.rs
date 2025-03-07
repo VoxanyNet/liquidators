@@ -191,7 +191,7 @@ impl Player {
             1.75
         );
 
-        let sound = SoundHandle::new("assets/sounds/mono.wav", [0.,0.,0.]);
+        let sound = SoundHandle::new("assets/sounds/brick_land.wav", [0.,0.,0.]);
 
         players.push(
             Player {
@@ -219,7 +219,7 @@ impl Player {
     }
 
     pub fn sync_sound(&mut self, sounds: &mut Sounds) {
-        sounds.sync_sound(&self.sound);
+        sounds.sync_sound(&mut self.sound);
     }
 
     pub fn pickup_shotgun(&mut self, level: &mut Level, _ctx: &mut TickContext) {
@@ -260,6 +260,13 @@ impl Player {
         self.delete_structure(structures, space, ctx);
         self.update_arm_anchor_pos(space);
         self.sync_sound(ctx.sounds);
+
+        if is_key_released(KeyCode::N) {
+
+            self.sound = SoundHandle::new("assets/sounds/brick_land.wav", [0., 0., 0.]);
+            
+            self.sound.play();
+        }
         //self.update_hitbox_size(space, ctx);
 
         self.update_arm_angle(space, ctx.camera_rect);
