@@ -639,24 +639,20 @@ impl Player {
         
         //self.draw_collider(space).await;
 
-        let draw_offset_x: f32;
-        let draw_offset_y: f32;
-
-        match self.animation_handler.get_animation_state() {
+        let (draw_offset_x, draw_offset_y) = match self.animation_handler.get_animation_state() {
             PlayerAnimationState::Walking => {
-                draw_offset_x = -20.;
-                draw_offset_y = 36.;
+                (20., 36.)
             },  
             PlayerAnimationState::Idle => {
-                draw_offset_x = -20.;
-                draw_offset_y = 36.;
+                (-20., 36.)
             },
             PlayerAnimationState::GunRun => {
-                draw_offset_x = -30.;
-                draw_offset_y = 31.;
+                (-30., 31.)
             },
-        }
+        };
 
+        self.left_arm.draw(space, textures, &self.facing).await;
+        
         draw_texture_rapier(
             &texture, 
             player_position.x + draw_offset_x, 
@@ -665,7 +661,7 @@ impl Player {
             draw_params
         );
 
-        self.left_arm.draw(space, textures, &self.facing).await;
+        
         self.right_arm.draw(space, textures, &self.facing).await;
 
 

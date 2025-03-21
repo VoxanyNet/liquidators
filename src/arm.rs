@@ -1,6 +1,6 @@
 use diff::Diff;
-use gamelibrary::{collider_top_left_pos, draw_texture_rapier, space::Space, texture_loader::TextureLoader};
-use macroquad::{color::WHITE, math::Vec2, texture::DrawTextureParams};
+use gamelibrary::{collider_top_left_pos, draw_texture_rapier, space::Space, texture_loader::TextureLoader, traits::draw_hitbox};
+use macroquad::{color::{GREEN, RED, WHITE}, math::Vec2, texture::DrawTextureParams};
 use nalgebra::vector;
 use parry2d::math::Point;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, ImpulseJointHandle, InteractionGroups, RevoluteJointBuilder, RigidBodyBuilder, RigidBodyHandle};
@@ -96,7 +96,12 @@ impl Arm {
 
         let mut draw_params = DrawTextureParams::default();
 
-        //draw_hitbox(space, self.rigid_body_handle, self.collider_handle);
+        let color = if self.sprite_path.contains("bottom") {
+            RED
+        } else {
+            GREEN
+        };
+        draw_hitbox(space, self.rigid_body_handle, self.collider_handle, color);
         
         // this is dumb because we are getting the texture from the cache twice here but here we are
         let texture = futures::executor::block_on(textures.get(&self.sprite_path));

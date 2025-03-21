@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, sync::{mpsc, Arc, Mutex}};
 
 use gamelibrary::{animation_loader::AnimationLoader, log, sync::client::SyncClient, syncsound::Sounds, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
@@ -123,6 +123,15 @@ impl Client {
 
     }
 
+    pub fn tick_loop(client: Arc<Mutex<Self>>) {
+
+        Self::tick(&mut *client.lock().unwrap());
+    }
+
+    pub fn draw_loop(rx: mpsc::Receiver<GameState>) {
+        
+    }
+
     pub async fn run(&mut self) {
 
         prevent_quit();
@@ -137,21 +146,21 @@ impl Client {
 
             //let then = Instant::now();
 
-            // only tick maximum 120 times per second to avoid glitchyness
-            if self.last_tick.elapsed().as_secs_f32() > 1./120. {
-                self.tick();
+            self.tick();
 
+            // only tick maximum 120 times per second to avoid glitchyness
+            if self.last_tick.elapsed().as_millis() >= 8 {
+
+                //println!("{}", self.last_tick.elapsed().as_millis() - 8);
+                
+                
                 // self.tick() updates self.last_tick automatically unlike self.last_sync
             }
-            
-            //println!("FPS: {}", 1. / then.elapsed().as_secs_f64());
-            
-            if is_key_released(KeyCode::H) {
-                log("paused");
-            }
-            
-            self.draw().await;
 
+            
+
+            self.draw().await;
+            
             // only sync 30 tps
             // this could probably be optimized but this is more readable
             if self.last_sync.elapsed().as_secs_f32() > 1./60. {
@@ -159,7 +168,17 @@ impl Client {
                 self.sync_client.sync(&mut self.game_state);
 
                 self.last_sync = web_time::Instant::now();
-            }            
+
+            }   
+
+            //println!("FPS: {}", 1. / then.elapsed().as_secs_f64());
+            
+            if is_key_released(KeyCode::H) {
+                log("paused");
+            }
+        
+
+                     
 
             // calculate the time we need to sleep to lock the framerate at 120
             //let sleep_duration = Duration::from_millis(7).saturating_sub(self.last_tick.elapsed());

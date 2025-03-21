@@ -82,7 +82,7 @@ impl EditorClient {
                 owned_colliders.push(brick.collider_handle().clone());
             }
 
-            self.level.space.step(self.last_tick.elapsed(), &owned_rigid_bodies, &owned_colliders);
+            self.level.space.step(&owned_rigid_bodies, &owned_colliders, &self.last_tick);
         }
     }
 

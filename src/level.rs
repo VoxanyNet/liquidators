@@ -139,7 +139,7 @@ impl Level {
             
         }
 
-        self.space.step(ctx.last_tick.elapsed(), &ctx.owned_rigid_bodies, &ctx.owned_colliders);
+        self.space.step(&ctx.owned_rigid_bodies, &ctx.owned_colliders, ctx.last_tick);
         
     }
 
