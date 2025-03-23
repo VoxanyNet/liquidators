@@ -235,7 +235,7 @@ impl Level {
                     .position(
                         vector![rapier_mouse_world_pos.x, rapier_mouse_world_pos.y].into()
                     )
-                    .soft_ccd_prediction(20.)
+                    .ccd_enabled(true)
             );
 
             let collider = ColliderBuilder::cuboid(20., 20.)
@@ -258,7 +258,8 @@ impl Level {
                 drag_offset: None,
                 sprite_path: "assets/structure/brick_block.png".to_string(),
                 last_ownership_change: 0,
-                particles: vec![]
+                particles: vec![],
+                joint_test: None.into()
             };
             
             self.structures.push(new_structure);

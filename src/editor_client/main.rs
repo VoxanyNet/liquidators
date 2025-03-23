@@ -6,9 +6,10 @@ pub mod editor_client;
 fn window_conf() -> Conf {
     let conf = Conf {
         window_title: "Liquidators Level Editor".to_owned(),
-        window_width: 1280,
-        window_height: 720,
-        window_resizable: true, 
+        window_width: 1920,
+        window_height: 1080,
+        window_resizable: false,
+        fullscreen: true, 
         platform: Platform::default(),
         ..Default::default()
     };

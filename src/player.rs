@@ -153,7 +153,7 @@ impl Player {
         let sprite_scale = 2.2;
         let rigid_body = RigidBodyBuilder::dynamic()
             .position(vector![position.x, position.y].into())
-            .soft_ccd_prediction(20.)
+            //.soft_ccd_prediction(20.)
             .ccd_enabled(true)
             .lock_rotations()
             .build();

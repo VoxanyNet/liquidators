@@ -1,7 +1,9 @@
 
 use diff::Diff;
 use gamelibrary::{rapier_mouse_world_pos, texture_loader::TextureLoader};
-use macroquad::{input::is_key_released, math::Rect};
+use macroquad::{input::is_key_released, math::{Rect, Vec2}};
+use nalgebra::vector;
+use rapier2d::prelude::RevoluteJointBuilder;
 use serde::{Deserialize, Serialize};
 
 use crate::{chat::Chat, level::Level, structure::Structure, TickContext};
@@ -28,7 +30,33 @@ impl GameState {
 
     pub fn spawn_brick(&mut self, ctx: &mut TickContext) {
         if is_key_released(macroquad::input::KeyCode::E) {
-            self.level.structures.push(Structure::new(rapier_mouse_world_pos(ctx.camera_rect), &mut self.level.space, ctx.uuid.clone()));
+
+            let pos = rapier_mouse_world_pos(ctx.camera_rect);
+
+            let mut new_structure = Structure::new(pos, &mut self.level.space, ctx.uuid.clone());
+
+            let attached_structure = Structure::new(
+                Vec2 {
+                    x: pos.x,
+                    y: pos.y,
+                }, 
+                &mut self.level.space, 
+                ctx.uuid.clone()
+            );
+
+            self.level.space.impulse_joint_set.insert(
+                new_structure.rigid_body_handle, 
+                attached_structure.rigid_body_handle, 
+                RevoluteJointBuilder::new()
+                    .local_anchor1(vector![0., 50.].into())
+                    .local_anchor2(vector![0., 0.].into())
+                    .build(),
+                true
+            );
+
+            new_structure.joint_test = Some(attached_structure).into();
+            
+            self.level.structures.push(new_structure);
         }
     }
 

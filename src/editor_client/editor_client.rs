@@ -2,7 +2,7 @@ use std::{fs, time::Instant};
 
 use gamelibrary::{log, menu::Button, sync::client::SyncClient, texture_loader::TextureLoader, uuid};
 use liquidators_lib::level::Level;
-use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, WHITE}, input::{self, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel}, math::Rect, text::draw_text, time::get_fps, window::screen_width};
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, WHITE}, input::{self, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel}, math::Rect, text::draw_text, time::get_fps, window::{screen_height, screen_width}};
 use gamelibrary::traits::HasPhysics;
 
 pub struct EditorClient {
@@ -37,7 +37,7 @@ impl EditorClient {
             DARKGRAY
         );
 
-        let camera_rect = Rect::new(0., 0., 1280., 720.);
+        let camera_rect = Rect::new(0., 200., screen_width() / 1.50, screen_height() / 1.5);
 
         Self {
             uuid,

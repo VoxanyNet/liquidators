@@ -1,4 +1,4 @@
-use std::{fs, sync::{mpsc, Arc, Mutex}};
+use std::{fs, sync::{mpsc, Arc, Mutex}, time::Instant};
 
 use gamelibrary::{animation_loader::AnimationLoader, log, sync::client::SyncClient, syncsound::Sounds, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
@@ -10,12 +10,12 @@ pub struct Client {
     pub is_host: bool,
     pub textures: TextureLoader,
     pub animations: AnimationLoader,
-    pub last_tick: web_time::Instant,
+    pub last_tick: Instant,
     pub uuid: String,
     pub camera_offset: Vec2,
     pub update_count: i32,
     pub sync_client: SyncClient<GameState>,
-    pub last_sync: web_time::Instant,
+    pub last_sync: Instant,
     pub camera_rect: Rect,
     pub active_gamepad: Option<GamepadId>,
     pub console: Console,
@@ -63,7 +63,7 @@ impl Client {
 
         self.save_state();
 
-        self.last_tick = web_time::Instant::now();
+        self.last_tick = Instant::now();
 
     }
 
@@ -167,7 +167,7 @@ impl Client {
 
                 self.sync_client.sync(&mut self.game_state);
 
-                self.last_sync = web_time::Instant::now();
+                self.last_sync = Instant::now();
 
             }   
 
@@ -269,11 +269,11 @@ impl Client {
             is_host: true,
             textures, 
             animations: AnimationLoader::new(),
-            last_tick: web_time::Instant::now(),
+            last_tick: Instant::now(),
             uuid,
             camera_offset: Vec2::new(0., 0.),
             update_count: 0,
-            last_sync: web_time::Instant::now(),
+            last_sync: Instant::now(),
             camera_rect,
             active_gamepad,
             sync_client,

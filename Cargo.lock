@@ -607,7 +607,6 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
-source = "git+https://github.com/VoxanyNet/gamelibrary?rev=9dde8b20569129bff5ad2abd8249c87c05a82069#9dde8b20569129bff5ad2abd8249c87c05a82069"
 dependencies = [
  "bitcode",
  "chrono",
@@ -628,7 +627,6 @@ dependencies = [
  "uuid",
  "wasm-bindgen-futures",
  "web-sys",
- "web-time",
 ]
 
 [[package]]
@@ -1020,7 +1018,6 @@ dependencies = [
  "serde_yaml",
  "tungstenite",
  "web-sys",
- "web-time",
 ]
 
 [[package]]
@@ -2275,16 +2272,6 @@ name = "web-sys"
 version = "0.3.72"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f6488b90108c040df0fe62fa815cbdee25124641df01814dd7282749234c6112"
-dependencies = [
- "js-sys",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "web-time"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
 dependencies = [
  "js-sys",
  "wasm-bindgen",

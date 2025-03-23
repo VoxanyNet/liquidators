@@ -39,6 +39,7 @@ impl PhysicsSquare {
         let rigid_body_handle = space.rigid_body_set.insert(
             RigidBodyBuilder::new(body_type)
                 .translation(vector![position.x, position.y])
+                .ccd_enabled(true)
                 .build()
         );
         

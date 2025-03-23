@@ -1,8 +1,8 @@
 use diff::Diff;
-use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::{draw_hitbox, HasPhysics}};
 use macroquad::{color::{DARKGRAY, RED, WHITE}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, shapes::draw_circle};
 use nalgebra::vector;
-use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
+use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RevoluteJointBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
 
 use crate::{level::Level, player::Player, Grabbable, TickContext};
@@ -24,7 +24,8 @@ pub struct Structure {
     pub sprite_path: String,
     pub last_ownership_change: u64,
     pub grabbing: bool,
-    pub particles: Vec<Vec2>
+    pub particles: Vec<Vec2>,
+    pub joint_test: Box<Option<Structure>>
 }
 
 impl Grabbable for Structure {
@@ -55,7 +56,6 @@ impl Structure {
                     vector![pos.x, pos.y].into()
                 )
                 .ccd_enabled(true)
-                .soft_ccd_prediction(20.)
         );
 
         let collider = ColliderBuilder::cuboid(20., 20.)
@@ -78,7 +78,8 @@ impl Structure {
             sprite_path: "assets/structure/brick_block.png".to_string(),
             last_ownership_change: 0,
             grabbing: false,
-            particles: vec![]
+            particles: vec![],
+            joint_test: None.into()
         }
     }
 
@@ -114,7 +115,14 @@ impl Structure {
 
         // let body = space.rigid_body_set.get(self.rigid_body_handle).unwrap();
         
+        self.update_selected(space, ctx.camera_rect);
+        self.update_is_dragging(space, ctx.camera_rect);
+        self.update_drag(space, ctx.camera_rect);
 
+        match &mut *self.joint_test {
+            Some(joint_test) => joint_test.tick(ctx, space, players),
+            None => {},
+        }
         if self.owner.is_none() {
             return;
         }
@@ -126,14 +134,14 @@ impl Structure {
 
                     let reference_body = player.rigid_body;
 
-                    self.update_grabbing(space, ctx.camera_rect, Vec2::new(250., 250.), reference_body);
+                    //self.update_grabbing(space, ctx.camera_rect, Vec2::new(250., 250.), reference_body);
 
                     break;
 
                 }
             }
 
-            self.update_grab_velocity(space);
+            //self.update_grab_velocity(space);
         }
 
         match &self.owner {
@@ -235,10 +243,18 @@ impl Structure {
 
     pub async fn draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
         self.draw_texture(space, texture_path, textures, false, false, 0.).await;
+        match &*self.joint_test {
+            Some(joint_test) => {
+                joint_test.draw_texture(space, texture_path, textures, false, false, 0.).await;
+            },
+            None => {},
+        }
 
         for particle in &self.particles {
             draw_circle(particle.x, particle.y, 20., WHITE);
         }
+
+        draw_hitbox(space, self.rigid_body_handle, self.collider_handle, WHITE);
     }
 
 }

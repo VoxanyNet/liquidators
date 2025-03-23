@@ -31,7 +31,7 @@ impl Brick {
         let body_handle = space.rigid_body_set.insert( 
             RigidBodyBuilder::dynamic()
                 .position(vector![location.x, location.y].into())
-                //.ccd_enabled(true)
+                .ccd_enabled(true)
                 .build()
         );
 

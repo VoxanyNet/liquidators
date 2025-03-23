@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use console::Console;
 use diff::Diff;
 use gamelibrary::{rapier_mouse_world_pos, space::Space, syncsound::Sounds, texture_loader::TextureLoader, traits::HasPhysics};
@@ -96,7 +98,7 @@ pub trait Grabbable: HasPhysics {
 pub struct TickContext<'a> {
     pub is_host: &'a mut bool,
     pub textures: &'a mut TextureLoader,
-    pub last_tick: &'a web_time::Instant,
+    pub last_tick: &'a Instant,
     pub uuid: &'a String,
     pub camera_rect: &'a Rect,
     pub camera_offset: &'a mut Vec2,
