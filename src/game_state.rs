@@ -33,42 +33,7 @@ impl GameState {
 
             let pos = rapier_mouse_world_pos(ctx.camera_rect);
 
-            let mut new_structure = Structure::new(pos, &mut self.level.space, ctx.uuid.clone());
-
-            let attached_structure = Structure::new(
-                Vec2 {
-                    x: pos.x,
-                    y: pos.y,
-                }, 
-                &mut self.level.space, 
-                ctx.uuid.clone()
-            );
-
-            self.level.space.impulse_joint_set.insert(
-                new_structure.rigid_body_handle, 
-                attached_structure.rigid_body_handle, 
-                RevoluteJointBuilder::new()
-                    .local_anchor1(vector![0., 0.].into())
-                    .local_anchor2(vector![0., 50.].into())
-                    .build(),
-                true
-            );
-
-            // let another_structure = Structure::new(pos, &mut self.level.space, ctx.uuid.clone());
-
-            // self.level.space.impulse_joint_set.insert(
-            //     new_structure.rigid_body_handle, 
-            //     another_structure.rigid_body_handle, 
-            //     RevoluteJointBuilder::new()
-            //         .local_anchor1(vector![0., 50.].into())
-            //         .local_anchor2(vector![0., 0.].into())
-            //         .build(),
-            //         true
-            // );
-
-            // self.level.structures.push(another_structure);
-
-            new_structure.joint_test = Some(attached_structure).into();
+            let new_structure = Structure::new(pos, &mut self.level.space, ctx.uuid.clone());
             
             self.level.structures.push(new_structure);
         }

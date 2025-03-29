@@ -1,11 +1,12 @@
-use std::time::Instant;
+use std::{fs, path::Path, time::Instant};
 
 use console::Console;
 use diff::Diff;
 use gamelibrary::{rapier_mouse_world_pos, space::Space, syncsound::Sounds, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
-use macroquad::{input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}};
+use macroquad::{input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}, rand::rand};
 use nalgebra::vector;
+use rand::{rng, seq::IndexedRandom, thread_rng};
 use rapier2d::prelude::{ColliderHandle, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
@@ -25,7 +26,32 @@ pub mod portal_gun;
 pub mod console;
 pub mod sky;
 pub mod boat;
-pub mod arm;
+
+#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
+#[diff(attr(
+    #[derive(Serialize, Deserialize)]
+))]
+pub struct BodyCollider {
+    body: RigidBodyHandle,
+    collider: ColliderHandle
+}
+
+pub fn get_random_file_from_dir(dir: &str) -> Option<String> {
+    let path = Path::new(dir);
+
+    if let Ok(entries) = fs::read_dir(path) {
+        let files: Vec<String> = entries
+            .filter_map(|entry| entry.ok()) // Filter out errors
+            .filter(|entry| entry.path().is_file()) // Only keep files
+            .filter_map(|entry| entry.path().to_str().map(String::from)) // Convert paths to strings
+            .collect();
+
+        let mut rng = rng();
+        files.choose(&mut rng).cloned() // Pick a random file
+    } else {
+        None
+    }
+}
 
 pub trait Grabbable: HasPhysics {
 

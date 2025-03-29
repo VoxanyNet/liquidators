@@ -7,10 +7,12 @@ use gilrs::Gamepad;
 use macroquad::{color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, texture::DrawTextureParams, time::get_frame_time};
 use nalgebra::{vector, UnitComplex};
 use parry2d::math::Point;
-use rapier2d::prelude::{ColliderBuilder, ColliderHandle, InteractionGroups, QueryFilter, RigidBody, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{BodyPair, ColliderBuilder, ColliderHandle, InteractionGroups, QueryFilter, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{arm::Arm, brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure::Structure, TickContext};
+use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure::Structure, BodyCollider, TickContext};
+
+use super::body_part::BodyPart;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -28,6 +30,8 @@ pub enum Facing {
 pub struct Player {
     pub rigid_body: RigidBodyHandle,
     pub collider: ColliderHandle,
+    pub head: BodyPart,
+    pub body: BodyPart,
     pub sprite_path: String,
     pub owner: String,
     pub selected: bool,
@@ -35,101 +39,12 @@ pub struct Player {
     pub drag_offset: Option<Vec2>,
     pub max_speed: Vec2,
     shotgun: Option<Shotgun>,
-    pub portal_gun: PortalGun,
     pub animation_handler: PlayerAnimationHandler,
     pub walk_frame_progess: f32,
     pub idle_frame_progress: f32,
     pub facing: Facing,
-    pub arm_angle: f32,
-    pub left_arm: Arm,
-    pub right_arm: Arm,
     pub sprite_scale: f32,
     pub sound: SoundHandle
-}
-
-#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
-#[diff(attr(
-    #[derive(Serialize, Deserialize)]
-))]
-pub enum PlayerAnimationState {
-    Walking,
-    Idle,
-    GunRun
-}
-
-#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
-#[diff(attr(
-    #[derive(Serialize, Deserialize)]
-))]
-// used to track the state of player animation
-pub struct PlayerAnimationHandler {
-    state: PlayerAnimationState,
-    walking_frames: TrackedFrames,
-    idle_frames: TrackedFrames,
-    gunrun_frames: TrackedFrames
-}
-
-impl PlayerAnimationHandler {
-
-    pub fn new(initial_state: PlayerAnimationState) -> Self {
-        
-        Self {
-            state: initial_state,
-            walking_frames: TrackedFrames::load_from_directory(&"assets/player/walk".to_string()),
-            idle_frames: TrackedFrames::load_from_directory(&"assets/player/idle".to_string()),
-            gunrun_frames: TrackedFrames::load_from_directory(&"assets/player/gunrun".to_string())
-        }
-    }
-
-    pub fn get_current_frame(&self) -> &String {
-        match self.state {
-            PlayerAnimationState::Walking => {
-                self.walking_frames.current_frame()
-            },
-            PlayerAnimationState::Idle => {
-                self.idle_frames.current_frame()
-            },
-            PlayerAnimationState::GunRun => {
-                self.gunrun_frames.current_frame()
-            }
-        }
-    }
-
-    pub fn set_frame(&mut self, state: PlayerAnimationState, new_frame_index: usize) {
-        match state {
-            PlayerAnimationState::Walking => {
-                self.walking_frames.set_frame(new_frame_index);
-            },
-            PlayerAnimationState::Idle => {
-                self.idle_frames.set_frame(new_frame_index);
-            },
-            PlayerAnimationState::GunRun => {
-                self.gunrun_frames.set_frame(new_frame_index);
-            }
-        }
-    }
-
-    pub fn set_animation_state(&mut self, new_state: PlayerAnimationState) {
-        self.state = new_state;
-    }
-
-    pub fn get_animation_state(&self) -> PlayerAnimationState {
-        self.state.clone()
-    }
-
-    pub fn next_frame(&mut self, state: PlayerAnimationState) {
-        match state {
-            PlayerAnimationState::Walking => {
-                self.walking_frames.next_frame();
-            },
-            PlayerAnimationState::Idle => {
-                self.idle_frames.next_frame();
-            },
-            PlayerAnimationState::GunRun => {
-                self.gunrun_frames.next_frame();
-            }
-        }
-    }
 }
 
 impl Player {
@@ -153,7 +68,7 @@ impl Player {
         let sprite_scale = 2.2;
         let rigid_body = RigidBodyBuilder::dynamic()
             .position(vector![position.x, position.y].into())
-            //.soft_ccd_prediction(20.)
+            .soft_ccd_prediction(20.)
             .ccd_enabled(true)
             .lock_rotations()
             .build();
@@ -165,30 +80,18 @@ impl Player {
         let rigid_body_handle = space.rigid_body_set.insert(rigid_body);
         let collider_handle = space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut space.rigid_body_set);
 
+        let head = BodyPart::new(
+            "assets/cat/head.png".to_string(), 
+            1, 
+            , 
+            space, 
+            textures, 
+            owner
+        );
         let shotgun = Shotgun::new(space, *position, owner.clone());
         // we dont want the shotgun to collide with anything
         space.collider_set.get_mut(shotgun.collider).unwrap().set_collision_groups(
             InteractionGroups::none()
-        );
-
-        let left_arm = Arm::new(
-            space, 
-            rigid_body_handle, 
-            Point::<Real>::new(0. * sprite_scale, 2. * sprite_scale), 
-            Point::<Real>::new(0., 0.),
-            textures, 
-            "assets/player/gunrunarm_bottom.png".to_string(), 
-            1.75
-        );
-
-        let right_arm = Arm::new(
-            space,
-            rigid_body_handle,
-            Point::<Real>::new(0. * sprite_scale, 2. * sprite_scale),
-            Point::<Real>::new(0., 0.),
-            textures,
-            "assets/player/gunrunarm_top.png".to_string(),
-            1.75
         );
 
         let sound = SoundHandle::new("assets/sounds/brick_land.wav", [0.,0.,0.]);
@@ -204,14 +107,10 @@ impl Player {
                 drag_offset: None,
                 max_speed: vec2(350., 80.),
                 shotgun: Some(shotgun),
-                portal_gun: PortalGun::new(),
                 animation_handler: PlayerAnimationHandler::new(PlayerAnimationState::Walking),
                 walk_frame_progess: 0.,
                 idle_frame_progress: 0.,
                 facing: Facing::Right,
-                arm_angle: 0.,
-                left_arm,
-                right_arm,
                 sprite_scale,
                 sound
             }
@@ -253,12 +152,9 @@ impl Player {
         self.update_drag(space, &ctx.camera_rect);
         self.own_nearby_structures(space, structures, ctx);
         self.update_walk_animation(space);
-        self.update_portal_gun_pos(&space);
-        //self.fire_portal_gun(ctx.camera_rect, &mut portal_bullets);
         self.update_idle_animation(space);
         self.change_facing_direction(&space);
         self.delete_structure(structures, space, ctx);
-        self.update_arm_anchor_pos(space);
         self.sync_sound(ctx.sounds);
 
         if is_key_released(KeyCode::N) {
@@ -268,13 +164,8 @@ impl Player {
             self.sound.play();
         }
         //self.update_hitbox_size(space, ctx);
-
-        self.update_arm_angle(space, ctx.camera_rect);
         
         self.add_owned_physics(ctx);
-
-        self.left_arm.tick(ctx);
-        self.right_arm.tick(ctx);
         
     }
 
@@ -325,23 +216,23 @@ impl Player {
         
     }
 
-    pub fn update_arm_angle(&mut self, space: &mut Space, camera_rect: &Rect) {
+    // pub fn update_arm_angle(&mut self, space: &mut Space, camera_rect: &Rect) {
 
 
-        let body_pos = space.rigid_body_set.get(self.rigid_body).unwrap().translation().clone();
-        let angle_to_mouse = get_angle_to_mouse(Vec2::new(body_pos.x, body_pos.y), camera_rect);
+    //     let body_pos = space.rigid_body_set.get(self.rigid_body).unwrap().translation().clone();
+    //     let angle_to_mouse = get_angle_to_mouse(Vec2::new(body_pos.x, body_pos.y), camera_rect);
 
-        // left arm
-        let left_arm_body = space.rigid_body_set.get_mut(self.left_arm.get_rigid_body_handle()).unwrap();
-        left_arm_body.set_rotation(UnitComplex::new(-angle_to_mouse + 1.7), true);
+    //     // left arm
+    //     let left_arm_body = space.rigid_body_set.get_mut(self.left_arm.get_rigid_body_handle()).unwrap();
+    //     left_arm_body.set_rotation(UnitComplex::new(-angle_to_mouse + 1.7), true);
 
 
-        // right arm
-        let right_arm_body = space.rigid_body_set.get_mut(self.right_arm.get_rigid_body_handle()).unwrap();
-        right_arm_body.set_rotation(UnitComplex::new(-angle_to_mouse + 1.7), true);
+    //     // right arm
+    //     let right_arm_body = space.rigid_body_set.get_mut(self.right_arm.get_rigid_body_handle()).unwrap();
+    //     right_arm_body.set_rotation(UnitComplex::new(-angle_to_mouse + 1.7), true);
 
-        // need to restrict arm angle depending on facing
-    }
+    //     // need to restrict arm angle depending on facing
+    // }
 
     pub fn change_facing_direction(&mut self, space: &Space) {
         let velocity = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().linvel();
@@ -373,33 +264,33 @@ impl Player {
 
     }
     /// Update arm anchor pos depending on facing direction
-    pub fn update_arm_anchor_pos(&mut self, space: &mut Space) {
-        let arm_anchor_pos = match self.facing {
-            Facing::Right => Point::<Real>::new(0. * self.sprite_scale, 2. * self.sprite_scale),
-            Facing::Left => Point::<Real>::new(3. * self.sprite_scale, 7. * self.sprite_scale),
-        };
+    // pub fn update_arm_anchor_pos(&mut self, space: &mut Space) {
+    //     let arm_anchor_pos = match self.facing {
+    //         Facing::Right => Point::<Real>::new(0. * self.sprite_scale, 2. * self.sprite_scale),
+    //         Facing::Left => Point::<Real>::new(3. * self.sprite_scale, 7. * self.sprite_scale),
+    //     };
 
-        let left_arm_joint = space.impulse_joint_set.get_mut(
-            self.left_arm.get_joint_handle()
-        )
-            .unwrap()
-            .data
-            .as_revolute_mut()
-            .unwrap();
+    //     let left_arm_joint = space.impulse_joint_set.get_mut(
+    //         self.left_arm.get_joint_handle()
+    //     )
+    //         .unwrap()
+    //         .data
+    //         .as_revolute_mut()
+    //         .unwrap();
 
-        left_arm_joint.set_local_anchor1(arm_anchor_pos);
+    //     left_arm_joint.set_local_anchor1(arm_anchor_pos);
 
-        let right_arm_joint = space.impulse_joint_set.get_mut(
-            self.right_arm.get_joint_handle()
-        )
-            .unwrap()
-            .data
-            .as_revolute_mut()
-            .unwrap();
+    //     let right_arm_joint = space.impulse_joint_set.get_mut(
+    //         self.right_arm.get_joint_handle()
+    //     )
+    //         .unwrap()
+    //         .data
+    //         .as_revolute_mut()
+    //         .unwrap();
 
-        right_arm_joint.set_local_anchor1(arm_anchor_pos);
+    //     right_arm_joint.set_local_anchor1(arm_anchor_pos);
         
-    }
+    // }
     pub fn update_walk_animation(&mut self, space: &mut Space) {
         let velocity = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().linvel();
 
@@ -474,14 +365,6 @@ impl Player {
         if is_mouse_button_released(macroquad::input::MouseButton::Left) {
             //self.portal_gun.fire(camera_rect, portal_bullets);
         }
-    }
-
-    pub fn update_portal_gun_pos(&mut self, space: &Space) {
-
-        let body = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap();
-
-        self.portal_gun.position.x = body.position().translation.x;
-        self.portal_gun.position.y = body.position().translation.y;
     }
 
     pub fn launch_brick(&mut self, level: &mut Level, ctx: &mut TickContext) {
@@ -650,8 +533,6 @@ impl Player {
                 (-30., 31.)
             },
         };
-
-        self.left_arm.draw(space, textures, &self.facing).await;
         
         draw_texture_rapier(
             &texture, 
@@ -660,9 +541,6 @@ impl Player {
             WHITE, 
             draw_params
         );
-
-        
-        self.right_arm.draw(space, textures, &self.facing).await;
 
 
         // draw top arm
@@ -705,5 +583,90 @@ impl HasPhysics for Player {
 
     fn drag_offset(&mut self) -> &mut Option<Vec2> {
         &mut self.drag_offset
+    }
+}
+
+#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
+#[diff(attr(
+    #[derive(Serialize, Deserialize)]
+))]
+pub enum PlayerAnimationState {
+    Walking,
+    Idle,
+    GunRun
+}
+
+#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
+#[diff(attr(
+    #[derive(Serialize, Deserialize)]
+))]
+// used to track the state of player animation
+pub struct PlayerAnimationHandler {
+    state: PlayerAnimationState,
+    walking_frames: TrackedFrames,
+    idle_frames: TrackedFrames,
+    gunrun_frames: TrackedFrames
+}
+
+impl PlayerAnimationHandler {
+
+    pub fn new(initial_state: PlayerAnimationState) -> Self {
+        
+        Self {
+            state: initial_state,
+            walking_frames: TrackedFrames::load_from_directory(&"assets/player/walk".to_string()),
+            idle_frames: TrackedFrames::load_from_directory(&"assets/player/idle".to_string()),
+            gunrun_frames: TrackedFrames::load_from_directory(&"assets/player/gunrun".to_string())
+        }
+    }
+
+    pub fn get_current_frame(&self) -> &String {
+        match self.state {
+            PlayerAnimationState::Walking => {
+                self.walking_frames.current_frame()
+            },
+            PlayerAnimationState::Idle => {
+                self.idle_frames.current_frame()
+            },
+            PlayerAnimationState::GunRun => {
+                self.gunrun_frames.current_frame()
+            }
+        }
+    }
+
+    pub fn set_frame(&mut self, state: PlayerAnimationState, new_frame_index: usize) {
+        match state {
+            PlayerAnimationState::Walking => {
+                self.walking_frames.set_frame(new_frame_index);
+            },
+            PlayerAnimationState::Idle => {
+                self.idle_frames.set_frame(new_frame_index);
+            },
+            PlayerAnimationState::GunRun => {
+                self.gunrun_frames.set_frame(new_frame_index);
+            }
+        }
+    }
+
+    pub fn set_animation_state(&mut self, new_state: PlayerAnimationState) {
+        self.state = new_state;
+    }
+
+    pub fn get_animation_state(&self) -> PlayerAnimationState {
+        self.state.clone()
+    }
+
+    pub fn next_frame(&mut self, state: PlayerAnimationState) {
+        match state {
+            PlayerAnimationState::Walking => {
+                self.walking_frames.next_frame();
+            },
+            PlayerAnimationState::Idle => {
+                self.idle_frames.next_frame();
+            },
+            PlayerAnimationState::GunRun => {
+                self.gunrun_frames.next_frame();
+            }
+        }
     }
 }

@@ -5,7 +5,7 @@ use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RevoluteJointBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
 
-use crate::{level::Level, player::Player, Grabbable, TickContext};
+use crate::{level::Level, player::player::Player, Grabbable, TickContext};
 
 #[derive(Serialize, serde::Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -55,6 +55,7 @@ impl Structure {
                 .position(
                     vector![pos.x, pos.y].into()
                 )
+                .soft_ccd_prediction(20.)
                 .ccd_enabled(true)
         );
 

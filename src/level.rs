@@ -7,7 +7,7 @@ use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::{boat::Boat, brick::Brick, player::Player, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, TickContext};
+use crate::{boat::Boat, brick::Brick, get_random_file_from_dir, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -24,7 +24,8 @@ pub struct Level {
     pub portals: Vec<Portal>,
     pub sky: Sky,
     #[serde(default)]
-    pub boats: Vec<Boat>
+    pub boats: Vec<Boat>,
+    pub body_parts: Vec<BodyPart>
 }
 
 impl Level {
@@ -39,7 +40,8 @@ impl Level {
             portal_bullets: vec![],
             portals: vec![],
             sky: Sky::new(),
-            boats: vec![]
+            boats: vec![],
+            body_parts: vec![]
         };
     
         level.space.gravity.y = -980.;
@@ -62,7 +64,11 @@ impl Level {
         ctx: &mut TickContext,
     ) {
 
-        
+        if is_key_down(KeyCode::F) {
+            let new_body_part = BodyPart::new(get_random_file_from_dir("assets/cat/").unwrap(), 1, rapier_mouse_world_pos(ctx.camera_rect), &mut self.space, ctx.textures, ctx.uuid.clone());
+
+            self.body_parts.push(new_body_part);
+        }
         if is_key_down(KeyCode::C) {
 
             let mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);
@@ -96,6 +102,10 @@ impl Level {
 
             shotgun.tick(&mut self.players, &mut self.space, ctx);
 
+        }
+
+        for body_part in &mut self.body_parts {
+            body_part.tick(ctx);
         }
 
         let mut players_iter = SwapIter::new(&mut self.players);
@@ -292,6 +302,10 @@ impl Level {
 
         for shotgun in &self.shotguns {
             shotgun.draw(&self.space, textures, false).await;
+        }
+
+        for body_part in &self.body_parts {
+            body_part.draw(textures, &self.space).await;
         }
 
         for structure in self.structures.iter() {

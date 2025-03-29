@@ -2,7 +2,7 @@ use std::{fs, sync::{mpsc, Arc, Mutex}, time::Instant};
 
 use gamelibrary::{animation_loader::AnimationLoader, log, sync::client::SyncClient, syncsound::Sounds, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
-use liquidators_lib::{console::Console, game_state::GameState, level::Level, player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
+use liquidators_lib::{console::Console, game_state::GameState, level::Level, player::player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
 use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, time::get_fps, window::{screen_height, screen_width}};
 
 pub struct Client {
@@ -23,7 +23,7 @@ pub struct Client {
 }
 
 impl Client {
-
+    
     pub fn tick(&mut self) {
 
         self.console.tick();
@@ -146,20 +146,19 @@ impl Client {
 
             //let then = Instant::now();
 
-            self.tick();
+            
 
             // only tick maximum 120 times per second to avoid glitchyness
             if self.last_tick.elapsed().as_millis() >= 8 {
 
                 //println!("{}", self.last_tick.elapsed().as_millis() - 8);
-                
+
+                self.tick();
+
+                self.draw().await;
                 
                 // self.tick() updates self.last_tick automatically unlike self.last_sync
             }
-
-            
-
-            self.draw().await;
             
             // only sync 30 tps
             // this could probably be optimized but this is more readable
