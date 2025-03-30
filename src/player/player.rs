@@ -7,7 +7,7 @@ use gilrs::Gamepad;
 use macroquad::{color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, texture::DrawTextureParams, time::get_frame_time};
 use nalgebra::{vector, UnitComplex};
 use parry2d::math::Point;
-use rapier2d::prelude::{BodyPair, ColliderBuilder, ColliderHandle, InteractionGroups, QueryFilter, RigidBody, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{BodyPair, ColliderBuilder, ColliderHandle, InteractionGroups, QueryFilter, RevoluteJointBuilder, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
 use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure::Structure, BodyCollider, TickContext};
@@ -28,8 +28,6 @@ pub enum Facing {
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct Player {
-    pub rigid_body: RigidBodyHandle,
-    pub collider: ColliderHandle,
     pub head: BodyPart,
     pub body: BodyPart,
     pub sprite_path: String,
@@ -43,7 +41,6 @@ pub struct Player {
     pub walk_frame_progess: f32,
     pub idle_frame_progress: f32,
     pub facing: Facing,
-    pub sprite_scale: f32,
     pub sound: SoundHandle
 }
 
@@ -54,7 +51,16 @@ impl Player {
         // fortnite battle pass why do i suffer so much from these stupid small annoyances if i was just like that but not with all this shit then i would be so much more productive i am a slave to my physical body i wish for nothing more that to be free from the prison that is my body dear god save me from this existence i am more than this
         // removes the body AND the collider!
         space.rigid_body_set.remove(
-            self.rigid_body, 
+            self.body.body_handle, 
+            &mut space.island_manager, 
+            &mut space.collider_set, 
+            &mut space.impulse_joint_set, 
+            &mut space.multibody_joint_set, 
+            true
+        );
+
+        space.rigid_body_set.remove(
+            self.head.body_handle, 
             &mut space.island_manager, 
             &mut space.collider_set, 
             &mut space.impulse_joint_set, 
@@ -65,30 +71,42 @@ impl Player {
 
     pub fn spawn(players: &mut Vec<Player>, space: &mut Space, owner: String, position: &Vec2, textures: &mut TextureLoader) {
 
-        let sprite_scale = 2.2;
-        let rigid_body = RigidBodyBuilder::dynamic()
-            .position(vector![position.x, position.y].into())
-            .soft_ccd_prediction(20.)
-            .ccd_enabled(true)
-            .lock_rotations()
-            .build();
-
-        let collider = ColliderBuilder::cuboid(21., 30.)
-            .mass(100.)
-            .build();
-
-        let rigid_body_handle = space.rigid_body_set.insert(rigid_body);
-        let collider_handle = space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut space.rigid_body_set);
-
-        let head = BodyPart::new(
+        let cat_head = BodyPart::new(
             "assets/cat/head.png".to_string(), 
             1, 
-            , 
+            *position, 
             space, 
             textures, 
-            owner
+            owner.clone()
         );
+
+        let cat_body = BodyPart::new(
+            "assets/cat/body.png".to_string(), 
+            1, 
+            *position, 
+            space, 
+            textures, 
+            owner.clone()
+        );
+
+        // lock the rotation of the cat body
+        space.rigid_body_set.get_mut(cat_body.body_handle).unwrap().lock_rotations(true, true);
+
+        // joint the head to the body
+        space.impulse_joint_set.insert(
+            cat_body.body_handle,
+            cat_head.body_handle,
+            RevoluteJointBuilder::new()
+                .local_anchor1(vector![0., 0.].into())
+                .local_anchor2(vector![0., -30.].into())
+                .limits([-0.4, 0.4])
+                .contacts_enabled(false)
+            .build(),
+            true
+        );
+
         let shotgun = Shotgun::new(space, *position, owner.clone());
+
         // we dont want the shotgun to collide with anything
         space.collider_set.get_mut(shotgun.collider).unwrap().set_collision_groups(
             InteractionGroups::none()
@@ -98,8 +116,8 @@ impl Player {
 
         players.push(
             Player {
-                rigid_body: rigid_body_handle,
-                collider: collider_handle,
+                head: cat_head,
+                body: cat_body,
                 sprite_path: "assets/player/idle.png".to_string(),
                 owner: owner.clone(),
                 selected: false, 
@@ -111,7 +129,6 @@ impl Player {
                 walk_frame_progess: 0.,
                 idle_frame_progress: 0.,
                 facing: Facing::Right,
-                sprite_scale,
                 sound
             }
         )
@@ -121,28 +138,6 @@ impl Player {
         sounds.sync_sound(&mut self.sound);
     }
 
-    pub fn pickup_shotgun(&mut self, level: &mut Level, _ctx: &mut TickContext) {
-
-        let player_shape = level.space.collider_set.get(self.collider).unwrap().shape();
-        let player_pos = level.space.rigid_body_set.get(self.rigid_body).unwrap().position();
-
-        let _colliding_collider = match level.space.query_pipeline.intersection_with_shape(
-            &level.space.rigid_body_set,
-            &level.space.collider_set,
-            player_pos, 
-            player_shape, 
-            QueryFilter::default()
-        ) {
-            Some(collider_collider) => collider_collider,
-            None => return,
-        };
-
-        // for shotgun_index in &level.shotguns {
-        //     if shotgun.collider == colliding_collider {
-                
-        //     }
-        // }
-    }
 
     pub fn tick(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext, _players: &mut Vec<Player>) {
         //self.launch_brick(level, ctx);
@@ -164,31 +159,9 @@ impl Player {
             self.sound.play();
         }
         //self.update_hitbox_size(space, ctx);
-        
-        self.add_owned_physics(ctx);
-        
-    }
 
-    pub fn add_owned_physics(&self, ctx: &mut TickContext) {
-        ctx.owned_rigid_bodies.push(self.rigid_body);
-        ctx.owned_colliders.push(self.collider);
-    }
-    pub fn update_hitbox_size(&mut self, space: &mut Space, ctx: &mut TickContext) {
-        let current_frame = self.animation_handler.get_current_frame();
-
-        let texture = futures::executor::block_on(ctx.textures.get(current_frame));
-
-        let collider = space.collider_set.get_mut(self.collider).unwrap();
-
-        let collider_shape = collider.shape_mut().as_cuboid_mut().unwrap();
-        
-        if collider_shape.half_extents.x != texture.size().x {
-            collider_shape.half_extents.x = texture.size().x;
-        }
-
-        if collider_shape.half_extents.y != texture.size().y {
-            collider_shape.half_extents.y = texture.size().y;
-        }   
+        self.head.tick(space, ctx);
+        self.body.tick(space, ctx);
         
     }
 
@@ -324,7 +297,7 @@ impl Player {
     pub fn own_nearby_structures(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext) {
         // take ownership of nearby structures to avoid network physics delay
 
-        let our_body = space.rigid_body_set.get(self.rigid_body).unwrap();
+        let our_body = space.rigid_body_set.get(self.body.body_handle).unwrap();
 
         for structure in structures {
 
@@ -428,7 +401,7 @@ impl Player {
 
     pub fn control(&mut self, space: &mut Space, _ctx: &mut TickContext) {
 
-        let rigid_body = space.rigid_body_set.get_mut(self.rigid_body).unwrap();
+        let rigid_body = space.rigid_body_set.get_mut(self.body.body_handle).unwrap();
 
         let gamepad: Option<Gamepad<'_>> = None;
 
@@ -448,7 +421,7 @@ impl Player {
             }
 
             rigid_body.set_linvel(
-                vector![rigid_body.linvel().x - 10., rigid_body.linvel().y],
+                vector![rigid_body.linvel().x - 50., rigid_body.linvel().y],
                 true
             );
 
@@ -468,7 +441,7 @@ impl Player {
             }
 
             rigid_body.set_linvel(
-                vector![rigid_body.linvel().x + 10., rigid_body.linvel().y],
+                vector![rigid_body.linvel().x + 50., rigid_body.linvel().y],
                 true
             )
         }
@@ -505,56 +478,9 @@ impl Player {
         //     None => {},
         // }
 
-        // get the player position. all draws for the player are relative to this
-        let player_position = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().translation();
-
-        // arms are drawn seperately from the body because they move to follow the camera
-
-        
-        let texture = textures.get(self.animation_handler.get_current_frame()).await.weak_clone();
-
-        let mut draw_params = DrawTextureParams::default();
-
-        draw_params.dest_size = Some(
-            Vec2::new(texture.width() * 2.2, texture.height() * 2.2)
-        );
-        draw_params.flip_x = flip_x;
-        
-        //self.draw_collider(space).await;
-
-        let (draw_offset_x, draw_offset_y) = match self.animation_handler.get_animation_state() {
-            PlayerAnimationState::Walking => {
-                (20., 36.)
-            },  
-            PlayerAnimationState::Idle => {
-                (-20., 36.)
-            },
-            PlayerAnimationState::GunRun => {
-                (-30., 31.)
-            },
-        };
-        
-        draw_texture_rapier(
-            &texture, 
-            player_position.x + draw_offset_x, 
-            player_position.y + draw_offset_y, 
-            WHITE, 
-            draw_params
-        );
-
-
-        // draw top arm
-        match self.animation_handler.get_animation_state() {
-
-            PlayerAnimationState::GunRun => {
-
-                let _texture_scale = 2.5;
-
-                
-
-            },
-            _ => {}
-        }
+        self.body.draw(textures, space).await;
+        self.head.draw(textures, space).await;
+       
         
         
     }
@@ -562,11 +488,11 @@ impl Player {
 
 impl HasPhysics for Player {
     fn collider_handle(&self) -> &ColliderHandle {
-        &self.collider
+        &self.body.collider_handle
     }
 
     fn rigid_body_handle(&self) -> &RigidBodyHandle {
-        &self.rigid_body
+        &self.body.body_handle
     }
 
     fn selected(&self) -> &bool {

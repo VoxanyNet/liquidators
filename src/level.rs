@@ -104,10 +104,6 @@ impl Level {
 
         }
 
-        for body_part in &mut self.body_parts {
-            body_part.tick(ctx);
-        }
-
         let mut players_iter = SwapIter::new(&mut self.players);
 
         while players_iter.not_done() {

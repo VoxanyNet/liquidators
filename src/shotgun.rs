@@ -90,7 +90,7 @@ impl Shotgun {
         for player in players {
             if player.owner == *ctx.uuid {
 
-                let reference_body = player.rigid_body;
+                let reference_body = player.body.body_handle;
 
                 self.update_grabbing(space, ctx.camera_rect, Vec2::new(250., 250.), reference_body);
 

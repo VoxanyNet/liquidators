@@ -5,7 +5,9 @@ use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::TickContext;
+use crate::{level::Level, TickContext};
+
+use crate::player::player::Player;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -60,21 +62,23 @@ impl BodyPart {
         }
     }
 
-    pub fn tick(&mut self, ctx: &mut TickContext) {
+    pub fn tick(&mut self, space: &Space, ctx: &mut TickContext) {
         if *ctx.uuid == self.owner {
             self.owner_tick(ctx);
         }
 
-        self.all_tick(ctx);
+        self.all_tick(space, ctx);
 
     }
-    pub fn owner_tick(&mut self, ctx: &mut TickContext) {
+    fn owner_tick(&mut self, ctx: &mut TickContext) {
         ctx.owned_colliders.push(self.collider_handle);
         ctx.owned_rigid_bodies.push(self.body_handle);
     }
 
-    pub fn all_tick(&mut self, ctx: &mut TickContext) {
-        return;
+    fn all_tick(&mut self, space: &Space, ctx: &mut TickContext) {
+        let rigid_body = space.rigid_body_set.get(self.body_handle).unwrap();
+
+        //println!("body part angle: {}", rigid_body.rotation().angle());
     }
     pub async fn draw(&self, textures: &mut TextureLoader, space: &Space) {
 

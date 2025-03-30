@@ -7,13 +7,31 @@
           "index": 0,
           "changes": [
             {
-              "rigid_body": {
-                "index": null,
-                "generation": null
+              "head": {
+                "collider_handle": {
+                  "index": null,
+                  "generation": null
+                },
+                "body_handle": {
+                  "index": null,
+                  "generation": null
+                },
+                "sprite_path": null,
+                "scale": 0,
+                "owner": null
               },
-              "collider": {
-                "index": null,
-                "generation": null
+              "body": {
+                "collider_handle": {
+                  "index": null,
+                  "generation": null
+                },
+                "body_handle": {
+                  "index": null,
+                  "generation": null
+                },
+                "sprite_path": null,
+                "scale": 0,
+                "owner": null
               },
               "sprite_path": null,
               "owner": null,
@@ -25,12 +43,6 @@
                 "y": 0.0
               },
               "shotgun": "NoChange",
-              "portal_gun": {
-                "position": {
-                  "x": -0.008056641,
-                  "y": -8.751404
-                }
-              },
               "animation_handler": {
                 "state": "NoChange",
                 "walking_frames": {
@@ -52,43 +64,15 @@
                   "current_frame_index": 0
                 }
               },
-              "walk_frame_progess": 0.0009091664,
+              "walk_frame_progess": 0.000059321523,
               "idle_frame_progress": 0.0,
               "facing": "NoChange",
-              "arm_angle": 0.0,
-              "left_arm": {
-                "rigid_body_handle": {
-                  "index": null,
-                  "generation": null
-                },
-                "collider_handle": {
-                  "index": null,
-                  "generation": null
-                },
-                "joint_handle": {
-                  "index": null,
-                  "generation": null
-                },
-                "sprite_path": null,
-                "sprite_scale": 0.0
-              },
-              "right_arm": {
-                "rigid_body_handle": {
-                  "index": null,
-                  "generation": null
-                },
-                "collider_handle": {
-                  "index": null,
-                  "generation": null
-                },
-                "joint_handle": {
-                  "index": null,
-                  "generation": null
-                },
-                "sprite_path": null,
-                "sprite_scale": 0.0
-              },
-              "sprite_scale": 0.0
+              "sound": {
+                "state": "NoChange",
+                "position": [],
+                "id": 0,
+                "file_path": null
+              }
             }
           ]
         }
@@ -100,52 +84,7 @@
           "items": [
             {
               "Altered": {
-                "index": 1,
-                "changes": [
-                  {
-                    "Occupied": {
-                      "generation": null,
-                      "value": {
-                        "pos": {
-                          "position": {
-                            "rotation": null,
-                            "translation": {
-                              "vector": [
-                                251.5976,
-                                215.05966
-                              ]
-                            }
-                          },
-                          "next_position": {
-                            "rotation": null,
-                            "translation": {
-                              "vector": [
-                                251.5976,
-                                215.05966
-                              ]
-                            }
-                          }
-                        },
-                        "vels": {
-                          "linvel": [
-                            -0.9209767,
-                            -487.38873
-                          ],
-                          "angvel": null
-                        },
-                        "colliders": null,
-                        "activation": null,
-                        "body_type": null,
-                        "enabled": null
-                      }
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "Altered": {
-                "index": 3,
+                "index": 504,
                 "changes": [
                   {
                     "Occupied": {
@@ -154,35 +93,35 @@
                         "pos": {
                           "position": {
                             "rotation": [
-                              0.50737065,
-                              0.8617279
+                              0.9478595,
+                              0.31868845
                             ],
                             "translation": {
                               "vector": [
-                                252.35863,
-                                236.2734
+                                90.448555,
+                                263.3568
                               ]
                             }
                           },
                           "next_position": {
                             "rotation": [
-                              0.50737065,
-                              0.8617279
+                              0.9478595,
+                              0.31868845
                             ],
                             "translation": {
                               "vector": [
-                                252.35863,
-                                236.2734
+                                90.448555,
+                                263.3568
                               ]
                             }
                           }
                         },
                         "vels": {
                           "linvel": [
-                            6.483682,
-                            -487.71814
+                            -40.781574,
+                            -13.78531
                           ],
-                          "angvel": -0.44037783
+                          "angvel": 1.4358591
                         },
                         "colliders": null,
                         "activation": null,
@@ -198,38 +137,44 @@
                         "pos": {
                           "position": {
                             "rotation": [
-                              0.506627,
-                              0.8621654
+                              0.9999999,
+                              -0.00050813064
                             ],
                             "translation": {
                               "vector": [
-                                253.27742,
-                                232.68097
+                                100.00938,
+                                234.92114
                               ]
                             }
                           },
                           "next_position": {
                             "rotation": [
-                              0.506627,
-                              0.8621654
+                              0.9999999,
+                              -0.00050813064
                             ],
                             "translation": {
                               "vector": [
-                                253.27742,
-                                232.68097
+                                100.00938,
+                                234.92114
                               ]
                             }
                           }
                         },
                         "vels": {
                           "linvel": [
-                            4.6521115,
-                            -488.09262
+                            0.061341304,
+                            1.1920929e-7
                           ],
-                          "angvel": -0.42148313
+                          "angvel": -0.003236626
                         },
                         "colliders": null,
-                        "activation": null,
+                        "activation": {
+                          "normalized_linear_threshold": null,
+                          "angular_threshold": null,
+                          "time_until_sleep": null,
+                          "time_since_can_sleep": 0.01250941,
+                          "sleeping": null
+                        },
                         "body_type": null,
                         "enabled": null
                       }
@@ -240,7 +185,6 @@
             }
           ],
           "generation": null,
-          "free_list_head": null,
           "len": null
         },
         "modified_bodies": []
@@ -250,7 +194,38 @@
           "items": [
             {
               "Altered": {
-                "index": 1,
+                "index": 4,
+                "changes": [
+                  {
+                    "Occupied": {
+                      "generation": null,
+                      "value": {
+                        "coll_type": null,
+                        "shape": null,
+                        "parent": null,
+                        "pos": {
+                          "rotation": [
+                            -0.016546628,
+                            -0.99986315
+                          ],
+                          "translation": [
+                            205.78171,
+                            245.54257
+                          ]
+                        },
+                        "material": null,
+                        "flags": null,
+                        "contact_force_event_threshold": null,
+                        "user_data": null
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "Altered": {
+                "index": 6,
                 "changes": [
                   {
                     "Occupied": {
@@ -265,8 +240,63 @@
                             0.0
                           ],
                           "translation": [
-                            251.5976,
-                            215.05966
+                            100.0,
+                            299.90417
+                          ]
+                        },
+                        "material": null,
+                        "flags": null,
+                        "contact_force_event_threshold": null,
+                        "user_data": null
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "Altered": {
+                "index": 504,
+                "changes": [
+                  {
+                    "Occupied": {
+                      "generation": null,
+                      "value": {
+                        "coll_type": null,
+                        "shape": null,
+                        "parent": null,
+                        "pos": {
+                          "rotation": [
+                            0.9478595,
+                            0.31868845
+                          ],
+                          "translation": [
+                            90.448555,
+                            263.3568
+                          ]
+                        },
+                        "material": null,
+                        "flags": null,
+                        "contact_force_event_threshold": null,
+                        "user_data": null
+                      }
+                    }
+                  },
+                  {
+                    "Occupied": {
+                      "generation": null,
+                      "value": {
+                        "coll_type": null,
+                        "shape": null,
+                        "parent": null,
+                        "pos": {
+                          "rotation": [
+                            0.9999999,
+                            -0.00050813064
+                          ],
+                          "translation": [
+                            100.00938,
+                            234.92114
                           ]
                         },
                         "material": null,
@@ -290,55 +320,7 @@
                           ],
                           "translation": [
                             100.0,
-                            299.96967
-                          ]
-                        },
-                        "material": null,
-                        "flags": null,
-                        "contact_force_event_threshold": null,
-                        "user_data": null
-                      }
-                    }
-                  },
-                  {
-                    "Occupied": {
-                      "generation": null,
-                      "value": {
-                        "coll_type": null,
-                        "shape": null,
-                        "parent": null,
-                        "pos": {
-                          "rotation": [
-                            0.50737065,
-                            0.8617279
-                          ],
-                          "translation": [
-                            252.35863,
-                            236.2734
-                          ]
-                        },
-                        "material": null,
-                        "flags": null,
-                        "contact_force_event_threshold": null,
-                        "user_data": null
-                      }
-                    }
-                  },
-                  {
-                    "Occupied": {
-                      "generation": null,
-                      "value": {
-                        "coll_type": null,
-                        "shape": null,
-                        "parent": null,
-                        "pos": {
-                          "rotation": [
-                            0.506627,
-                            0.8621654
-                          ],
-                          "translation": [
-                            253.27742,
-                            232.68097
+                            299.90417
                           ]
                         },
                         "material": null,
@@ -353,7 +335,6 @@
             }
           ],
           "generation": null,
-          "free_list_head": null,
           "len": null
         },
         "modified_colliders": [],
@@ -367,7 +348,8 @@
     "portal_bullets": [],
     "portals": [],
     "sky": {},
-    "boats": []
+    "boats": [],
+    "body_parts": []
   },
   "game_started": null,
   "chat": {

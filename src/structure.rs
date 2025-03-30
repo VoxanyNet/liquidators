@@ -133,9 +133,9 @@ impl Structure {
             for player in players {
                 if player.owner == *ctx.uuid {
 
-                    let reference_body = player.rigid_body;
+                    let reference_body = player.body.body_handle;
 
-                    //self.update_grabbing(space, ctx.camera_rect, Vec2::new(250., 250.), reference_body);
+                    self.update_grabbing(space, ctx.camera_rect, Vec2::new(250., 250.), reference_body);
 
                     break;
 
@@ -243,7 +243,9 @@ impl Structure {
     }
 
     pub async fn draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
+        
         self.draw_texture(space, texture_path, textures, false, false, 0.).await;
+        
         match &*self.joint_test {
             Some(joint_test) => {
                 joint_test.draw_texture(space, texture_path, textures, false, false, 0.).await;
