@@ -28,8 +28,6 @@ impl Client {
 
         self.console.tick();
 
-        println!("{:?}", self.camera_rect);
-
         if is_key_released(KeyCode::Tab) {
             self.console.enabled = !self.console.enabled
         }

@@ -1,13 +1,13 @@
-use std::time::Instant;
+use std::{f32::consts::PI, time::Instant};
 
-use parry2d::math::Real;
+use parry2d::math::{Real, Rotation};
 use diff::Diff;
 use gamelibrary::{animation::TrackedFrames, current_unix_millis, draw_texture_rapier, get_angle_to_mouse, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, syncsound::{SoundHandle, Sounds}, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::Gamepad;
 use macroquad::{color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, texture::DrawTextureParams, time::get_frame_time};
 use nalgebra::{vector, UnitComplex};
 use parry2d::math::Point;
-use rapier2d::prelude::{BodyPair, ColliderBuilder, ColliderHandle, InteractionGroups, QueryFilter, RevoluteJointBuilder, RigidBody, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{BodyPair, ColliderBuilder, ColliderHandle, ImpulseJointHandle, InteractionGroups, JointMotor, QueryFilter, RevoluteJointBuilder, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
 use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure::Structure, BodyCollider, TickContext};
@@ -41,7 +41,8 @@ pub struct Player {
     pub walk_frame_progess: f32,
     pub idle_frame_progress: f32,
     pub facing: Facing,
-    pub sound: SoundHandle
+    pub sound: SoundHandle,
+    pub head_joint_handle: ImpulseJointHandle
 }
 
 impl Player {
@@ -93,7 +94,7 @@ impl Player {
         space.rigid_body_set.get_mut(cat_body.body_handle).unwrap().lock_rotations(true, true);
 
         // joint the head to the body
-        space.impulse_joint_set.insert(
+        let head_joint_handle = space.impulse_joint_set.insert(
             cat_body.body_handle,
             cat_head.body_handle,
             RevoluteJointBuilder::new()
@@ -129,7 +130,8 @@ impl Player {
                 walk_frame_progess: 0.,
                 idle_frame_progress: 0.,
                 facing: Facing::Right,
-                sound
+                sound,
+                head_joint_handle
             }
         )
     }
@@ -150,6 +152,7 @@ impl Player {
         self.update_idle_animation(space);
         self.change_facing_direction(&space);
         self.delete_structure(structures, space, ctx);
+        self.angle_head_to_mouse(space, ctx.camera_rect);
         self.sync_sound(ctx.sounds);
 
         if is_key_released(KeyCode::N) {
@@ -187,6 +190,22 @@ impl Player {
 
         println!("iterate over structures: {:?}", then.elapsed());
         
+    }
+
+    pub fn angle_head_to_mouse(&mut self, space: &mut Space, camera_rect: &Rect) {
+
+        let head_body = space.rigid_body_set.get_mut(self.head.body_handle).unwrap();
+
+        let head_body_pos = Vec2::new(head_body.translation().x, head_body.translation().y);
+
+        let angle_to_mouse = get_angle_to_mouse(head_body_pos, camera_rect);
+
+        let head_joint = space.impulse_joint_set.get_mut(self.head_joint_handle).unwrap();
+
+        head_joint.data.as_revolute_mut().unwrap().set_motor_position(-angle_to_mouse + (PI / 2.), 10000., 0.);
+
+        return;
+
     }
 
     // pub fn update_arm_angle(&mut self, space: &mut Space, camera_rect: &Rect) {
@@ -289,10 +308,6 @@ impl Player {
             self.walk_frame_progess = 0.;
         }
         
-
-        
-
-
     }
     pub fn own_nearby_structures(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext) {
         // take ownership of nearby structures to avoid network physics delay
@@ -478,8 +493,8 @@ impl Player {
         //     None => {},
         // }
 
-        self.body.draw(textures, space).await;
-        self.head.draw(textures, space).await;
+        self.body.draw(textures, space, false).await;
+        self.head.draw(textures, space, false).await;
        
         
         

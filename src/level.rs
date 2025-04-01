@@ -300,10 +300,6 @@ impl Level {
             shotgun.draw(&self.space, textures, false).await;
         }
 
-        for body_part in &self.body_parts {
-            body_part.draw(textures, &self.space).await;
-        }
-
         for structure in self.structures.iter() {
 
             let texture_path = structure.sprite_path.clone();

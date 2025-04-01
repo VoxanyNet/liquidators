@@ -80,7 +80,7 @@ impl BodyPart {
 
         //println!("body part angle: {}", rigid_body.rotation().angle());
     }
-    pub async fn draw(&self, textures: &mut TextureLoader, space: &Space) {
+    pub async fn draw(&self, textures: &mut TextureLoader, space: &Space, flip_x: bool) {
 
         draw_texture_onto_physics_body(
             self.body_handle, 
@@ -88,7 +88,7 @@ impl BodyPart {
             space, 
             &self.sprite_path, 
             textures, 
-            false, 
+            flip_x, 
             false, 
             0.
         ).await
