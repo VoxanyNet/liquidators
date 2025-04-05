@@ -224,7 +224,7 @@ impl Player {
             return;
         }
 
-        head_joint.data.as_revolute_mut().unwrap().set_motor_position(target_angle, 10000., 0.);
+        head_joint.data.as_revolute_mut().unwrap().set_motor_position(target_angle, 300., 0.);
 
         return;
 

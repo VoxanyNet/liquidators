@@ -7,8 +7,9 @@ use gilrs::GamepadId;
 use macroquad::{input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}, rand::rand};
 use nalgebra::vector;
 use rand::{rng, seq::IndexedRandom, thread_rng};
-use rapier2d::prelude::{ColliderHandle, RigidBodyHandle};
+use rapier2d::prelude::{ColliderHandle, QueryFilter, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
+use nalgebra::point;
 
 pub mod game_state;
 pub mod physics_square;
@@ -26,6 +27,7 @@ pub mod portal_gun;
 pub mod console;
 pub mod sky;
 pub mod boat;
+pub mod teleporter;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -35,6 +37,26 @@ pub struct BodyCollider {
     body: RigidBodyHandle,
     collider: ColliderHandle
 }
+
+// this should be moved to gamelibrary but i dont want to update it right now
+pub fn collider_contains_point(collider_handle: ColliderHandle, space: &mut Space, point: Vec2) -> bool {
+    let mut contains_point: bool = false;
+
+    space.query_pipeline.update(&space.collider_set);
+
+    space.query_pipeline.intersections_with_point(
+        &space.rigid_body_set, &space.collider_set, &point![point.x, point.y], QueryFilter::default(), |handle| {
+            if collider_handle == handle {
+                contains_point = true;
+                return false
+            }
+
+            return true
+        }
+    );
+
+    contains_point
+} 
 
 pub fn get_random_file_from_dir(dir: &str) -> Option<String> {
     let path = Path::new(dir);

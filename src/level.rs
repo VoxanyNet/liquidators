@@ -7,7 +7,7 @@ use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::{boat::Boat, brick::Brick, get_random_file_from_dir, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, TickContext};
+use crate::{boat::Boat, brick::Brick, get_random_file_from_dir, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -25,7 +25,8 @@ pub struct Level {
     pub sky: Sky,
     #[serde(default)]
     pub boats: Vec<Boat>,
-    pub body_parts: Vec<BodyPart>
+    pub body_parts: Vec<BodyPart>,
+    pub teleporters: Vec<Teleporter>
 }
 
 impl Level {
@@ -41,7 +42,8 @@ impl Level {
             portals: vec![],
             sky: Sky::new(),
             boats: vec![],
-            body_parts: vec![]
+            body_parts: vec![],
+            teleporters: vec![]
         };
     
         level.space.gravity.y = -980.;
@@ -78,9 +80,9 @@ impl Level {
         }
 
         if is_key_released(input::KeyCode::B) {
-            Shotgun::spawn(&mut self.space, rapier_mouse_world_pos(ctx.camera_rect), &mut self.shotguns, ctx.uuid.clone());
-
-            println!("spawning shotgun: {}", self.shotguns.len());
+            self.teleporters.push(
+                Teleporter::new(rapier_mouse_world_pos(ctx.camera_rect), &mut self.space, &ctx.uuid)
+            );
         }
         
         for portal_bullet in &mut self.portal_bullets {
@@ -89,6 +91,9 @@ impl Level {
             
         }
 
+        for teleporter in &mut self.teleporters {
+            teleporter.tick(ctx, &mut self.space);
+        }
         for shotgun in &mut self.shotguns {
 
             if shotgun.owner != *ctx.uuid {
@@ -291,6 +296,9 @@ impl Level {
 
         //self.sky.draw();
 
+        for teleporter in &self.teleporters {
+            teleporter.draw(&self.space);
+        }
         for shotgun in &self.shotguns {
             shotgun.draw(&self.space, textures, false).await;
         }
