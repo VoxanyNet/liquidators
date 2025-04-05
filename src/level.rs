@@ -64,11 +64,6 @@ impl Level {
         ctx: &mut TickContext,
     ) {
 
-        if is_key_down(KeyCode::F) {
-            let new_body_part = BodyPart::new(get_random_file_from_dir("assets/cat/").unwrap(), 1, rapier_mouse_world_pos(ctx.camera_rect), &mut self.space, ctx.textures, ctx.uuid.clone());
-
-            self.body_parts.push(new_body_part);
-        }
         if is_key_down(KeyCode::C) {
 
             let mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);

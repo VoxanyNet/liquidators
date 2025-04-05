@@ -75,6 +75,7 @@ impl Player {
         let cat_head = BodyPart::new(
             "assets/cat/head.png".to_string(), 
             1, 
+            1.,
             *position, 
             space, 
             textures, 
@@ -84,6 +85,7 @@ impl Player {
         let cat_body = BodyPart::new(
             "assets/cat/body.png".to_string(), 
             1, 
+            10.,
             *position, 
             space, 
             textures, 
@@ -202,7 +204,27 @@ impl Player {
 
         let head_joint = space.impulse_joint_set.get_mut(self.head_joint_handle).unwrap();
 
-        head_joint.data.as_revolute_mut().unwrap().set_motor_position(-angle_to_mouse + (PI / 2.), 10000., 0.);
+        let target_angle = match self.facing {
+            Facing::Right => {
+                -angle_to_mouse + (PI / 2.)
+            },
+            Facing::Left => {
+                (angle_to_mouse + (PI / 2.)) * -1.
+            },
+        };
+
+        println!("{}", target_angle);
+
+
+        println!("{}", head_body.rotation().angle());
+
+
+        if target_angle.abs() > 0.399 {
+            // dont try to set the angle if we know its beyond the limit
+            return;
+        }
+
+        head_joint.data.as_revolute_mut().unwrap().set_motor_position(target_angle, 10000., 0.);
 
         return;
 
@@ -229,11 +251,11 @@ impl Player {
     pub fn change_facing_direction(&mut self, space: &Space) {
         let velocity = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().linvel();
 
-        if velocity.x > 0.5 {
+        if velocity.x > 100. {
             self.facing = Facing::Right
         }
 
-        if velocity.x < -0.5 {
+        if velocity.x < -100. {
             self.facing = Facing::Left
         }
     }
@@ -493,8 +515,8 @@ impl Player {
         //     None => {},
         // }
 
-        self.body.draw(textures, space, false).await;
-        self.head.draw(textures, space, false).await;
+        self.body.draw(textures, space, flip_x).await;
+        self.head.draw(textures, space, flip_x).await;
        
         
         

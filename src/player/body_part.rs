@@ -26,6 +26,7 @@ impl BodyPart {
     pub fn new(
         sprite_path: String, 
         scale: u16, 
+        mass: f32,
         pos: Vec2,
         space: &mut Space,
         textures: &mut TextureLoader,
@@ -48,7 +49,7 @@ impl BodyPart {
             ColliderBuilder::cuboid(
                 texture_size.x * scale as f32, 
                 texture_size.y * scale as f32
-            ), 
+            ).mass(mass), 
             rigid_body_handle, 
             &mut space.rigid_body_set
         );
