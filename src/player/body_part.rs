@@ -47,8 +47,9 @@ impl BodyPart {
 
         let collider_handle = space.collider_set.insert_with_parent(
             ColliderBuilder::cuboid(
-                texture_size.x * scale as f32, 
-                texture_size.y * scale as f32
+                // these are HALF extents!!!!!!!!!!
+                (texture_size.x / 2.) * scale as f32, 
+                (texture_size.y / 2.) * scale as f32
             ).mass(mass), 
             rigid_body_handle, 
             &mut space.rigid_body_set

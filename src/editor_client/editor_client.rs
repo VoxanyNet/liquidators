@@ -123,7 +123,7 @@ impl EditorClient {
 
     pub fn tick(&mut self) {
 
-        self.level.editor_tick(&self.camera_rect, &self.uuid);
+        self.level.editor_tick(&self.camera_rect, &self.uuid, &mut self.textures);
 
         self.toggle_physics();
 

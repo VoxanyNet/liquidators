@@ -1,4 +1,4 @@
-use std::{f32::consts::PI, time::Instant};
+use std::{f32::consts::PI, str::Bytes, time::Instant};
 
 use parry2d::math::{Real, Rotation};
 use diff::Diff;
@@ -9,8 +9,9 @@ use nalgebra::{vector, UnitComplex};
 use parry2d::math::Point;
 use rapier2d::prelude::{BodyPair, ColliderBuilder, ColliderHandle, ImpulseJointHandle, InteractionGroups, JointMotor, QueryFilter, RevoluteJointBuilder, RigidBody, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure::Structure, BodyCollider, TickContext};
+use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, BodyCollider, TickContext};
 
 use super::body_part::BodyPart;
 
@@ -28,6 +29,7 @@ pub enum Facing {
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct Player {
+    pub id: u64, // lame but required until i can find a better way
     pub head: BodyPart,
     pub body: BodyPart,
     pub sprite_path: String,
@@ -42,7 +44,9 @@ pub struct Player {
     pub idle_frame_progress: f32,
     pub facing: Facing,
     pub sound: SoundHandle,
-    pub head_joint_handle: ImpulseJointHandle
+    pub head_joint_handle: ImpulseJointHandle,
+    pub shotgun_joint_handle: Option<ImpulseJointHandle>,
+    pub teleporter_destination: Option<RigidBodyHandle>,
 }
 
 impl Player {
@@ -74,8 +78,8 @@ impl Player {
 
         let cat_head = BodyPart::new(
             "assets/cat/head.png".to_string(), 
-            1, 
-            1.,
+            2, 
+            10.,
             *position, 
             space, 
             textures, 
@@ -84,8 +88,8 @@ impl Player {
 
         let cat_body = BodyPart::new(
             "assets/cat/body.png".to_string(), 
-            1, 
-            10.,
+            2, 
+            100.,
             *position, 
             space, 
             textures, 
@@ -108,17 +112,31 @@ impl Player {
             true
         );
 
-        let shotgun = Shotgun::new(space, *position, owner.clone());
+        let shotgun = Shotgun::new(space, *position, owner.clone(), textures);
 
         // we dont want the shotgun to collide with anything
         space.collider_set.get_mut(shotgun.collider).unwrap().set_collision_groups(
             InteractionGroups::none()
         );
 
+        // attach the shotgun to the player
+        let shotgun_joint_handle = space.impulse_joint_set.insert(
+            cat_body.body_handle,
+            shotgun.rigid_body,
+            RevoluteJointBuilder::new()
+                .local_anchor1(vector![0., 0.].into())
+                .local_anchor2(vector![30., 0.].into())
+                .limits([-0.8, 0.8])
+                .contacts_enabled(false)
+            .build(),
+            true
+        );
+
         let sound = SoundHandle::new("assets/sounds/brick_land.wav", [0.,0.,0.]);
 
         players.push(
             Player {
+                id: Uuid::new_v4().as_u128() as u64,
                 head: cat_head,
                 body: cat_body,
                 sprite_path: "assets/player/idle.png".to_string(),
@@ -133,7 +151,9 @@ impl Player {
                 idle_frame_progress: 0.,
                 facing: Facing::Right,
                 sound,
-                head_joint_handle
+                head_joint_handle,
+                shotgun_joint_handle: Some(shotgun_joint_handle),
+                teleporter_destination: None
             }
         )
     }
@@ -143,7 +163,7 @@ impl Player {
     }
 
 
-    pub fn tick(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext, _players: &mut Vec<Player>) {
+    pub fn tick(&mut self, space: &mut Space, structures: &mut Vec<Structure>, teleporters: &mut Vec<Teleporter>, ctx: &mut TickContext, players: &mut Vec<Player>) {
         //self.launch_brick(level, ctx);
         self.control(space, ctx);
         self.update_selected(space, &ctx.camera_rect);
@@ -156,6 +176,12 @@ impl Player {
         self.delete_structure(structures, space, ctx);
         self.angle_head_to_mouse(space, ctx.camera_rect);
         self.sync_sound(ctx.sounds);
+        self.place_teleporter(ctx, teleporters, space);
+        self.angle_shotgun_to_mouse(space, ctx.camera_rect);
+        
+        if let Some(shotgun) = &mut self.shotgun {
+            shotgun.tick(players, space, ctx);
+        }
 
         if is_key_released(KeyCode::N) {
 
@@ -167,6 +193,27 @@ impl Player {
 
         self.head.tick(space, ctx);
         self.body.tick(space, ctx);
+        
+    }
+
+    pub fn place_teleporter(&mut self, ctx: &TickContext, teleporters: &mut Vec<Teleporter>, space: &mut Space) {
+
+        if !is_key_released(KeyCode::B) {
+            return
+        }
+
+        let pos = rapier_mouse_world_pos(ctx.camera_rect);
+
+        let mut teleporter = Teleporter::new(pos, space, &ctx.uuid);
+
+        teleporter.set_destination(self.teleporter_destination);
+
+        // the next teleporter we place will link to this one
+        self.teleporter_destination = Some(teleporter.get_rigid_body_handle());
+
+        teleporters.push(teleporter);
+
+        println!("{}", teleporters.len());
         
     }
 
@@ -194,6 +241,42 @@ impl Player {
         
     }
 
+    pub fn angle_shotgun_to_mouse(&mut self, space: &mut Space, camera_rect: &Rect) {
+
+        let shotgun_joint_handle = match self.shotgun_joint_handle {
+            Some(shotgun_joint_handle) => shotgun_joint_handle,
+            None => return,
+        };
+
+        // lol
+        let body_body = space.rigid_body_set.get_mut(self.body.body_handle).unwrap();
+
+        let body_body_pos = Vec2::new(body_body.translation().x, body_body.translation().y);
+
+        let angle_to_mouse = get_angle_to_mouse(body_body_pos, camera_rect);
+
+        let shotgun_joint = space.impulse_joint_set.get_mut(shotgun_joint_handle).unwrap();
+
+        let target_angle = match self.facing {
+            Facing::Right => {
+                -angle_to_mouse + (PI / 2.)
+            },
+            Facing::Left => {
+                (angle_to_mouse + (PI / 2.)) * -1.
+            },
+        };
+
+
+        if target_angle.abs() > 0.799 {
+            // dont try to set the angle if we know its beyond the limit
+            return;
+        }
+
+        shotgun_joint.data.as_revolute_mut().unwrap().set_motor_position(target_angle, 300., 20.);
+
+        return;
+    }
+
     pub fn angle_head_to_mouse(&mut self, space: &mut Space, camera_rect: &Rect) {
 
         let head_body = space.rigid_body_set.get_mut(self.head.body_handle).unwrap();
@@ -212,11 +295,6 @@ impl Player {
                 (angle_to_mouse + (PI / 2.)) * -1.
             },
         };
-
-        println!("{}", target_angle);
-
-
-        println!("{}", head_body.rotation().angle());
 
 
         if target_angle.abs() > 0.399 {
@@ -518,6 +596,15 @@ impl Player {
         self.body.draw(textures, space, flip_x).await;
         self.head.draw(textures, space, flip_x).await;
        
+        if let Some(shotgun) = &self.shotgun {
+
+            let shotgun_flip_y = match self.facing {
+                Facing::Right => true,
+                Facing::Left => false,
+            };
+
+            shotgun.draw(space, textures, shotgun_flip_y).await
+        }
         
         
     }

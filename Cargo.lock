@@ -607,13 +607,14 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
-source = "git+https://github.com/VoxanyNet/gamelibrary?rev=f7d58e10727a23416c7e0cc0b5c6d1dcc990eb9a#f7d58e10727a23416c7e0cc0b5c6d1dcc990eb9a"
+source = "git+https://github.com/VoxanyNet/gamelibrary?rev=98f892d0998ab5b2158829504c2458485fd7ca61#98f892d0998ab5b2158829504c2458485fd7ca61"
 dependencies = [
  "bitcode",
  "chrono",
  "diff-struct",
  "ears",
  "ewebsock",
+ "futures",
  "fxhash",
  "getrandom 0.2.15",
  "lz4_flex",
@@ -1031,6 +1032,7 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "tungstenite",
+ "uuid",
  "web-sys",
 ]
 
@@ -1565,7 +1567,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.22.0"
-source = "git+https://github.com/VoxanyNet/rapier?rev=712fd74b4785ab374eff218554b18cffd5cfba24#712fd74b4785ab374eff218554b18cffd5cfba24"
+source = "git+https://github.com/VoxanyNet/rapier?rev=774d31b66aa1a26760ab35d1c977a09af03c7ecf#774d31b66aa1a26760ab35d1c977a09af03c7ecf"
 dependencies = [
  "approx",
  "arrayvec",
@@ -2210,11 +2212,11 @@ checksum = "09cc8ee72d2a9becf2f2febe0205bbed8fc6615b7cb429ad062dc7b7ddd036a9"
 
 [[package]]
 name = "uuid"
-version = "1.10.0"
+version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81dfa00651efa65069b0b6b651f4aaa31ba9e3c3ce0137aaad053604ee7e0314"
+checksum = "458f7a779bf54acc9f347480ac654f68407d3aab21269a6e3c9f922acd9e2da9"
 dependencies = [
- "getrandom 0.2.15",
+ "getrandom 0.3.2",
 ]
 
 [[package]]

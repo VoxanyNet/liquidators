@@ -1,11 +1,13 @@
 use diff::Diff;
-use gamelibrary::{space::Space, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::math::Vec2;
-use nalgebra::vector;
-use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
+use futures::executor::block_on;
+use gamelibrary::{space::Space, texture_loader::TextureLoader, traits::{draw_texture_onto_physics_body, HasPhysics}};
+use macroquad::{input::is_mouse_button_released, math::Vec2};
+use nalgebra::{point, vector};
+use parry2d::query::Ray;
+use rapier2d::prelude::{ColliderBuilder, ColliderHandle, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{player::player::Player, Grabbable, TickContext};
+use crate::{collider_from_texture_size, player::player::Player, Grabbable, TickContext};
 
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -32,7 +34,15 @@ impl Grabbable for Shotgun {
 
 impl Shotgun {
 
-    pub fn new(space: &mut Space, pos: Vec2, owner: String) -> Self {
+    pub fn new(space: &mut Space, pos: Vec2, owner: String, textures: &mut TextureLoader) -> Self {
+
+        let sprite_path = "assets/shotgun.png".to_string();
+
+        let texture_size = textures.get_blocking(&sprite_path).size() 
+            * 2.; // scale the size of the shotgun
+
+        dbg!(texture_size);
+        
         let rigid_body = space.rigid_body_set.insert(
             RigidBodyBuilder::dynamic()
                 .ccd_enabled(true)
@@ -40,9 +50,11 @@ impl Shotgun {
                 .build()
         );
 
+        dbg!(collider_from_texture_size(texture_size).build().shape().as_cuboid().unwrap().half_extents);
+
         let collider = space.collider_set.insert_with_parent(
-            ColliderBuilder::cuboid(37.5, 8.25)
-                .mass(10.)
+            collider_from_texture_size(texture_size)
+                .mass(50.)
                 .build(), 
             rigid_body, 
             &mut space.rigid_body_set
@@ -52,7 +64,7 @@ impl Shotgun {
             picked_up: false,
             collider,
             rigid_body,
-            sprite: "assets/shotgun.png".to_string(),
+            sprite: sprite_path,
             selected: false,
             dragging: false,
             drag_offset: None,
@@ -61,23 +73,54 @@ impl Shotgun {
         }
     }
 
-    pub fn spawn(space: &mut Space, pos: Vec2, shotguns: &mut Vec<Shotgun>, owner: String) {
+    pub fn spawn(space: &mut Space, pos: Vec2, shotguns: &mut Vec<Shotgun>, owner: String, textures: &mut TextureLoader) {
 
         shotguns.push(
-            Self::new(space, pos, owner)
+            Self::new(space, pos, owner, textures)
         );
+    }
+
+    pub fn owner_tick(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
+        ctx.owned_rigid_bodies.push(self.rigid_body);
+        ctx.owned_colliders.push(self.collider);
+    }
+
+    pub fn all_tick(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
+        self.grab(players, space, ctx);
     }
 
     pub fn tick(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
 
-        self.grab(players, space, ctx);
+        if *ctx.uuid == self.owner {
+            self.owner_tick(players, space, ctx);
+            self.fire(space, players);
+        }
 
-        ctx.owned_rigid_bodies.push(self.rigid_body);
-        ctx.owned_colliders.push(self.collider);
+        self.all_tick(players, space, ctx);
+        
     }   
 
-    pub fn fire(&mut self) {
+    pub fn fire(&mut self, space: &mut Space, players: &mut Vec<Player>) {
         
+        if !is_mouse_button_released(macroquad::input::MouseButton::Left) {
+            return;
+        }
+
+        let player_pos = space.rigid_body_set.get(self.rigid_body).unwrap().position().translation;
+
+        let ray = Ray::new(point![player_pos.x, player_pos.y], vector![1.0, 0.]);
+        let max_toi = 4.0;
+        let solid = true;
+        let filter = QueryFilter::default();
+
+        if let Some((handle, toi)) = space.query_pipeline.cast_ray(&space.rigid_body_set, &space.collider_set, &ray, max_toi, solid, filter)
+        {
+            // The first collider hit has the handle `handle` and it hit after
+            // the ray travelled a distance equal to `ray.dir * toi`.
+            let hit_point = ray.point_at(toi); // Same as: `ray.origin + ray.dir * toi`
+            println!("Collider {:?} hit at point {}", handle, hit_point);
+        }
+
     }
 
     pub fn grab(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
@@ -103,9 +146,18 @@ impl Shotgun {
 
     }
 
-    pub async fn draw(&self, space: &Space, textures: &mut TextureLoader, flip_x: bool) {
+    pub async fn draw(&self, space: &Space, textures: &mut TextureLoader, flip_y: bool) {
 
-        self.draw_texture(space, &self.sprite, textures, flip_x, false, 0.).await;
+        draw_texture_onto_physics_body(
+            self.rigid_body, 
+            self.collider, 
+            space, 
+            &self.sprite, 
+            textures, 
+            true, 
+            flip_y, 
+            0.
+        ).await
 
     }
 }

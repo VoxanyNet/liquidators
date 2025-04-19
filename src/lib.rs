@@ -7,7 +7,7 @@ use gilrs::GamepadId;
 use macroquad::{input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}, rand::rand};
 use nalgebra::vector;
 use rand::{rng, seq::IndexedRandom, thread_rng};
-use rapier2d::prelude::{ColliderHandle, QueryFilter, RigidBodyHandle};
+use rapier2d::prelude::{Collider, ColliderBuilder, ColliderHandle, QueryFilter, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 use nalgebra::point;
 
@@ -36,6 +36,15 @@ pub mod teleporter;
 pub struct BodyCollider {
     body: RigidBodyHandle,
     collider: ColliderHandle
+}
+
+// used to identify an entity within an hashmap
+pub struct EntityKey {
+    
+}
+
+pub fn collider_from_texture_size(texture_size: Vec2) -> ColliderBuilder {
+    ColliderBuilder::cuboid(texture_size.x / 2., texture_size.y / 2.)
 }
 
 // this should be moved to gamelibrary but i dont want to update it right now

@@ -4,7 +4,7 @@ use diff::Diff;
 use gamelibrary::{macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, texture_loader::TextureLoader, traits::HasPhysics};
 use macroquad::{color::RED, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}};
 use nalgebra::vector;
-use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
+use rapier2d::{data::Arena, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Deserialize, Serialize};
 
 use crate::{boat::Boat, brick::Brick, get_random_file_from_dir, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
@@ -43,7 +43,7 @@ impl Level {
             sky: Sky::new(),
             boats: vec![],
             body_parts: vec![],
-            teleporters: vec![]
+            teleporters: Vec::new()
         };
     
         level.space.gravity.y = -980.;
@@ -78,12 +78,6 @@ impl Level {
 
             }
         }
-
-        if is_key_released(input::KeyCode::B) {
-            self.teleporters.push(
-                Teleporter::new(rapier_mouse_world_pos(ctx.camera_rect), &mut self.space, &ctx.uuid)
-            );
-        }
         
         for portal_bullet in &mut self.portal_bullets {
 
@@ -92,13 +86,9 @@ impl Level {
         }
 
         for teleporter in &mut self.teleporters {
-            teleporter.tick(ctx, &mut self.space);
+            teleporter.tick(ctx, &mut self.space, &mut self.players);
         }
         for shotgun in &mut self.shotguns {
-
-            if shotgun.owner != *ctx.uuid {
-                continue;
-            }
 
             shotgun.tick(&mut self.players, &mut self.space, ctx);
 
@@ -116,7 +106,7 @@ impl Level {
                 continue;
             }
 
-            player.tick(&mut self.space, &mut self.structures, ctx, players);
+            player.tick(&mut self.space, &mut self.structures, &mut self.teleporters, ctx, players);
                 
 
             players_iter.restore(player);   
@@ -149,12 +139,12 @@ impl Level {
         
     }
 
-    pub fn editor_tick(&mut self, camera_rect: &Rect, uuid: &String) {
+    pub fn editor_tick(&mut self, camera_rect: &Rect, uuid: &String, textures: &mut TextureLoader) {
 
         self.editor_spawn_structure(camera_rect, uuid);
         self.editor_spawn_brick(camera_rect, uuid);
         self.editor_spawn_radio(camera_rect, uuid);
-        self.editor_spawn_shotgun(camera_rect, uuid);
+        self.editor_spawn_shotgun(camera_rect, uuid, textures);
 
         for structure_index in 0..self.structures.len() {
             let mut structure = self.structures.remove(structure_index);
@@ -208,10 +198,10 @@ impl Level {
         );
     }
 
-    pub fn editor_spawn_shotgun(&mut self, camera_rect: &Rect, uuid: &String) {
+    pub fn editor_spawn_shotgun(&mut self, camera_rect: &Rect, uuid: &String, textures: &mut TextureLoader) {
 
         if is_key_pressed(input::KeyCode::P) {
-            Shotgun::spawn(&mut self.space, rapier_mouse_world_pos(camera_rect), &mut self.shotguns, uuid.clone());
+            Shotgun::spawn(&mut self.space, rapier_mouse_world_pos(camera_rect), &mut self.shotguns, uuid.clone(), textures);
 
         }
     }
