@@ -1,13 +1,11 @@
 use diff::Diff;
-use gamelibrary::{draw_texture_rapier, space::Space, texture_loader::TextureLoader, traits::draw_texture_onto_physics_body};
-use macroquad::{color::WHITE, math::Vec2, texture::{draw_texture_ex, DrawTextureParams}};
+use gamelibrary::{space::Space, texture_loader::TextureLoader, traits::draw_texture_onto_physics_body};
+use macroquad::math::Vec2;
 use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{level::Level, TickContext};
-
-use crate::player::player::Player;
+use crate::TickContext;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(

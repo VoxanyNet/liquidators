@@ -4,10 +4,10 @@ use console::Console;
 use diff::Diff;
 use gamelibrary::{rapier_mouse_world_pos, space::Space, syncsound::Sounds, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
-use macroquad::{input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}, rand::rand};
+use macroquad::{input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}};
 use nalgebra::vector;
-use rand::{rng, seq::IndexedRandom, thread_rng};
-use rapier2d::prelude::{Collider, ColliderBuilder, ColliderHandle, QueryFilter, RigidBodyHandle};
+use rand::{rng, seq::IndexedRandom};
+use rapier2d::prelude::{ColliderBuilder, ColliderHandle, QueryFilter, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 use nalgebra::point;
 

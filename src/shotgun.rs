@@ -1,10 +1,9 @@
 use diff::Diff;
-use futures::executor::block_on;
 use gamelibrary::{space::Space, texture_loader::TextureLoader, traits::{draw_texture_onto_physics_body, HasPhysics}};
 use macroquad::{input::is_mouse_button_released, math::Vec2};
 use nalgebra::{point, vector};
 use parry2d::query::Ray;
-use rapier2d::prelude::{ColliderBuilder, ColliderHandle, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{ColliderHandle, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
 use crate::{collider_from_texture_size, player::player::Player, Grabbable, TickContext};

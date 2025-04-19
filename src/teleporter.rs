@@ -1,14 +1,12 @@
 use diff::Diff;
-use gamelibrary::{rapier_to_macroquad, space::Space, traits::{draw_hitbox, HasPhysics}, uuid};
-use macroquad::{color::{BLUE, RED, WHITE}, math::Vec2, shapes::draw_circle};
+use gamelibrary::{rapier_to_macroquad, space::Space, traits::draw_hitbox};
+use macroquad::{color::{RED, WHITE}, math::Vec2, shapes::draw_circle};
 use nalgebra::{vector, Vector2};
-use parry2d::math::{Isometry, Vector};
+use parry2d::math::Isometry;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, InteractionGroups, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
-use serde::{de, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use parry2d::math::Real;
-use web_sys::console::time_stamp;
-
-use crate::{collider_contains_point, player::{self, player::Player}, TickContext};
+use crate::{player::player::Player, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(

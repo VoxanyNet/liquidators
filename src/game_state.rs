@@ -1,9 +1,7 @@
 
 use diff::Diff;
 use gamelibrary::{rapier_mouse_world_pos, texture_loader::TextureLoader};
-use macroquad::{input::is_key_released, math::{Rect, Vec2}};
-use nalgebra::vector;
-use rapier2d::prelude::RevoluteJointBuilder;
+use macroquad::{input::is_key_released, math::Rect};
 use serde::{Deserialize, Serialize};
 
 use crate::{chat::Chat, level::Level, structure::Structure, TickContext};

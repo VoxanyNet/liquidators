@@ -1,4 +1,4 @@
-use macroquad::{miniquad::conf::{LinuxBackend, Platform}, window::Conf};
+use macroquad::{miniquad::conf::Platform, window::Conf};
 use client::Client;
 
 pub mod client;

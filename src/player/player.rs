@@ -1,17 +1,15 @@
-use std::{f32::consts::PI, str::Bytes, time::Instant};
+use std::{f32::consts::PI, time::Instant};
 
-use parry2d::math::{Real, Rotation};
 use diff::Diff;
-use gamelibrary::{animation::TrackedFrames, current_unix_millis, draw_texture_rapier, get_angle_to_mouse, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, syncsound::{SoundHandle, Sounds}, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{animation::TrackedFrames, current_unix_millis, get_angle_to_mouse, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, syncsound::{SoundHandle, Sounds}, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::Gamepad;
-use macroquad::{color::WHITE, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, texture::DrawTextureParams, time::get_frame_time};
-use nalgebra::{vector, UnitComplex};
-use parry2d::math::Point;
-use rapier2d::prelude::{BodyPair, ColliderBuilder, ColliderHandle, ImpulseJointHandle, InteractionGroups, JointMotor, QueryFilter, RevoluteJointBuilder, RigidBody, RigidBodyBuilder, RigidBodyHandle};
+use macroquad::{input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, time::get_frame_time};
+use nalgebra::vector;
+use rapier2d::prelude::{ColliderHandle, ImpulseJointHandle, InteractionGroups, RevoluteJointBuilder, RigidBody, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, portal_gun::PortalGun, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, BodyCollider, TickContext};
+use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
 
 use super::body_part::BodyPart;
 
