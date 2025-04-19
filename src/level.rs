@@ -275,7 +275,7 @@ impl Level {
         }
 
         for shotgun in &self.shotguns {
-            shotgun.draw(&self.space, textures, false).await;
+            shotgun.draw(&self.space, textures, false, false).await;
         }
 
         for brick in &self.bricks {
@@ -290,7 +290,7 @@ impl Level {
             teleporter.draw(&self.space);
         }
         for shotgun in &self.shotguns {
-            shotgun.draw(&self.space, textures, false).await;
+            shotgun.draw(&self.space, textures, false, false).await;
         }
 
         for structure in self.structures.iter() {

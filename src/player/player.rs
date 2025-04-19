@@ -169,7 +169,8 @@ impl Player {
         self.update_selected(space, &ctx.camera_rect);
         self.update_is_dragging(space, &ctx.camera_rect);
         self.update_drag(space, &ctx.camera_rect);
-        self.own_nearby_structures(space, structures, ctx);
+        // this needs to be fixed so moving structures dont change owners, it causes it to glitch because conflicting updates
+        //self.own_nearby_structures(space, structures, ctx);
         self.update_walk_animation(space);
         self.update_idle_animation(space);
         self.change_facing_direction(&space);
@@ -257,6 +258,16 @@ impl Player {
 
         let shotgun_joint = space.impulse_joint_set.get_mut(shotgun_joint_handle).unwrap();
 
+        let shotgun_joint_data = shotgun_joint.data.as_revolute_mut().unwrap();
+
+        // anchor the shotgun in a different position if its supposed to be on our right side
+        let shotgun_anchor_pos = match self.facing {
+            Facing::Right => vector![-30., 0.].into(),
+            Facing::Left => vector![30., 0.].into(),
+        };
+
+        shotgun_joint_data.set_local_anchor2(shotgun_anchor_pos);
+
         let target_angle = match self.facing {
             Facing::Right => {
                 -angle_to_mouse + (PI / 2.)
@@ -272,7 +283,7 @@ impl Player {
             return;
         }
 
-        shotgun_joint.data.as_revolute_mut().unwrap().set_motor_position(target_angle, 300., 20.);
+        shotgun_joint_data.set_motor_position(target_angle, 300., 20.);
 
         return;
     }
@@ -598,12 +609,7 @@ impl Player {
        
         if let Some(shotgun) = &self.shotgun {
 
-            let shotgun_flip_y = match self.facing {
-                Facing::Right => true,
-                Facing::Left => false,
-            };
-
-            shotgun.draw(space, textures, shotgun_flip_y).await
+            shotgun.draw(space, textures, flip_x, false).await
         }
         
         

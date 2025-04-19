@@ -1,6 +1,6 @@
 use diff::Diff;
-use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::{draw_hitbox, HasPhysics}};
-use macroquad::{color::{DARKGRAY, RED, WHITE}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, shapes::draw_circle};
+use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::Space, texture_loader::TextureLoader, traits::{draw_hitbox, HasPhysics}};
+use macroquad::{color::{DARKGRAY, RED, WHITE}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, shapes::draw_circle, text::draw_text};
 use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RevoluteJointBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
@@ -257,7 +257,13 @@ impl Structure {
             draw_circle(particle.x, particle.y, 20., WHITE);
         }
 
-        draw_hitbox(space, self.rigid_body_handle, self.collider_handle, WHITE);
+        let pos = space.rigid_body_set.get(self.rigid_body_handle).unwrap().position().translation;
+
+        let pos = rapier_to_macroquad(&Vec2::new(pos.x, pos.y));
+
+        draw_text(self.owner.clone().unwrap().as_str(), pos.x, pos.y, 20., WHITE);
+
+
     }
 
 }

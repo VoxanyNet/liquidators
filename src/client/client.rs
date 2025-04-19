@@ -167,7 +167,7 @@ impl Client {
             
             // only sync 30 tps
             // this could probably be optimized but this is more readable
-            if self.last_sync.elapsed().as_secs_f32() > 1./60. {
+            if self.last_sync.elapsed().as_secs_f32() > 1./120. {
 
                 self.sync_client.sync(&mut self.game_state);
 

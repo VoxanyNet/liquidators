@@ -54,7 +54,7 @@ impl Shotgun {
 
         let collider = space.collider_set.insert_with_parent(
             collider_from_texture_size(texture_size)
-                .mass(50.)
+                .mass(1.)
                 .build(), 
             rigid_body, 
             &mut space.rigid_body_set
@@ -146,7 +146,7 @@ impl Shotgun {
 
     }
 
-    pub async fn draw(&self, space: &Space, textures: &mut TextureLoader, flip_y: bool) {
+    pub async fn draw(&self, space: &Space, textures: &mut TextureLoader, flip_x: bool, flip_y: bool) {
 
         draw_texture_onto_physics_body(
             self.rigid_body, 
@@ -154,7 +154,7 @@ impl Shotgun {
             space, 
             &self.sprite, 
             textures, 
-            true, 
+            flip_x, 
             flip_y, 
             0.
         ).await
