@@ -119,7 +119,7 @@ impl Shotgun {
 
         let player_pos = space.rigid_body_set.get(self.rigid_body).unwrap().position().translation;
 
-        let mut fire_sound = SoundHandle::new("assets/sounds/shotgun/fire.wav", [player_pos.x, player_pos.y, 0.]);
+        let mut fire_sound = SoundHandle::new("assets/sounds/shotgun/fire.wav", [0., 0., 0.]);
 
         fire_sound.play();
 
