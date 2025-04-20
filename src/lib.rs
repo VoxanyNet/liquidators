@@ -165,8 +165,3 @@ pub struct TickContext<'a> {
     pub owned_colliders: &'a mut Vec<ColliderHandle>,
     pub sounds: &'a mut dyn SoundManager
 }
-
-#[derive(PartialEq, Serialize, Deserialize, Diff)]
-pub struct SoundHandle {
-    id: i32
-}

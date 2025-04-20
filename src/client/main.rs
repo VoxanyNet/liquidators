@@ -31,7 +31,7 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    let mut client: Client<SelectedSoundManager> = Client::connect("ws://127.0.0.1:5556").await;
+    let mut client: Client<SelectedSoundManager> = Client::connect("ws://voxany.net:5556").await;
 
     client.run().await;
 

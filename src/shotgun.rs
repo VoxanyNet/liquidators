@@ -1,5 +1,5 @@
 use diff::Diff;
-use gamelibrary::{space::Space, texture_loader::TextureLoader, traits::{draw_texture_onto_physics_body, HasPhysics}};
+use gamelibrary::{sound::soundmanager::SoundHandle, space::Space, texture_loader::TextureLoader, traits::{draw_texture_onto_physics_body, HasPhysics}};
 use macroquad::{input::is_mouse_button_released, math::Vec2};
 use nalgebra::{point, vector};
 use parry2d::query::Ray;
@@ -22,7 +22,8 @@ pub struct Shotgun {
     pub drag_offset: Option<Vec2>,
     pub grabbing: bool,
     pub owner: String,
-    pub picked_up: bool
+    pub picked_up: bool,
+    pub sounds: Vec<SoundHandle> // is this the best way to do this?
 }
 
 impl Grabbable for Shotgun {
@@ -68,7 +69,8 @@ impl Shotgun {
             dragging: false,
             drag_offset: None,
             grabbing: false,
-            owner
+            owner,
+            sounds: vec![]
         }
     }
 
@@ -82,6 +84,9 @@ impl Shotgun {
     pub fn owner_tick(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
         ctx.owned_rigid_bodies.push(self.rigid_body);
         ctx.owned_colliders.push(self.collider);
+
+        self.fire(space, players, ctx);
+        self.sync_sound(ctx);
     }
 
     pub fn all_tick(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
@@ -92,20 +97,34 @@ impl Shotgun {
 
         if *ctx.uuid == self.owner {
             self.owner_tick(players, space, ctx);
-            self.fire(space, players);
         }
 
         self.all_tick(players, space, ctx);
         
     }   
 
-    pub fn fire(&mut self, space: &mut Space, players: &mut Vec<Player>) {
+    pub fn sync_sound(&mut self, ctx: &mut TickContext) {
+        for sound_handle in &mut self.sounds {
+            ctx.sounds.sync_sound(sound_handle);
+        }
+    }
+
+    pub fn fire(&mut self, space: &mut Space, players: &mut Vec<Player>, ctx: &mut TickContext) {
         
         if !is_mouse_button_released(macroquad::input::MouseButton::Left) {
             return;
         }
 
+        
+
         let player_pos = space.rigid_body_set.get(self.rigid_body).unwrap().position().translation;
+
+        let mut fire_sound = SoundHandle::new("assets/sounds/shotgun/fire.wav", [player_pos.x, player_pos.y, 0.]);
+
+        fire_sound.play();
+
+        self.sounds.push(fire_sound);
+
 
         let ray = Ray::new(point![player_pos.x, player_pos.y], vector![1.0, 0.]);
         let max_toi = 4.0;
