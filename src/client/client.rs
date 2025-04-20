@@ -1,11 +1,11 @@
 use std::{fs, sync::{mpsc, Arc, Mutex}, time::Instant};
 
-use gamelibrary::{animation_loader::AnimationLoader, log, sync::client::SyncClient, syncsound::Sounds, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{animation_loader::AnimationLoader, log, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, game_state::GameState, level::Level, player::player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
 use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, time::get_fps, window::{request_new_screen_size, screen_width}};
 
-pub struct Client {
+pub struct Client<S: SoundManager> {
     pub game_state: GameState,
     pub is_host: bool,
     pub textures: TextureLoader,
@@ -19,10 +19,10 @@ pub struct Client {
     pub camera_rect: Rect,
     pub active_gamepad: Option<GamepadId>,
     pub console: Console,
-    pub sounds: Sounds
+    pub sounds: S
 }
 
-impl Client {
+impl<S: SoundManager> Client<S> {
     
     pub fn tick(&mut self) {
 
@@ -280,7 +280,7 @@ impl Client {
             active_gamepad,
             sync_client,
             console: Console::new(),
-            sounds: Sounds::new()
+            sounds: S::new()
         }
     }
 

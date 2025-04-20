@@ -16,7 +16,7 @@ rapier2d = { git = "https://github.com/VoxanyNet/rapier", rev = "774d31b66aa1a26
 serde = { version = "1.0.205", features = ["serde_derive"] }
 lz4_flex = { version = "0.11", default-features = false }
 # ewebsock = "0.7.0"
-gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "98f892d0998ab5b2158829504c2458485fd7ca61"}
+gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "a174a818c4c71e8d922e7252e82107d358d356bb"}
 parry2d = {git = "https://github.com/VoxanyNet/parry", rev = "10a5155cb735ca3d2e912473b22bad2f2ad5889e"}
 #gamelibrary ={ path = "../gamelibrary"}
 bitcode = { version = "0.6.0", features = ["serde"] }
@@ -33,6 +33,9 @@ uuid = { version = "1.16.0", features = ["v4"] }
 # [[bin]]
 # name = "updater"
 # path = "src/updater/main.rs"
+
+[features]
+3d-audio = ["gamelibrary/3d-audio"]
 
 [[bin]]
 name = "client"

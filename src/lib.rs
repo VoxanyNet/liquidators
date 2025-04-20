@@ -2,7 +2,7 @@ use std::{fs, path::Path, time::Instant};
 
 use console::Console;
 use diff::Diff;
-use gamelibrary::{rapier_mouse_world_pos, space::Space, syncsound::Sounds, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{rapier_mouse_world_pos, sound::soundmanager::SoundManager, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
 use macroquad::{input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}};
 use nalgebra::vector;
@@ -163,7 +163,7 @@ pub struct TickContext<'a> {
     pub console: &'a mut Console,
     pub owned_rigid_bodies: &'a mut Vec<RigidBodyHandle>,
     pub owned_colliders: &'a mut Vec<ColliderHandle>,
-    pub sounds: &'a mut Sounds
+    pub sounds: &'a mut dyn SoundManager
 }
 
 #[derive(PartialEq, Serialize, Deserialize, Diff)]

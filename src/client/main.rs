@@ -3,6 +3,13 @@ use client::Client;
 
 pub mod client;
 
+#[cfg(feature = "3d-audio")]
+use gamelibrary::sound::backends::ears::EarsSoundManager as SelectedSoundManager; // this alias needs a better name
+
+#[cfg(not(feature = "3d-audio"))]
+use gamelibrary::sound::backends::macroquad::MacroquadSoundManager as SelectedSoundManager;
+
+
 fn window_conf() -> Conf {
 
     let mut platform = Platform::default();
@@ -24,7 +31,7 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    let mut client = Client::connect("ws://127.0.0.1:5556").await;
+    let mut client: Client<SelectedSoundManager> = Client::connect("ws://127.0.0.1:5556").await;
 
     client.run().await;
 

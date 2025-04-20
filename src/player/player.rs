@@ -1,7 +1,7 @@
 use std::{f32::consts::PI, time::Instant};
 
 use diff::Diff;
-use gamelibrary::{animation::TrackedFrames, current_unix_millis, get_angle_to_mouse, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, syncsound::{SoundHandle, Sounds}, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{animation::TrackedFrames, current_unix_millis, get_angle_to_mouse, rapier_mouse_world_pos, sound::soundmanager::{SoundHandle, SoundManager}, space::Space, swapiter::SwapIter, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::Gamepad;
 use macroquad::{input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, time::get_frame_time};
 use nalgebra::vector;
@@ -156,7 +156,7 @@ impl Player {
         )
     }
 
-    pub fn sync_sound(&mut self, sounds: &mut Sounds) {
+    pub fn sync_sound(&mut self, sounds: &mut dyn SoundManager) {
         sounds.sync_sound(&mut self.sound);
     }
 
