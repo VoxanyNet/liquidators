@@ -36,7 +36,7 @@ impl PhysicsSquare {
     pub fn new(space: &mut Space, position: Vec2, body_type: RigidBodyType, hx: f32, hy: f32, owner: &String, controllable: bool, color: macroquad::color::Color) -> Self {
 
         
-        let rigid_body_handle = space.rigid_body_set.insert(
+        let mut rigid_body_handle = space.rigid_body_set.insert(
             RigidBodyBuilder::new(body_type)
                 .translation(vector![position.x, position.y])
                 .ccd_enabled(true)
@@ -47,7 +47,7 @@ impl PhysicsSquare {
         
         let collider_handle = space.collider_set.insert_with_parent(
             ColliderBuilder::cuboid(hx, hy).build(),
-            rigid_body_handle, 
+            &mut rigid_body_handle, 
             &mut space.rigid_body_set
         );
 
@@ -103,7 +103,7 @@ impl PhysicsSquare {
 
     pub fn tick(&mut self, game_state: &mut GameState, _ctx: &mut TickContext) {
 
-        let rigid_body = game_state.level.space.rigid_body_set.get_mut(self.rigid_body_handle).expect("shit");
+        let rigid_body = game_state.level.space.rigid_body_set.get_mut(&mut self.rigid_body_handle).expect("shit");
 
         if rigid_body.position().translation.x >= window::screen_width() || rigid_body.position().translation.x <= 0. {
             rigid_body.set_linvel(
@@ -188,8 +188,8 @@ impl PhysicsSquare {
 
 impl HasPhysics for PhysicsSquare {
 
-    fn collider_handle(&self) -> &ColliderHandle {
-        &self.collider_handle
+    fn collider_handle(&mut self) -> &mut ColliderHandle {
+        &mut self.collider_handle
     }
 
     fn drag_offset(&mut self) -> &mut Option<Vec2> {
@@ -208,7 +208,7 @@ impl HasPhysics for PhysicsSquare {
         &mut self.dragging
     }
     
-    fn rigid_body_handle(&self) -> &RigidBodyHandle {
-        &self.rigid_body_handle
+    fn rigid_body_handle(&mut self) -> &mut RigidBodyHandle {
+        &mut self.rigid_body_handle
     }
 }

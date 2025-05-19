@@ -24,7 +24,7 @@ pub struct Radio {
 
 impl Radio {
 
-    pub async fn draw(&self, textures: &mut TextureLoader, space: &Space) {
+    pub async fn draw(&mut self, textures: &mut TextureLoader, space: &Space) {
         self.draw_texture(space, &self.texture_path.clone(), textures, false, false, 0.).await;
     }
 
@@ -41,8 +41,8 @@ impl Radio {
 }
 
 impl HasPhysics for Radio {
-    fn collider_handle(&self) -> &ColliderHandle {
-        &self.collider_handle
+    fn collider_handle(&mut self) -> &mut ColliderHandle {
+        &mut self.collider_handle
     }
 
     fn selected(&self) -> &bool {
@@ -61,8 +61,8 @@ impl HasPhysics for Radio {
         todo!()
     }
 
-    fn rigid_body_handle(&self) -> &RigidBodyHandle {
-        &self.rigid_body_handle
+    fn rigid_body_handle(&mut self) -> &mut RigidBodyHandle {
+        &mut self.rigid_body_handle
     }
 }
 
@@ -89,8 +89,8 @@ impl RadioBuilder {
             .restitution(0.)
             .build();
 
-        let rigid_body_handle = space.rigid_body_set.insert(rigid_body);
-        let collider_handle = space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut space.rigid_body_set);
+        let mut rigid_body_handle = space.rigid_body_set.insert(rigid_body);
+        let collider_handle = space.collider_set.insert_with_parent(collider, &mut rigid_body_handle, &mut space.rigid_body_set);
 
         Self {
             rigid_body_handle: Some(rigid_body_handle),

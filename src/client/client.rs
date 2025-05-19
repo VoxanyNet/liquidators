@@ -233,15 +233,15 @@ impl<S: SoundManager> Client<S> {
         // we will start allocating OUR rigid bodies starting at the end of the current set
         let new_free_list_head = rigid_body_set.bodies.capacity();
         // reserve 500 entries in the rigid body and collider sets
-        rigid_body_set.bodies.reserve(500);
+        //rigid_body_set.bodies.reserve(500);
         // this is only client side
-        rigid_body_set.bodies.set_free_list_head(new_free_list_head as u32);
+        //rigid_body_set.bodies.set_free_list_head(new_free_list_head as u32);
 
         // do the same for collider set
         let collider_set = &mut game_state.level.space.collider_set;
-        let new_free_list_head = collider_set.colliders.capacity();
-        collider_set.colliders.reserve(500);
-        collider_set.colliders.set_free_list_head(new_free_list_head as u32);
+        //let new_free_list_head = collider_set.colliders.capacity();
+        //collider_set.colliders.reserve(500);
+       // collider_set.colliders.set_free_list_head(new_free_list_head as u32);
 
         // if we are the first player to join, we take ownership of everything
         if game_state.level.players.len() == 0 {

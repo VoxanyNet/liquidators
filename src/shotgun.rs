@@ -43,7 +43,7 @@ impl Shotgun {
 
         dbg!(texture_size);
         
-        let rigid_body = space.rigid_body_set.insert(
+        let mut rigid_body = space.rigid_body_set.insert(
             RigidBodyBuilder::dynamic()
                 .ccd_enabled(true)
                 .position(vector![pos.x, pos.y].into())
@@ -56,7 +56,7 @@ impl Shotgun {
             collider_from_texture_size(texture_size)
                 .mass(1.)
                 .build(), 
-            rigid_body, 
+            &mut rigid_body, 
             &mut space.rigid_body_set
         );
 
@@ -181,12 +181,12 @@ impl Shotgun {
 }
 
 impl HasPhysics for Shotgun {
-    fn collider_handle(&self) -> &ColliderHandle {
-        &self.collider
+    fn collider_handle(&mut self) -> &mut ColliderHandle {
+        &mut self.collider
     }
 
-    fn rigid_body_handle(&self) -> &RigidBodyHandle {
-        &self.rigid_body
+    fn rigid_body_handle(&mut self) -> &mut RigidBodyHandle {
+        &mut self.rigid_body
     }
 
     fn selected(&self) -> &bool {

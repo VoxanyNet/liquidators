@@ -36,9 +36,9 @@ impl Boat {
             .build();
 
     
-        let rigid_body_handle = space.rigid_body_set.insert(rigid_body);
+        let mut rigid_body_handle = space.rigid_body_set.insert(rigid_body);
 
-        let collider_handle = space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut space.rigid_body_set);
+        let collider_handle = space.collider_set.insert_with_parent(collider, &mut rigid_body_handle, &mut space.rigid_body_set);
 
         let boat = Self {
             top_sprite_path: "assets/boat/top.png".to_string(),
@@ -130,12 +130,12 @@ impl Boat {
 }
 
 impl HasPhysics for Boat {
-    fn collider_handle(&self) -> &rapier2d::prelude::ColliderHandle {
-        &self.collider_handle
+    fn collider_handle(&mut self) -> &mut rapier2d::prelude::ColliderHandle {
+        &mut self.collider_handle
     }
 
-    fn rigid_body_handle(&self) -> &rapier2d::prelude::RigidBodyHandle {
-        &self.rigid_body_handle
+    fn rigid_body_handle(&mut self) -> &mut rapier2d::prelude::RigidBodyHandle {
+        &mut self.rigid_body_handle
     }
 
     fn selected(&self) -> &bool {

@@ -2,9 +2,13 @@ structures:
 - rigid_body_handle:
     index: 0
     generation: 0
+    synced: true
+    sync_id: 10365140506841925290
   collider_handle:
     index: 0
     generation: 0
+    synced: true
+    sync_id: 9407490698491087762
   color:
     r: 0.9
     g: 0.16
@@ -15,7 +19,7 @@ structures:
   dragging: false
   drag_offset: null
   owner: null
-  editor_owner: '973135856'
+  editor_owner: '4205599099'
   sprite_path: assets/structure/brick_block.png
   last_ownership_change: 0
   grabbing: false
@@ -28,6 +32,7 @@ space:
       items:
       - !Occupied
         generation: 0
+        sync_id: 10365140506841925290
         value:
           pos:
             position:
@@ -35,15 +40,15 @@ space:
               - 1.0
               - 0.0
               translation:
-              - 654.6667
-              - 174.0
+              - 636.0
+              - 181.33337
             next_position:
               rotation:
               - 1.0
               - 0.0
               translation:
-              - 654.6667
-              - 174.0
+              - 636.0
+              - 181.33337
           mprops:
             flags: ''
             local_mprops:
@@ -54,8 +59,8 @@ space:
               inv_principal_inertia_sqrt: 0.019364918
             additional_local_mprops: null
             world_com:
-            - 654.6667
-            - 174.0
+            - 636.0
+            - 181.33337
             effective_inv_mass:
             - 0.1
             - 0.1
@@ -97,6 +102,8 @@ space:
           colliders:
           - index: 0
             generation: 0
+            synced: true
+            sync_id: 9407490698491087762
           activation:
             normalized_linear_threshold: 0.4
             angular_threshold: 0.5
@@ -118,19 +125,26 @@ space:
       generation: 0
       free_list_head: 1
       len: 1
+      sync_index_map:
+        10365140506841925290:
+        - 0
+        - 0
     modified_bodies:
     - index: 0
       generation: 0
+      synced: true
+      sync_id: 10365140506841925290
   collider_set:
     colliders:
       items:
       - !Occupied
         generation: 0
+        sync_id: 9407490698491087762
         value:
           coll_type: Solid
           shape: !Cuboid
             half_extents:
-            - 650.0
+            - 630.0
             - 20.0
           mprops: !Mass 10.0
           changes: MODIFIED | LOCAL_MASS_PROPERTIES | PARENT | POSITION | GROUPS | SHAPE | TYPE | PARENT_EFFECTIVE_DOMINANCE | ENABLED_OR_DISABLED
@@ -138,6 +152,8 @@ space:
             handle:
               index: 0
               generation: 0
+              synced: true
+              sync_id: 10365140506841925290
             pos_wrt_parent:
               rotation:
               - 1.0
@@ -150,8 +166,8 @@ space:
             - 1.0
             - 0.0
             translation:
-            - 24.666687
-            - 174.0
+            - 26.0
+            - 181.33337
           material:
             friction: 0.5
             restitution: 0.0
@@ -182,9 +198,15 @@ space:
       generation: 0
       free_list_head: 1
       len: 1
+      sync_index_map:
+        9407490698491087762:
+        - 0
+        - 0
     modified_colliders:
     - index: 0
       generation: 0
+      synced: true
+      sync_id: 9407490698491087762
     removed_colliders: []
   gravity:
   - 0.0
@@ -249,6 +271,7 @@ space:
       generation: 0
       free_list_head: 0
       len: 0
+      sync_index_map: {}
     joint_graph:
       graph:
         nodes: []
@@ -268,6 +291,7 @@ space:
       generation: 0
       free_list_head: 0
       len: 0
+      sync_index_map: {}
     rb2mb:
       data: []
     connectivity_graph:
@@ -280,28 +304,28 @@ space:
     qbvh:
       root_aabb:
         mins:
-        - -638.3333
-        - 153.6
+        - -616.6
+        - 160.93338
         maxs:
-        - 687.6667
-        - 194.4
+        - 668.6
+        - 201.73337
       nodes:
       - simd_aabb:
           mins:
-          - - -638.3333
+          - - -616.6
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 153.6
+          - - 160.93338
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 687.6667
+          - - 668.6
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 194.4
+          - - 201.73337
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
@@ -316,20 +340,20 @@ space:
         flags: 0
       - simd_aabb:
           mins:
-          - - -638.3333
+          - - -616.6
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 153.6
+          - - 160.93338
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 687.6667
+          - - 668.6
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 194.4
+          - - 201.73337
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
@@ -351,6 +375,8 @@ space:
         data:
           index: 0
           generation: 0
+          synced: true
+          sync_id: 9407490698491087762
     dilation_factor: 0.01
   physics_hooks: null
 bricks: []

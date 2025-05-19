@@ -52,7 +52,7 @@ impl GameState {
 
     }
 
-    pub async fn draw(&self, textures: &mut TextureLoader, camera_rect: &Rect) {
+    pub async fn draw(&mut self, textures: &mut TextureLoader, camera_rect: &Rect) {
 
         self.level.draw(textures, camera_rect).await;
 

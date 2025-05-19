@@ -77,7 +77,7 @@ impl EditorClient {
                 owned_colliders.push(structure.collider_handle);
             }
 
-            for brick in &self.level.bricks {
+            for brick in &mut self.level.bricks {
                 owned_rigid_bodies.push(brick.rigid_body_handle().clone());
                 owned_colliders.push(brick.collider_handle().clone());
             }

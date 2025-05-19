@@ -34,7 +34,7 @@ impl BodyPart {
         // use the dimensions of the texture to create the collider
         let texture_size = futures::executor::block_on(textures.get(&sprite_path)).size();
 
-        let rigid_body_handle = space.rigid_body_set.insert(
+        let mut rigid_body_handle = space.rigid_body_set.insert(
             RigidBodyBuilder::dynamic()
                 .position(
                     vector![pos.x, pos.y].into()
@@ -49,7 +49,7 @@ impl BodyPart {
                 (texture_size.x / 2.) * scale as f32, 
                 (texture_size.y / 2.) * scale as f32
             ).mass(mass), 
-            rigid_body_handle, 
+            &mut rigid_body_handle, 
             &mut space.rigid_body_set
         );
 

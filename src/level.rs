@@ -226,7 +226,7 @@ impl Level {
 
             let rapier_mouse_world_pos = macroquad_to_rapier(&mouse_world_pos);
 
-            let rigid_body_handle = self.space.rigid_body_set.insert(
+            let mut rigid_body_handle = self.space.rigid_body_set.insert(
                 RigidBodyBuilder::fixed()
                     .position(
                         vector![rapier_mouse_world_pos.x, rapier_mouse_world_pos.y].into()
@@ -239,7 +239,7 @@ impl Level {
                 .restitution(0.)
                 .build();
 
-            let collider_handle = self.space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut self.space.rigid_body_set);
+            let collider_handle = self.space.collider_set.insert_with_parent(collider, &mut rigid_body_handle, &mut self.space.rigid_body_set);
 
             let new_structure = Structure { 
                 grabbing: false,
@@ -263,14 +263,14 @@ impl Level {
         }
     }
 
-    pub async fn editor_draw(&self, textures: &mut TextureLoader) {
-        for structure in &self.structures {
+    pub async fn editor_draw(&mut self, textures: &mut TextureLoader) {
+        for structure in &mut self.structures {
 
             let texture_path = structure.sprite_path.clone() ;
             structure.debug_draw(&self.space, &texture_path, textures).await;
         }
 
-        for radio in &self.radios {
+        for radio in &mut self.radios {
             radio.draw(textures, &self.space).await;
         }
 
@@ -278,11 +278,11 @@ impl Level {
             shotgun.draw(&self.space, textures, false, false).await;
         }
 
-        for brick in &self.bricks {
+        for brick in &mut self.bricks {
             brick.editor_draw(&self.space, textures).await
         }
     }
-    pub async fn draw(&self, textures: &mut TextureLoader, camera_rect: &Rect) {
+    pub async fn draw(&mut self, textures: &mut TextureLoader, camera_rect: &Rect) {
 
         //self.sky.draw();
 
@@ -293,14 +293,14 @@ impl Level {
             shotgun.draw(&self.space, textures, false, false).await;
         }
 
-        for structure in self.structures.iter() {
+        for structure in self.structures.iter_mut() {
 
             let texture_path = structure.sprite_path.clone();
 
             structure.draw(&self.space, &texture_path, textures).await;
         }
 
-        for boat in &self.boats {
+        for boat in &mut self.boats {
             boat.draw_hitbox(&self.space)
         }
 
@@ -316,7 +316,7 @@ impl Level {
             boat.draw_bottom(&self.space, textures).await
         }
 
-        for brick in &self.bricks {
+        for brick in &mut self.bricks {
             brick.draw(&self.space, textures).await;
         }
 

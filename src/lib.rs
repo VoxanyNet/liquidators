@@ -96,7 +96,7 @@ pub trait Grabbable: HasPhysics {
             return
         }
 
-        let body = space.rigid_body_set.get_mut(*self.rigid_body_handle()).unwrap();
+        let body = space.rigid_body_set.get_mut(self.rigid_body_handle()).unwrap();
 
         let current_velocity = body.linvel();
 

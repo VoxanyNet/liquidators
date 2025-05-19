@@ -373,8 +373,7 @@ checksum = "e8566979429cf69b49a5c740c60791108e86440e8be149bbea4fe54d2c32d6e2"
 [[package]]
 name = "diff-struct"
 version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79aac083112b31f7cb768b24b893dc0c34c296a4b06b250c407bfd495e42075c"
+source = "git+https://github.com/VoxanyNet/diff-struct?rev=9f3990a29011bbbb84c40ca21f110ef8a1d343d0#9f3990a29011bbbb84c40ca21f110ef8a1d343d0"
 dependencies = [
  "diff_derive",
  "num",
@@ -384,8 +383,7 @@ dependencies = [
 [[package]]
 name = "diff_derive"
 version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe165e7ead196bbbf44c7ce11a7a21157b5c002ce46d7098ff9c556784a4912d"
+source = "git+https://github.com/VoxanyNet/diff-derive#844353f2a9e2472b8203833841cb3cbceb664c81"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -640,7 +638,7 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
-source = "git+https://github.com/VoxanyNet/gamelibrary?rev=a174a818c4c71e8d922e7252e82107d358d356bb#a174a818c4c71e8d922e7252e82107d358d356bb"
+source = "git+https://github.com/VoxanyNet/gamelibrary?rev=68575aec1e5d6564b86e442fbe9cbf034b1fc04f#68575aec1e5d6564b86e442fbe9cbf034b1fc04f"
 dependencies = [
  "bitcode",
  "chrono",
@@ -748,7 +746,7 @@ checksum = "779ae4bf7e8421cf91c0b3b64e7e8b40b862fba4d393f59150042de7c4965a94"
 [[package]]
 name = "glam"
 version = "0.29.0"
-source = "git+https://github.com/VoxanyNet/glam-rs?rev=ca35e413f23e59f1267a7152399232ff2756efdc#ca35e413f23e59f1267a7152399232ff2756efdc"
+source = "git+https://github.com/VoxanyNet/glam-rs?rev=ae2829011e20f66391dea9c65e09ef28b3466fe0#ae2829011e20f66391dea9c65e09ef28b3466fe0"
 dependencies = [
  "diff-struct",
  "serde",
@@ -1119,7 +1117,7 @@ dependencies = [
 [[package]]
 name = "macroquad"
 version = "0.4.13"
-source = "git+https://github.com/VoxanyNet/macroquad?rev=73db4a93f90f41942995ef757499ed61f3ff6085#73db4a93f90f41942995ef757499ed61f3ff6085"
+source = "git+https://github.com/VoxanyNet/macroquad?rev=76010ebc46b245eda84497f0e8764d8626223223#76010ebc46b245eda84497f0e8764d8626223223"
 dependencies = [
  "diff-struct",
  "fontdue",
@@ -1136,7 +1134,7 @@ dependencies = [
 [[package]]
 name = "macroquad_macro"
 version = "0.1.8"
-source = "git+https://github.com/VoxanyNet/macroquad?rev=73db4a93f90f41942995ef757499ed61f3ff6085#73db4a93f90f41942995ef757499ed61f3ff6085"
+source = "git+https://github.com/VoxanyNet/macroquad?rev=76010ebc46b245eda84497f0e8764d8626223223#76010ebc46b245eda84497f0e8764d8626223223"
 
 [[package]]
 name = "malloc_buf"
@@ -1212,7 +1210,7 @@ dependencies = [
 [[package]]
 name = "nalgebra"
 version = "0.33.0"
-source = "git+https://github.com/VoxanyNet/nalgebra?rev=c57d898ac19a01ac5ad2d6da5f98dea91257ac9e#c57d898ac19a01ac5ad2d6da5f98dea91257ac9e"
+source = "git+https://github.com/VoxanyNet/nalgebra?rev=e780eebdce5dbfcf09a82164142295036d2904cb#e780eebdce5dbfcf09a82164142295036d2904cb"
 dependencies = [
  "approx",
  "diff-struct",
@@ -1229,7 +1227,7 @@ dependencies = [
 [[package]]
 name = "nalgebra-macros"
 version = "0.2.2"
-source = "git+https://github.com/VoxanyNet/nalgebra?rev=c57d898ac19a01ac5ad2d6da5f98dea91257ac9e#c57d898ac19a01ac5ad2d6da5f98dea91257ac9e"
+source = "git+https://github.com/VoxanyNet/nalgebra?rev=e780eebdce5dbfcf09a82164142295036d2904cb#e780eebdce5dbfcf09a82164142295036d2904cb"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1446,7 +1444,7 @@ dependencies = [
 [[package]]
 name = "parry2d"
 version = "0.17.0"
-source = "git+https://github.com/VoxanyNet/parry?rev=10a5155cb735ca3d2e912473b22bad2f2ad5889e#10a5155cb735ca3d2e912473b22bad2f2ad5889e"
+source = "git+https://github.com/VoxanyNet/parry?rev=b1663f398302769d29de3fe9417d06fc11d0f57d#b1663f398302769d29de3fe9417d06fc11d0f57d"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1655,7 +1653,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.22.0"
-source = "git+https://github.com/VoxanyNet/rapier?rev=774d31b66aa1a26760ab35d1c977a09af03c7ecf#774d31b66aa1a26760ab35d1c977a09af03c7ecf"
+source = "git+https://github.com/VoxanyNet/rapier?rev=85a707e0b01d0ca40d2d4651a7862568bcb011f9#85a707e0b01d0ca40d2d4651a7862568bcb011f9"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1674,6 +1672,7 @@ dependencies = [
  "serde",
  "simba",
  "thiserror",
+ "uuid",
 ]
 
 [[package]]

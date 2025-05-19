@@ -28,7 +28,7 @@ pub struct Brick {
 impl Brick {
     pub fn new(space: &mut Space, location: Vec2, owner: Option<String>) -> Self {
 
-        let body_handle = space.rigid_body_set.insert( 
+        let mut body_handle = space.rigid_body_set.insert( 
             RigidBodyBuilder::dynamic()
                 .position(vector![location.x, location.y].into())
                 .ccd_enabled(true)
@@ -39,7 +39,7 @@ impl Brick {
             ColliderBuilder::cuboid(8., 3.)
             .active_events(ActiveEvents::COLLISION_EVENTS)
             .build(), 
-            body_handle, 
+            &mut body_handle, 
             &mut space.rigid_body_set
         );
 
@@ -89,25 +89,25 @@ impl Brick {
 
     }
 
-    pub async fn editor_draw(&self, space: &Space, textures: &mut TextureLoader) {
+    pub async fn editor_draw(&mut self, space: &Space, textures: &mut TextureLoader) {
         self.draw_outline(space, 3.).await;
-        self.draw_texture(space, &self.texture_path, textures, false, false, 0.).await;
+        self.draw_texture(space, &self.texture_path.clone(), textures, false, false, 0.).await;
         
 
     } 
 
-    pub async fn draw(&self, space: &Space, textures: &mut TextureLoader) {
-        self.draw_texture(space, &self.texture_path, textures, false, false, 0.).await;
+    pub async fn draw(&mut self, space: &Space, textures: &mut TextureLoader) {
+        self.draw_texture(space, &self.texture_path.clone(), textures, false, false, 0.).await;
     }
 }
 
 impl HasPhysics for Brick {
-    fn collider_handle(&self) -> &rapier2d::prelude::ColliderHandle {
-        &self.collider
+    fn collider_handle(&mut self) -> &mut rapier2d::prelude::ColliderHandle {
+        &mut self.collider
     }
 
-    fn rigid_body_handle(&self) -> &rapier2d::prelude::RigidBodyHandle {
-        &self.body
+    fn rigid_body_handle(&mut self) -> &mut rapier2d::prelude::RigidBodyHandle {
+        &mut self.body
     }
 
     fn selected(&self) -> &bool {

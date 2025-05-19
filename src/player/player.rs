@@ -95,7 +95,7 @@ impl Player {
         );
 
         // lock the rotation of the cat body
-        space.rigid_body_set.get_mut(cat_body.body_handle).unwrap().lock_rotations(true, true);
+        space.rigid_body_set.get_mut(&mut cat_body.body_handle.clone()).unwrap().lock_rotations(true, true);
 
         // joint the head to the body
         let head_joint_handle = space.impulse_joint_set.insert(
@@ -113,7 +113,7 @@ impl Player {
         let shotgun = Shotgun::new(space, *position, owner.clone(), textures);
 
         // we dont want the shotgun to collide with anything
-        space.collider_set.get_mut(shotgun.collider).unwrap().set_collision_groups(
+        space.collider_set.get_mut(&mut shotgun.collider.clone()).unwrap().set_collision_groups(
             InteractionGroups::none()
         );
 
@@ -248,7 +248,7 @@ impl Player {
         };
 
         // lol
-        let body_body = space.rigid_body_set.get_mut(self.body.body_handle).unwrap();
+        let body_body = space.rigid_body_set.get_mut(&mut self.body.body_handle).unwrap();
 
         let body_body_pos = Vec2::new(body_body.translation().x, body_body.translation().y);
 
@@ -288,7 +288,7 @@ impl Player {
 
     pub fn angle_head_to_mouse(&mut self, space: &mut Space, camera_rect: &Rect) {
 
-        let head_body = space.rigid_body_set.get_mut(self.head.body_handle).unwrap();
+        let head_body = space.rigid_body_set.get_mut(&mut self.head.body_handle).unwrap();
 
         let head_body_pos = Vec2::new(head_body.translation().x, head_body.translation().y);
 
@@ -483,9 +483,9 @@ impl Player {
             player_pos.translation.y + mouse_body_distance.normalize().y * 40.
         );
 
-        let brick = Brick::new(&mut level.space, brick_spawn_point, Some(ctx.uuid.clone()));
+        let mut brick = Brick::new(&mut level.space, brick_spawn_point, Some(ctx.uuid.clone()));
         
-        let brick_body = level.space.rigid_body_set.get_mut(*brick.rigid_body_handle()).unwrap();
+        let brick_body = level.space.rigid_body_set.get_mut(brick.rigid_body_handle()).unwrap();
 
         let mut brick_velocity = player_velocity;
         brick_velocity.x += 5000. * mouse_body_distance.normalize().x;
@@ -525,7 +525,7 @@ impl Player {
 
     pub fn control(&mut self, space: &mut Space, _ctx: &mut TickContext) {
 
-        let rigid_body = space.rigid_body_set.get_mut(self.body.body_handle).unwrap();
+        let rigid_body = space.rigid_body_set.get_mut(&mut self.body.body_handle).unwrap();
 
         let gamepad: Option<Gamepad<'_>> = None;
 
@@ -615,12 +615,12 @@ impl Player {
 }
 
 impl HasPhysics for Player {
-    fn collider_handle(&self) -> &ColliderHandle {
-        &self.body.collider_handle
+    fn collider_handle(&mut self) -> &mut ColliderHandle {
+        &mut self.body.collider_handle
     }
 
-    fn rigid_body_handle(&self) -> &RigidBodyHandle {
-        &self.body.body_handle
+    fn rigid_body_handle(&mut self) -> &mut RigidBodyHandle {
+        &mut self.body.body_handle
     }
 
     fn selected(&self) -> &bool {

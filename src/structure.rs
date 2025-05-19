@@ -50,7 +50,7 @@ impl Structure {
     pub fn new(pos: Vec2, space: &mut Space, owner: String) -> Self {
 
 
-        let rigid_body_handle = space.rigid_body_set.insert(
+        let mut rigid_body_handle = space.rigid_body_set.insert(
             RigidBodyBuilder::dynamic()
                 .position(
                     vector![pos.x, pos.y].into()
@@ -64,7 +64,7 @@ impl Structure {
             .build();
         
 
-        let collider_handle = space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut space.rigid_body_set);
+        let collider_handle = space.collider_set.insert_with_parent(collider, &mut rigid_body_handle, &mut space.rigid_body_set);
 
         Structure { 
             editor_owner: owner.clone(),
@@ -215,7 +215,7 @@ impl Structure {
                 },
                 "Zero Velocity" => {
 
-                    let body = space.rigid_body_set.get_mut(self.rigid_body_handle).unwrap();
+                    let body = space.rigid_body_set.get_mut(&mut self.rigid_body_handle).unwrap();
                     
                     body.set_linvel(vector![0., 0.], true);
                     //body.set_rotation(Rotation::from_angle(0.), true);
@@ -232,7 +232,7 @@ impl Structure {
         Some(self)
     }
 
-    pub async fn debug_draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
+    pub async fn debug_draw(&mut self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
         self.draw_outline(space, 10.).await;
         self.draw_texture(space, texture_path, textures, false, false, 0.).await;
 
@@ -242,11 +242,11 @@ impl Structure {
         }
     }
 
-    pub async fn draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
+    pub async fn draw(&mut self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
         
         self.draw_texture(space, texture_path, textures, false, false, 0.).await;
         
-        match &*self.joint_test {
+        match &mut *self.joint_test {
             Some(joint_test) => {
                 joint_test.draw_texture(space, texture_path, textures, false, false, 0.).await;
             },
@@ -270,8 +270,8 @@ impl Structure {
 
 impl HasPhysics for Structure {
 
-    fn collider_handle(&self) -> &ColliderHandle {
-        &self.collider_handle
+    fn collider_handle(&mut self) -> &mut ColliderHandle {
+        &mut self.collider_handle
     }
     fn drag_offset(&mut self) -> &mut Option<Vec2> {
         &mut self.drag_offset
@@ -289,7 +289,7 @@ impl HasPhysics for Structure {
         &mut self.dragging
     }
 
-    fn rigid_body_handle(&self) -> &RigidBodyHandle {
-        &self.rigid_body_handle
+    fn rigid_body_handle(&mut self) -> &mut RigidBodyHandle {
+        &mut self.rigid_body_handle
     }
 }

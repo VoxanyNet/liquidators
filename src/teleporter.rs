@@ -31,7 +31,7 @@ impl Teleporter {
     } 
 
     pub fn new(pos: Vec2, space: &mut Space, owner: &String) -> Self {
-        let teleporter_body_handle = space.rigid_body_set.insert(
+        let mut teleporter_body_handle = space.rigid_body_set.insert(
             RigidBodyBuilder::dynamic()
                 .position(vector![pos.x, pos.y].into())
                 .build()
@@ -41,7 +41,7 @@ impl Teleporter {
         let teleporter_collider_handle = space.collider_set.insert_with_parent(
             ColliderBuilder::cuboid(20., 5.)
                 .position(vector![0., 0.].into()), 
-            teleporter_body_handle, 
+            &mut teleporter_body_handle, 
             &mut space.rigid_body_set
         );
 
@@ -50,7 +50,7 @@ impl Teleporter {
             ColliderBuilder::cuboid(20., 20.)
                 .position(vector![0., 50.].into())
                 .collision_groups(InteractionGroups::none()), 
-            teleporter_body_handle, 
+            &mut teleporter_body_handle, 
             &mut space.rigid_body_set
         );
 
@@ -136,7 +136,7 @@ impl Teleporter {
         
     }
 
-    pub fn teleport_candidates(&mut self, candidates: Vec<RigidBodyHandle>, space: &mut Space) {
+    pub fn teleport_candidates(&mut self, mut candidates: Vec<RigidBodyHandle>, space: &mut Space) {
 
         let destination_handle = match self.destination {
             Some(destination) => destination,
@@ -153,9 +153,9 @@ impl Teleporter {
 
         let teleporter_position = space.rigid_body_set.get(self.body_handle).unwrap().position().clone();
 
-        for candidate_body_handle in &candidates {
+        for candidate_body_handle in &mut candidates {
 
-            let candidate_body = space.rigid_body_set.get_mut(*candidate_body_handle).unwrap();
+            let candidate_body = space.rigid_body_set.get_mut(candidate_body_handle).unwrap();
 
             let candidate_position = candidate_body.position().translation;
 
