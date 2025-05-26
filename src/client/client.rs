@@ -1,6 +1,6 @@
 use std::{fs, sync::{mpsc, Arc, Mutex}, time::Instant};
 
-use gamelibrary::{animation_loader::AnimationLoader, log, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, log, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, game_state::GameState, level::Level, player::player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
 use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, time::get_fps, window::{request_new_screen_size, screen_width}};
@@ -65,6 +65,8 @@ impl<S: SoundManager> Client<S> {
         //     self.game_state.level = Level::from_save("level.yaml".to_string());
         // }
 
+        
+
         self.save_state();
 
         self.last_tick = Instant::now();
@@ -91,16 +93,17 @@ impl<S: SoundManager> Client<S> {
 
     pub fn disconnect(&mut self) {
 
-       let mut players = self.game_state.level.players.into_vec_remove_iter();
+        
+       let mut players_iter = SyncArenaIterator::new(&mut self.game_state.level.players);
 
-       while let Some(mut item) = players.next() {
+       while let Some((mut player, players)) = players_iter.next() {
 
-            if item.element.owner != self.uuid {
-                item.restore();
+            if player.owner != self.uuid {
+                players_iter.restore(player);
             }
 
             else {
-                item.element.remove_body_and_collider(&mut self.game_state.level.space);
+                player.remove_body_and_collider(&mut self.game_state.level.space);
             }
         }
 

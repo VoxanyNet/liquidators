@@ -1,5 +1,5 @@
 use diff::Diff;
-use gamelibrary::{rapier_to_macroquad, space::Space, traits::draw_hitbox};
+use gamelibrary::{rapier_to_macroquad, space::Space, sync_arena::SyncArena, traits::draw_hitbox};
 use macroquad::{color::{RED, WHITE}, math::Vec2, shapes::draw_circle};
 use nalgebra::{vector, Vector2};
 use parry2d::math::Isometry;
@@ -63,7 +63,7 @@ impl Teleporter {
         }
         
     }
-    pub fn tick(&mut self, ctx: &mut TickContext, space: &mut Space, players: &mut Vec<Player>) {
+    pub fn tick(&mut self, ctx: &mut TickContext, space: &mut Space, players: &mut SyncArena<Player>) {
         
 
         self.all_tick(ctx);
@@ -84,7 +84,7 @@ impl Teleporter {
         ctx.owned_rigid_bodies.push(self.body_handle);
     }
 
-    pub fn get_teleport_candidate_bodies(&mut self, ctx: &mut TickContext, space: &mut Space, players: &mut Vec<Player>) -> Vec<RigidBodyHandle> {
+    pub fn get_teleport_candidate_bodies(&mut self, ctx: &mut TickContext, space: &mut Space, players: &mut SyncArena<Player>) -> Vec<RigidBodyHandle> {
         let candidate_collider = space.collider_set.get(self.teleport_candidate_collider).unwrap();
 
         // all rigid bodies that are in the teleporter candidate field
@@ -106,7 +106,7 @@ impl Teleporter {
                 }
                 
                 println!("{}", players.len());
-                for player in &*players {
+                for (_, player) in &*players {
 
                     // we only want to teleport player bodies, not their heads
                     if player.body.collider_handle != handle {
@@ -125,7 +125,7 @@ impl Teleporter {
 
         
     }
-    pub fn owner_tick(&mut self, ctx: &mut TickContext, space: &mut Space, players: &mut Vec<Player>) {
+    pub fn owner_tick(&mut self, ctx: &mut TickContext, space: &mut Space, players: &mut SyncArena<Player>) {
 
         
         self.add_owned_physics_objects(ctx);

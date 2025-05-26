@@ -1,6 +1,6 @@
 use diff::Diff;
-use gamelibrary::{sound::soundmanager::SoundHandle, space::Space, texture_loader::TextureLoader, traits::{draw_texture_onto_physics_body, HasPhysics}};
-use macroquad::{input::is_mouse_button_released, math::Vec2};
+use gamelibrary::{get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::SoundHandle, space::Space, sync_arena::SyncArena, texture_loader::TextureLoader, traits::{draw_texture_onto_physics_body, HasPhysics}};
+use macroquad::{color::RED, input::is_mouse_button_released, math::Vec2, shapes::draw_rectangle};
 use nalgebra::{point, vector};
 use parry2d::query::Ray;
 use rapier2d::prelude::{ColliderHandle, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
@@ -81,22 +81,22 @@ impl Shotgun {
         );
     }
 
-    pub fn owner_tick(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
+    pub fn owner_tick(&mut self, players: &mut SyncArena<Player>, hit_markers: &mut Vec<Vec2>, space: &mut Space, ctx: &mut TickContext) {
         ctx.owned_rigid_bodies.push(self.rigid_body);
         ctx.owned_colliders.push(self.collider);
 
-        self.fire(space, players, ctx);
+        self.fire(space, players, hit_markers, ctx);
         self.sync_sound(ctx);
     }
 
-    pub fn all_tick(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
+    pub fn all_tick(&mut self, players: &mut SyncArena<Player>, space: &mut Space, ctx: &mut TickContext) {
         self.grab(players, space, ctx);
     }
 
-    pub fn tick(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
+    pub fn tick(&mut self, players: &mut SyncArena<Player>, space: &mut Space, hit_markers: &mut Vec<Vec2>, ctx: &mut TickContext) {
 
         if *ctx.uuid == self.owner {
-            self.owner_tick(players, space, ctx);
+            self.owner_tick(players, hit_markers, space, ctx);
         }
 
         self.all_tick(players, space, ctx);
@@ -109,7 +109,7 @@ impl Shotgun {
         }
     }
 
-    pub fn fire(&mut self, space: &mut Space, players: &mut Vec<Player>, ctx: &mut TickContext) {
+    pub fn fire(&mut self, space: &mut Space, players: &mut SyncArena<Player>, hit_markers: &mut Vec<Vec2>, ctx: &mut TickContext) {
         
         if !is_mouse_button_released(macroquad::input::MouseButton::Left) {
             return;
@@ -126,29 +126,48 @@ impl Shotgun {
         self.sounds.push(fire_sound);
 
 
-        let ray = Ray::new(point![player_pos.x, player_pos.y], vector![1.0, 0.]);
-        let max_toi = 4.0;
+        let mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);
+
+        let mouse_vector = Vec2::new(
+            mouse_pos.x - player_pos.x,
+            mouse_pos.y - player_pos.y 
+        ).normalize();
+
+        let ray = Ray::new(point![player_pos.x, player_pos.y], vector![mouse_vector.x, mouse_vector.y]);
+        let max_toi = 1000.0;
         let solid = true;
         let filter = QueryFilter::default();
 
-        if let Some((handle, toi)) = space.query_pipeline.cast_ray(&space.rigid_body_set, &space.collider_set, &ray, max_toi, solid, filter)
-        {
-            // The first collider hit has the handle `handle` and it hit after
-            // the ray travelled a distance equal to `ray.dir * toi`.
-            let hit_point = ray.point_at(toi); // Same as: `ray.origin + ray.dir * toi`
-            println!("Collider {:?} hit at point {}", handle, hit_point);
-        }
+        space.query_pipeline.intersections_with_ray(&space.rigid_body_set, &space.collider_set, &ray, max_toi, solid, filter, 
+        |handle, intersection| {
+
+            if self.collider == handle {
+                return true;
+            }
+
+            let collider_pos = space.collider_set.get(handle).unwrap().position().translation;
+
+            
+
+            let macroquad_hit_pos = rapier_to_macroquad(&Vec2::new(collider_pos.x, collider_pos.y));
+
+            hit_markers.push(macroquad_hit_pos);
+
+
+            true
+        });
+
 
     }
 
-    pub fn grab(&mut self, players: &mut Vec<Player>, space: &mut Space, ctx: &mut TickContext) {
+    pub fn grab(&mut self, players: &mut SyncArena<Player>, space: &mut Space, ctx: &mut TickContext) {
 
         if self.picked_up {
             return;
         }
 
         // we need to have a more efficient way of finding the currently controlled player
-        for player in players {
+        for (index, player) in players {
             if player.owner == *ctx.uuid {
 
                 let reference_body = player.body.body_handle;

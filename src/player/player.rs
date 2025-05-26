@@ -1,7 +1,7 @@
 use std::{f32::consts::PI, time::Instant};
 
 use diff::Diff;
-use gamelibrary::{animation::TrackedFrames, current_unix_millis, get_angle_to_mouse, rapier_mouse_world_pos, sound::soundmanager::{SoundHandle, SoundManager}, space::Space, swapiter::SwapIter, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{animation::TrackedFrames, current_unix_millis, get_angle_to_mouse, rapier_mouse_world_pos, sound::soundmanager::{SoundHandle, SoundManager}, space::Space, swapiter::SwapIter, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::Gamepad;
 use macroquad::{input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, time::get_frame_time};
 use nalgebra::vector;
@@ -72,7 +72,7 @@ impl Player {
         );
     } 
 
-    pub fn spawn(players: &mut Vec<Player>, space: &mut Space, owner: String, position: &Vec2, textures: &mut TextureLoader) {
+    pub fn spawn(players: &mut SyncArena<Player>, space: &mut Space, owner: String, position: &Vec2, textures: &mut TextureLoader) {
 
         let cat_head = BodyPart::new(
             "assets/cat/head.png".to_string(), 
@@ -132,7 +132,7 @@ impl Player {
 
         let sound = SoundHandle::new("assets/sounds/brick_land.wav", [0.,0.,0.]);
 
-        players.push(
+        players.insert(
             Player {
                 id: Uuid::new_v4().as_u128() as u64,
                 head: cat_head,
@@ -153,7 +153,7 @@ impl Player {
                 shotgun_joint_handle: Some(shotgun_joint_handle),
                 teleporter_destination: None
             }
-        )
+        );
     }
 
     pub fn sync_sound(&mut self, sounds: &mut dyn SoundManager) {
@@ -161,7 +161,7 @@ impl Player {
     }
 
 
-    pub fn tick(&mut self, space: &mut Space, structures: &mut Vec<Structure>, teleporters: &mut Vec<Teleporter>, ctx: &mut TickContext, players: &mut Vec<Player>) {
+    pub fn tick(&mut self, space: &mut Space, structures: &mut Vec<Structure>, teleporters: &mut Vec<Teleporter>, hit_markers: &mut Vec<Vec2>, ctx: &mut TickContext, players: &mut SyncArena<Player>) {
         //self.launch_brick(level, ctx);
         self.control(space, ctx);
         self.update_selected(space, &ctx.camera_rect);
@@ -179,7 +179,7 @@ impl Player {
         self.angle_shotgun_to_mouse(space, ctx.camera_rect);
         
         if let Some(shotgun) = &mut self.shotgun {
-            shotgun.tick(players, space, ctx);
+            shotgun.tick(players, space, hit_markers, ctx);
         }
 
         if is_key_released(KeyCode::N) {

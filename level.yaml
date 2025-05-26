@@ -15,13 +15,26 @@ structures:
   dragging: false
   drag_offset: null
   owner: null
-  editor_owner: '973135856'
+  editor_owner: '2980917521'
   sprite_path: assets/structure/brick_block.png
   last_ownership_change: 0
   grabbing: false
   particles: []
   joint_test: null
-players: []
+players:
+  items:
+  - !Free
+    next_free: 1
+  - !Free
+    next_free: 2
+  - !Free
+    next_free: 3
+  - !Free
+    next_free: null
+  generation: 0
+  free_list_head: 0
+  len: 0
+  sync_index_map: {}
 space:
   rigid_body_set:
     bodies:
@@ -35,15 +48,15 @@ space:
               - 1.0
               - 0.0
               translation:
-              - 654.6667
-              - 174.0
+              - 617.3333
+              - 182.66669
             next_position:
               rotation:
               - 1.0
               - 0.0
               translation:
-              - 654.6667
-              - 174.0
+              - 617.3333
+              - 182.66669
           mprops:
             flags: ''
             local_mprops:
@@ -54,8 +67,8 @@ space:
               inv_principal_inertia_sqrt: 0.019364918
             additional_local_mprops: null
             world_com:
-            - 654.6667
-            - 174.0
+            - 617.3333
+            - 182.66669
             effective_inv_mass:
             - 0.1
             - 0.1
@@ -130,7 +143,7 @@ space:
           coll_type: Solid
           shape: !Cuboid
             half_extents:
-            - 650.0
+            - 610.0
             - 20.0
           mprops: !Mass 10.0
           changes: MODIFIED | LOCAL_MASS_PROPERTIES | PARENT | POSITION | GROUPS | SHAPE | TYPE | PARENT_EFFECTIVE_DOMINANCE | ENABLED_OR_DISABLED
@@ -150,8 +163,8 @@ space:
             - 1.0
             - 0.0
             translation:
-            - 24.666687
-            - 174.0
+            - 27.333313
+            - 182.66669
           material:
             friction: 0.5
             restitution: 0.0
@@ -280,28 +293,28 @@ space:
     qbvh:
       root_aabb:
         mins:
-        - -638.3333
-        - 153.6
+        - -594.8667
+        - 162.2667
         maxs:
-        - 687.6667
-        - 194.4
+        - 649.5333
+        - 203.06668
       nodes:
       - simd_aabb:
           mins:
-          - - -638.3333
+          - - -594.8667
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 153.6
+          - - 162.2667
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 687.6667
+          - - 649.5333
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 194.4
+          - - 203.06668
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
@@ -316,20 +329,20 @@ space:
         flags: 0
       - simd_aabb:
           mins:
-          - - -638.3333
+          - - -594.8667
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 153.6
+          - - 162.2667
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 687.6667
+          - - 649.5333
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 194.4
+          - - 203.06668
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
@@ -362,3 +375,4 @@ sky: {}
 boats: []
 body_parts: []
 teleporters: []
+hit_markers: []

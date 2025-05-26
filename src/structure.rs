@@ -1,5 +1,5 @@
 use diff::Diff;
-use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::Space, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
 use macroquad::{color::{DARKGRAY, RED, WHITE}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, shapes::draw_circle, text::draw_text};
 use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
@@ -109,7 +109,7 @@ impl Structure {
         self.menu = Some(menu);
     }
 
-    pub fn tick(&mut self, ctx: &mut TickContext, space: &mut Space, players: &Vec<Player>) {
+    pub fn tick(&mut self, ctx: &mut TickContext, space: &mut Space, players: &SyncArena<Player>) {
         
         // let collider = space.collider_set.get(self.collider_handle).unwrap();
         // let body_transform = space.rigid_body_set.get(self.rigid_body_handle).unwrap().position();
@@ -130,7 +130,7 @@ impl Structure {
 
         if *ctx.uuid == self.owner.clone().unwrap() {
             // we need to have a more efficient way of finding the currently controlled player
-            for player in players {
+            for (_, player) in players {
                 if player.owner == *ctx.uuid {
 
                     let reference_body = player.body.body_handle;

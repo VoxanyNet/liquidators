@@ -1,8 +1,8 @@
 use std::fs;
 
 use diff::Diff;
-use gamelibrary::{macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::RED, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}};
+use gamelibrary::{arenaiter::SyncArenaIterator, macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
+use macroquad::{color::{RED, WHITE}, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}, shapes::{draw_rectangle, draw_rectangle_ex, DrawRectangleParams}};
 use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
 use serde::{Deserialize, Serialize};
@@ -15,7 +15,7 @@ use crate::{boat::Boat, brick::Brick, player::{body_part::BodyPart, player::Play
 ))]
 pub struct Level {
     pub structures: Vec<Structure>,
-    pub players: Vec<Player>,
+    pub players: SyncArena<Player>,
     pub space: Space,
     pub bricks: Vec<Brick>,
     pub radios: Vec<Radio>,
@@ -26,7 +26,8 @@ pub struct Level {
     #[serde(default)]
     pub boats: Vec<Boat>,
     pub body_parts: Vec<BodyPart>,
-    pub teleporters: Vec<Teleporter>
+    pub teleporters: Vec<Teleporter>,
+    pub hit_markers: Vec<Vec2>
 }
 
 impl Level {
@@ -34,7 +35,7 @@ impl Level {
         let mut level = Level { 
             bricks: vec![],
             structures: vec![],
-            players: vec![],
+            players: SyncArena::new(),
             space: Space::new(),
             radios: vec![],
             shotguns: vec![],
@@ -43,7 +44,8 @@ impl Level {
             sky: Sky::new(),
             boats: vec![],
             body_parts: vec![],
-            teleporters: Vec::new()
+            teleporters: Vec::new(),
+            hit_markers: Vec::new()
         };
     
         level.space.gravity.y = -980.;
@@ -85,20 +87,22 @@ impl Level {
             
         }
 
+        if is_key_released(KeyCode::Delete) {
+            self.hit_markers = Vec::new();
+        }
+
         for teleporter in &mut self.teleporters {
             teleporter.tick(ctx, &mut self.space, &mut self.players);
         }
         for shotgun in &mut self.shotguns {
 
-            shotgun.tick(&mut self.players, &mut self.space, ctx);
+            shotgun.tick(&mut self.players, &mut self.space, &mut self.hit_markers, ctx);
 
         }
 
-        let mut players_iter = SwapIter::new(&mut self.players);
+        let mut players_iter = &mut SyncArenaIterator::new(&mut self.players);
 
-        while players_iter.not_done() {
-
-            let (players, mut player) = players_iter.next();
+        while let Some((mut player, players)) = players_iter.next() {
 
             if player.owner != *ctx.uuid {
                 players_iter.restore(player);
@@ -106,7 +110,7 @@ impl Level {
                 continue;
             }
 
-            player.tick(&mut self.space, &mut self.structures, &mut self.teleporters, ctx, players);
+            player.tick(&mut self.space, &mut self.structures, &mut self.teleporters, &mut self.hit_markers, ctx, players);
                 
 
             players_iter.restore(player);   
@@ -308,7 +312,7 @@ impl Level {
             boat.draw_top(&self.space, textures).await
         }
 
-        for player in self.players.iter() {
+        for (index, player) in &self.players {
             player.draw(&self.space, textures, camera_rect).await;
         }
 
@@ -326,6 +330,14 @@ impl Level {
 
         for portal in self.portals.iter() {
             portal.draw(&self.space).await
+        }
+
+        for hitmarker in self.hit_markers.iter() {
+            draw_rectangle_ex(hitmarker.x, hitmarker.y, 20., 20., DrawRectangleParams {
+                offset: Vec2::new(0.5, 0.5),
+                rotation: 0.,
+                color: WHITE,
+            });
         }
     }
 }
