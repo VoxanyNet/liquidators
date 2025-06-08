@@ -1,6 +1,6 @@
 
 use diff::Diff;
-use gamelibrary::{rapier_mouse_world_pos, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{rapier_mouse_world_pos, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, texture_loader::TextureLoader, traits::HasPhysics};
 use macroquad::{input::{self, is_mouse_button_pressed}, math::{Rect, Vec2}};
 use nalgebra::vector;
 use rapier2d::prelude::{ActiveEvents, ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
@@ -14,8 +14,8 @@ use crate::TickContext;
 ))]
 pub struct Brick {
     //sounds: Vec<ears::Sound>,
-    collider: ColliderHandle,
-    body: RigidBodyHandle,
+    collider: SyncColliderHandle,
+    body: SyncRigidBodyHandle,
     selected: bool,
     dragging: bool,
     drag_offset: Option<Vec2>,
@@ -28,19 +28,19 @@ pub struct Brick {
 impl Brick {
     pub fn new(space: &mut Space, location: Vec2, owner: Option<String>) -> Self {
 
-        let body_handle = space.rigid_body_set.insert( 
+        let body_handle = space.sync_rigid_body_set.insert_sync( 
             RigidBodyBuilder::dynamic()
                 .position(vector![location.x, location.y].into())
                 .ccd_enabled(true)
                 .build()
         );
 
-        let collider_handle = space.collider_set.insert_with_parent(
+        let collider_handle = space.sync_collider_set.insert_with_parent_sync(
             ColliderBuilder::cuboid(8., 3.)
             .active_events(ActiveEvents::COLLISION_EVENTS)
             .build(), 
             body_handle, 
-            &mut space.rigid_body_set
+            &mut space.sync_rigid_body_set
         );
 
 
@@ -102,11 +102,11 @@ impl Brick {
 }
 
 impl HasPhysics for Brick {
-    fn collider_handle(&self) -> &rapier2d::prelude::ColliderHandle {
+    fn collider_handle(&self) -> &SyncColliderHandle {
         &self.collider
     }
 
-    fn rigid_body_handle(&self) -> &rapier2d::prelude::RigidBodyHandle {
+    fn rigid_body_handle(&self) -> &SyncRigidBodyHandle{
         &self.body
     }
 

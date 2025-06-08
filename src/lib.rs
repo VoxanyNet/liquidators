@@ -2,7 +2,7 @@ use std::{fs, path::Path, time::Instant};
 
 use console::Console;
 use diff::Diff;
-use gamelibrary::{rapier_mouse_world_pos, sound::soundmanager::SoundManager, space::Space, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{rapier_mouse_world_pos, sound::soundmanager::SoundManager, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
 use macroquad::{input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}};
 use nalgebra::vector;
@@ -26,8 +26,8 @@ pub mod portal_bullet;
 pub mod portal_gun;
 pub mod console;
 pub mod sky;
-pub mod boat;
 pub mod teleporter;
+pub mod grenade;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -51,10 +51,10 @@ pub fn collider_from_texture_size(texture_size: Vec2) -> ColliderBuilder {
 pub fn collider_contains_point(collider_handle: ColliderHandle, space: &mut Space, point: Vec2) -> bool {
     let mut contains_point: bool = false;
 
-    space.query_pipeline.update(&space.collider_set);
+    space.query_pipeline.update(&space.sync_collider_set.collider_set);
 
     space.query_pipeline.intersections_with_point(
-        &space.rigid_body_set, &space.collider_set, &point![point.x, point.y], QueryFilter::default(), |handle| {
+        &space.sync_rigid_body_set.rigid_body_set, &space.sync_collider_set.collider_set, &point![point.x, point.y], QueryFilter::default(), |handle| {
             if collider_handle == handle {
                 contains_point = true;
                 return false
@@ -96,7 +96,7 @@ pub trait Grabbable: HasPhysics {
             return
         }
 
-        let body = space.rigid_body_set.get_mut(*self.rigid_body_handle()).unwrap();
+        let body = space.sync_rigid_body_set.get_sync_mut(*self.rigid_body_handle()).unwrap();
 
         let current_velocity = body.linvel();
 
@@ -113,10 +113,10 @@ pub trait Grabbable: HasPhysics {
     }
 
     /// Update whether this entity is being grabbed
-    fn update_grabbing(&mut self, space: &mut Space, camera_rect: &Rect, max_grab_distance: Vec2, reference_body_handle: RigidBodyHandle) {
-        let body = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap();
+    fn update_grabbing(&mut self, space: &mut Space, camera_rect: &Rect, max_grab_distance: Vec2, reference_body_handle: SyncRigidBodyHandle) {
+        let body = space.sync_rigid_body_set.get_sync(*self.rigid_body_handle()).unwrap();
 
-        let reference_body = space.rigid_body_set.get(reference_body_handle).unwrap();
+        let reference_body = space.sync_rigid_body_set.get_sync(reference_body_handle).unwrap();
 
         let distance = Vec2::new(
             body.translation().x - reference_body.translation().x,
@@ -161,7 +161,7 @@ pub struct TickContext<'a> {
     pub camera_offset: &'a mut Vec2,
     pub active_gamepad: &'a Option<GamepadId>,
     pub console: &'a mut Console,
-    pub owned_rigid_bodies: &'a mut Vec<RigidBodyHandle>,
-    pub owned_colliders: &'a mut Vec<ColliderHandle>,
+    pub owned_rigid_bodies: &'a mut Vec<SyncRigidBodyHandle>,
+    pub owned_colliders: &'a mut Vec<SyncColliderHandle>,
     pub sounds: &'a mut dyn SoundManager
 }

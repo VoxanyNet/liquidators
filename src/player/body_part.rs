@@ -1,5 +1,5 @@
 use diff::Diff;
-use gamelibrary::{space::Space, texture_loader::TextureLoader, traits::draw_texture_onto_physics_body};
+use gamelibrary::{space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, texture_loader::TextureLoader, traits::draw_texture_onto_physics_body};
 use macroquad::math::Vec2;
 use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
@@ -12,8 +12,8 @@ use crate::TickContext;
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct BodyPart {
-    pub collider_handle: ColliderHandle,
-    pub body_handle: RigidBodyHandle,
+    pub collider_handle: SyncColliderHandle,
+    pub body_handle: SyncRigidBodyHandle,
     pub sprite_path: String,
     pub scale: u16,
     pub owner: String
@@ -34,7 +34,7 @@ impl BodyPart {
         // use the dimensions of the texture to create the collider
         let texture_size = futures::executor::block_on(textures.get(&sprite_path)).size();
 
-        let rigid_body_handle = space.rigid_body_set.insert(
+        let rigid_body_handle = space.sync_rigid_body_set.insert_sync(
             RigidBodyBuilder::dynamic()
                 .position(
                     vector![pos.x, pos.y].into()
@@ -43,14 +43,14 @@ impl BodyPart {
                 .build()
         );
 
-        let collider_handle = space.collider_set.insert_with_parent(
+        let collider_handle = space.sync_collider_set.insert_with_parent_sync(
             ColliderBuilder::cuboid(
                 // these are HALF extents!!!!!!!!!!
                 (texture_size.x / 2.) * scale as f32, 
                 (texture_size.y / 2.) * scale as f32
             ).mass(mass), 
             rigid_body_handle, 
-            &mut space.rigid_body_set
+            &mut space.sync_rigid_body_set
         );
 
         Self {
@@ -76,7 +76,7 @@ impl BodyPart {
     }
 
     fn all_tick(&mut self, space: &Space, ctx: &mut TickContext) {
-        let rigid_body = space.rigid_body_set.get(self.body_handle).unwrap();
+        let rigid_body = space.sync_rigid_body_set.get_sync(self.body_handle).unwrap();
 
         //println!("body part angle: {}", rigid_body.rotation().angle());
     }

@@ -1,5 +1,5 @@
 use diff::Diff;
-use gamelibrary::{get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::SoundHandle, space::Space, sync_arena::SyncArena, texture_loader::TextureLoader, traits::{draw_texture_onto_physics_body, HasPhysics}};
+use gamelibrary::{get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::SoundHandle, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::{draw_texture_onto_physics_body, HasPhysics}};
 use macroquad::{color::RED, input::is_mouse_button_released, math::Vec2, shapes::draw_rectangle};
 use nalgebra::{point, vector};
 use parry2d::query::Ray;
@@ -14,8 +14,9 @@ use crate::{collider_from_texture_size, player::player::Player, Grabbable, TickC
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct Shotgun {
-    pub collider: ColliderHandle,
-    pub rigid_body: RigidBodyHandle,
+    pub player_rigid_body_handle: Option<SyncRigidBodyHandle>,
+    pub collider: SyncColliderHandle,
+    pub rigid_body: SyncRigidBodyHandle,
     pub sprite: String,
     pub selected: bool,
     pub dragging: bool,
@@ -34,7 +35,7 @@ impl Grabbable for Shotgun {
 
 impl Shotgun {
 
-    pub fn new(space: &mut Space, pos: Vec2, owner: String, textures: &mut TextureLoader) -> Self {
+    pub fn new(space: &mut Space, pos: Vec2, owner: String, player_rigid_body_handle: Option<SyncRigidBodyHandle>, textures: &mut TextureLoader) -> Self {
 
         let sprite_path = "assets/shotgun.png".to_string();
 
@@ -43,7 +44,7 @@ impl Shotgun {
 
         dbg!(texture_size);
         
-        let rigid_body = space.rigid_body_set.insert(
+        let rigid_body = space.sync_rigid_body_set.insert_sync(
             RigidBodyBuilder::dynamic()
                 .ccd_enabled(true)
                 .position(vector![pos.x, pos.y].into())
@@ -52,15 +53,16 @@ impl Shotgun {
 
         dbg!(collider_from_texture_size(texture_size).build().shape().as_cuboid().unwrap().half_extents);
 
-        let collider = space.collider_set.insert_with_parent(
+        let collider = space.sync_collider_set.insert_with_parent_sync(
             collider_from_texture_size(texture_size)
                 .mass(1.)
                 .build(), 
             rigid_body, 
-            &mut space.rigid_body_set
+            &mut space.sync_rigid_body_set
         );
 
         Self {
+            player_rigid_body_handle,
             picked_up: false,
             collider,
             rigid_body,
@@ -74,10 +76,10 @@ impl Shotgun {
         }
     }
 
-    pub fn spawn(space: &mut Space, pos: Vec2, shotguns: &mut Vec<Shotgun>, owner: String, textures: &mut TextureLoader) {
+    pub fn spawn(space: &mut Space, pos: Vec2, shotguns: &mut Vec<Shotgun>, owner: String, player_rigid_body_handle: Option<SyncRigidBodyHandle>, textures: &mut TextureLoader) {
 
         shotguns.push(
-            Self::new(space, pos, owner, textures)
+            Self::new(space, pos, owner, player_rigid_body_handle, textures)
         );
     }
 
@@ -117,7 +119,7 @@ impl Shotgun {
 
         
 
-        let player_pos = space.rigid_body_set.get(self.rigid_body).unwrap().position().translation;
+        let shotgun_pos = space.sync_rigid_body_set.get_sync(self.rigid_body).unwrap().position().translation;
 
         let mut fire_sound = SoundHandle::new("assets/sounds/shotgun/fire.wav", [0., 0., 0.]);
 
@@ -129,33 +131,101 @@ impl Shotgun {
         let mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);
 
         let mouse_vector = Vec2::new(
-            mouse_pos.x - player_pos.x,
-            mouse_pos.y - player_pos.y 
+            mouse_pos.x - shotgun_pos.x,
+            mouse_pos.y - shotgun_pos.y 
         ).normalize();
 
-        let ray = Ray::new(point![player_pos.x, player_pos.y], vector![mouse_vector.x, mouse_vector.y]);
+        if let Some(player_rigid_body_handle) = self.player_rigid_body_handle {
+            let player_rigid_body = space.sync_rigid_body_set.get_sync_mut(player_rigid_body_handle).unwrap();
+            
+            let new_player_rigid_body_velocity = {
+                let mut new_player_rigid_body_velocity = player_rigid_body.linvel().clone();
+
+                new_player_rigid_body_velocity.x -= mouse_vector.x * 1000.;
+                new_player_rigid_body_velocity.y -= mouse_vector.y * 1000.; 
+
+                new_player_rigid_body_velocity
+            }; 
+
+            
+
+            player_rigid_body.set_linvel(
+                new_player_rigid_body_velocity, 
+                true
+            );
+        }
+
+        let ray = Ray::new(point![shotgun_pos.x, shotgun_pos.y], vector![mouse_vector.x, mouse_vector.y]);
         let max_toi = 1000.0;
         let solid = true;
         let filter = QueryFilter::default();
 
-        space.query_pipeline.intersections_with_ray(&space.rigid_body_set, &space.collider_set, &ray, max_toi, solid, filter, 
-        |handle, intersection| {
+        let mut hit_rigid_bodies: Vec<SyncRigidBodyHandle> = Vec::new();
 
-            if self.collider == handle {
+        let local_collider = space.sync_collider_set.get_local_handle(self.collider);
+
+        space.query_pipeline.intersections_with_ray(&space.sync_rigid_body_set.rigid_body_set, &space.sync_collider_set.collider_set, &ray, max_toi, solid, filter, 
+        |handle, _intersection| {
+
+            if local_collider == handle {
                 return true;
             }
 
-            let collider_pos = space.collider_set.get(handle).unwrap().position().translation;
+            for (_, player) in &mut *players {
+
+                let local_player_head_collider_handle = space.sync_collider_set.get_local_handle(player.head.collider_handle);
+
+                if local_player_head_collider_handle == handle {
+
+                    hit_rigid_bodies.push(player.body.body_handle);
+
+                    if player.health <= 10 {
+                        player.health = 0;
+
+                        continue;
+                    }
+
+                    player.health -= 10;
+
+                    continue;
+                }
+
+                if space.sync_collider_set.get_local_handle(player.body.collider_handle) == handle {
+
+                    hit_rigid_bodies.push(player.body.body_handle);
+
+                    if player.health <= 5 {
+                        player.health = 0;
+
+                        continue;
+                    }
+                    
+                    player.health -= 5;
+
+                    
+                }
+            }
 
             
-
-            let macroquad_hit_pos = rapier_to_macroquad(&Vec2::new(collider_pos.x, collider_pos.y));
-
-            hit_markers.push(macroquad_hit_pos);
 
 
             true
         });
+
+        for rigid_body_handle in hit_rigid_bodies {
+            let rigid_body = space.sync_rigid_body_set.get_sync_mut(rigid_body_handle).unwrap();
+
+            let mut new_velocity = rigid_body.linvel().clone();
+
+            
+            new_velocity.x += mouse_vector.x * 500.;
+            new_velocity.y += mouse_vector.y * 500.;
+        
+            rigid_body.set_linvel(
+                new_velocity, 
+                true
+            );
+        }
 
 
     }
@@ -200,11 +270,11 @@ impl Shotgun {
 }
 
 impl HasPhysics for Shotgun {
-    fn collider_handle(&self) -> &ColliderHandle {
+    fn collider_handle(&self) -> &SyncColliderHandle {
         &self.collider
     }
 
-    fn rigid_body_handle(&self) -> &RigidBodyHandle {
+    fn rigid_body_handle(&self) -> &SyncRigidBodyHandle {
         &self.rigid_body
     }
 

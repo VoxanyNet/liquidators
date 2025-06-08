@@ -96,14 +96,14 @@ impl<S: SoundManager> Client<S> {
         
        let mut players_iter = SyncArenaIterator::new(&mut self.game_state.level.players);
 
-       while let Some((mut player, players)) = players_iter.next() {
+       while let Some((player, _)) = players_iter.next() {
 
             if player.owner != self.uuid {
                 players_iter.restore(player);
             }
 
             else {
-                player.remove_body_and_collider(&mut self.game_state.level.space);
+                player.despawn(&mut self.game_state.level.space);
             }
         }
 
@@ -114,7 +114,7 @@ impl<S: SoundManager> Client<S> {
 
     pub fn reset_level(&mut self) {
         log("resetting");
-        let reset_level: Level = bitcode::deserialize(&fs::read("level.bin").unwrap()).unwrap();
+        let reset_level: Level = serde_yaml::from_str(&fs::read_to_string("level.yaml").unwrap()).unwrap();
 
         self.game_state.level = reset_level;
 
@@ -231,20 +231,6 @@ impl<S: SoundManager> Client<S> {
         log(format!("{}", uuid).as_str());
         
         let (sync_client, mut game_state): (SyncClient<GameState>, GameState) = SyncClient::connect(url).await;
-    
-        let rigid_body_set = &mut game_state.level.space.rigid_body_set;
-        // we will start allocating OUR rigid bodies starting at the end of the current set
-        let new_free_list_head = rigid_body_set.bodies.capacity();
-        // reserve 500 entries in the rigid body and collider sets
-        rigid_body_set.bodies.reserve(500);
-        // this is only client side
-        rigid_body_set.bodies.set_free_list_head(new_free_list_head as u32);
-
-        // do the same for collider set
-        let collider_set = &mut game_state.level.space.collider_set;
-        let new_free_list_head = collider_set.colliders.capacity();
-        collider_set.colliders.reserve(500);
-        collider_set.colliders.set_free_list_head(new_free_list_head as u32);
 
         // if we are the first player to join, we take ownership of everything
         if game_state.level.players.len() == 0 {

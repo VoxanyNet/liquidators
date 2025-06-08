@@ -7,7 +7,7 @@ use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::{boat::Boat, brick::Brick, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
+use crate::{brick::Brick, grenade::Grenade, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -23,11 +23,10 @@ pub struct Level {
     pub portal_bullets: Vec<PortalBullet>,
     pub portals: Vec<Portal>,
     pub sky: Sky,
-    #[serde(default)]
-    pub boats: Vec<Boat>,
     pub body_parts: Vec<BodyPart>,
     pub teleporters: Vec<Teleporter>,
-    pub hit_markers: Vec<Vec2>
+    pub hit_markers: Vec<Vec2>,
+    pub grenades: Vec<Grenade>
 }
 
 impl Level {
@@ -42,10 +41,10 @@ impl Level {
             portal_bullets: vec![],
             portals: vec![],
             sky: Sky::new(),
-            boats: vec![],
             body_parts: vec![],
             teleporters: Vec::new(),
-            hit_markers: Vec::new()
+            hit_markers: Vec::new(),
+            grenades: Vec::new()
         };
     
         level.space.gravity.y = -980.;
@@ -72,13 +71,32 @@ impl Level {
 
             let mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);
 
-            for (_, rigid_body) in self.space.rigid_body_set.iter_mut() {
+            for (_, rigid_body) in self.space.sync_rigid_body_set.rigid_body_set.iter_mut() {
 
                 let distance_to_mouse = Vec2::new(mouse_pos.x - rigid_body.translation().x, mouse_pos.y - rigid_body.translation().y);
 
                 rigid_body.apply_impulse(vector![distance_to_mouse.x * 5., distance_to_mouse.y * 5.].into(), true);
 
             }
+        }
+
+        if is_key_released(KeyCode::J) {
+            self.structures.remove(0).despawn(&mut self.space);
+        }
+
+        if is_key_released(KeyCode::G) {
+
+            let mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);
+
+            self.grenades.push(
+                Grenade::new(mouse_pos, &mut self.space)
+            );
+
+
+        }
+
+        for grenade in &mut self.grenades {
+            grenade.tick(&mut self.space, ctx);
         }
         
         for portal_bullet in &mut self.portal_bullets {
@@ -205,7 +223,7 @@ impl Level {
     pub fn editor_spawn_shotgun(&mut self, camera_rect: &Rect, uuid: &String, textures: &mut TextureLoader) {
 
         if is_key_pressed(input::KeyCode::P) {
-            Shotgun::spawn(&mut self.space, rapier_mouse_world_pos(camera_rect), &mut self.shotguns, uuid.clone(), textures);
+            Shotgun::spawn(&mut self.space, rapier_mouse_world_pos(camera_rect), &mut self.shotguns, uuid.clone(), None, textures);
 
         }
     }
@@ -230,7 +248,7 @@ impl Level {
 
             let rapier_mouse_world_pos = macroquad_to_rapier(&mouse_world_pos);
 
-            let rigid_body_handle = self.space.rigid_body_set.insert(
+            let rigid_body_handle = self.space.sync_rigid_body_set.insert_sync(
                 RigidBodyBuilder::fixed()
                     .position(
                         vector![rapier_mouse_world_pos.x, rapier_mouse_world_pos.y].into()
@@ -243,7 +261,7 @@ impl Level {
                 .restitution(0.)
                 .build();
 
-            let collider_handle = self.space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut self.space.rigid_body_set);
+            let collider_handle = self.space.sync_collider_set.insert_with_parent_sync(collider, rigid_body_handle, &mut self.space.sync_rigid_body_set);
 
             let new_structure = Structure { 
                 grabbing: false,
@@ -297,6 +315,10 @@ impl Level {
             shotgun.draw(&self.space, textures, false, false).await;
         }
 
+        for grenade in &self.grenades {
+            grenade.draw(&self.space, textures).await
+        }
+
         for structure in self.structures.iter() {
 
             let texture_path = structure.sprite_path.clone();
@@ -304,20 +326,8 @@ impl Level {
             structure.draw(&self.space, &texture_path, textures).await;
         }
 
-        for boat in &self.boats {
-            boat.draw_hitbox(&self.space)
-        }
-
-        for boat in &self.boats {
-            boat.draw_top(&self.space, textures).await
-        }
-
         for (index, player) in &self.players {
             player.draw(&self.space, textures, camera_rect).await;
-        }
-
-        for boat in &self.boats {
-            boat.draw_bottom(&self.space, textures).await
         }
 
         for brick in &self.bricks {

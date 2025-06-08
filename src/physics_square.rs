@@ -1,5 +1,5 @@
 use gamelibrary::menu::Menu;
-use gamelibrary::space::Space;
+use gamelibrary::space::{Space, SyncColliderHandle, SyncRigidBodyHandle};
 use gamelibrary::traits::HasPhysics;
 use diff::Diff;
 use macroquad::color::DARKGRAY;
@@ -22,8 +22,8 @@ pub struct PhysicsSquare {
     pub scale: u32,
     pub color: macroquad::color::Color,
     pub owner: String,
-    pub rigid_body_handle: RigidBodyHandle,
-    pub collider_handle: ColliderHandle,
+    pub rigid_body_handle: SyncRigidBodyHandle,
+    pub collider_handle: SyncColliderHandle,
     pub controllable: bool,
     pub menu: Option<Menu>,
     pub selected: bool,
@@ -36,7 +36,7 @@ impl PhysicsSquare {
     pub fn new(space: &mut Space, position: Vec2, body_type: RigidBodyType, hx: f32, hy: f32, owner: &String, controllable: bool, color: macroquad::color::Color) -> Self {
 
         
-        let rigid_body_handle = space.rigid_body_set.insert(
+        let rigid_body_handle = space.sync_rigid_body_set.insert_sync(
             RigidBodyBuilder::new(body_type)
                 .translation(vector![position.x, position.y])
                 .ccd_enabled(true)
@@ -45,10 +45,10 @@ impl PhysicsSquare {
         
         
         
-        let collider_handle = space.collider_set.insert_with_parent(
+        let collider_handle = space.sync_collider_set.insert_with_parent_sync(
             ColliderBuilder::cuboid(hx, hy).build(),
             rigid_body_handle, 
-            &mut space.rigid_body_set
+            &mut space.sync_rigid_body_set
         );
 
         Self {
@@ -103,7 +103,7 @@ impl PhysicsSquare {
 
     pub fn tick(&mut self, game_state: &mut GameState, _ctx: &mut TickContext) {
 
-        let rigid_body = game_state.level.space.rigid_body_set.get_mut(self.rigid_body_handle).expect("shit");
+        let rigid_body = game_state.level.space.sync_rigid_body_set.get_sync_mut(self.rigid_body_handle).expect("shit");
 
         if rigid_body.position().translation.x >= window::screen_width() || rigid_body.position().translation.x <= 0. {
             rigid_body.set_linvel(
@@ -188,7 +188,7 @@ impl PhysicsSquare {
 
 impl HasPhysics for PhysicsSquare {
 
-    fn collider_handle(&self) -> &ColliderHandle {
+    fn collider_handle(&self) -> &SyncColliderHandle {
         &self.collider_handle
     }
 
@@ -208,7 +208,7 @@ impl HasPhysics for PhysicsSquare {
         &mut self.dragging
     }
     
-    fn rigid_body_handle(&self) -> &RigidBodyHandle {
+    fn rigid_body_handle(&self) -> &SyncRigidBodyHandle {
         &self.rigid_body_handle
     }
 }

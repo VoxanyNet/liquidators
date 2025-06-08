@@ -1,11 +1,11 @@
 use std::{f32::consts::PI, time::Instant};
 
 use diff::Diff;
-use gamelibrary::{animation::TrackedFrames, current_unix_millis, get_angle_to_mouse, rapier_mouse_world_pos, sound::soundmanager::{SoundHandle, SoundManager}, space::Space, swapiter::SwapIter, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{animation::TrackedFrames, collider_top_left_pos, current_unix_millis, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::{SoundHandle, SoundManager}, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::Gamepad;
-use macroquad::{input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, time::get_frame_time};
+use macroquad::{color::{GREEN, WHITE}, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, shapes::draw_rectangle, time::get_frame_time};
 use nalgebra::vector;
-use rapier2d::prelude::{ColliderHandle, ImpulseJointHandle, InteractionGroups, RevoluteJointBuilder, RigidBody, RigidBodyHandle};
+use rapier2d::prelude::{ImpulseJointHandle, InteractionGroups, RevoluteJointBuilder, RigidBody};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -28,6 +28,7 @@ pub enum Facing {
 ))]
 pub struct Player {
     pub id: u64, // lame but required until i can find a better way
+    pub health: u32,
     pub head: BodyPart,
     pub body: BodyPart,
     pub sprite_path: String,
@@ -42,9 +43,9 @@ pub struct Player {
     pub idle_frame_progress: f32,
     pub facing: Facing,
     pub sound: SoundHandle,
-    pub head_joint_handle: ImpulseJointHandle,
+    pub head_joint_handle: Option<ImpulseJointHandle>,
     pub shotgun_joint_handle: Option<ImpulseJointHandle>,
-    pub teleporter_destination: Option<RigidBodyHandle>,
+    pub teleporter_destination: Option<SyncRigidBodyHandle>,
 }
 
 impl Player {
@@ -53,25 +54,25 @@ impl Player {
 
         // fortnite battle pass why do i suffer so much from these stupid small annoyances if i was just like that but not with all this shit then i would be so much more productive i am a slave to my physical body i wish for nothing more that to be free from the prison that is my body dear god save me from this existence i am more than this
         // removes the body AND the collider!
-        space.rigid_body_set.remove(
+        space.sync_rigid_body_set.remove_sync(
             self.body.body_handle, 
             &mut space.island_manager, 
-            &mut space.collider_set, 
+            &mut space.sync_collider_set.collider_set, 
             &mut space.impulse_joint_set, 
             &mut space.multibody_joint_set, 
             true
         );
 
-        space.rigid_body_set.remove(
+        space.sync_rigid_body_set.remove_sync(
             self.head.body_handle, 
             &mut space.island_manager, 
-            &mut space.collider_set, 
+            &mut space.sync_collider_set.collider_set, 
             &mut space.impulse_joint_set, 
             &mut space.multibody_joint_set, 
             true
         );
     } 
-
+    
     pub fn spawn(players: &mut SyncArena<Player>, space: &mut Space, owner: String, position: &Vec2, textures: &mut TextureLoader) {
 
         let cat_head = BodyPart::new(
@@ -95,12 +96,15 @@ impl Player {
         );
 
         // lock the rotation of the cat body
-        space.rigid_body_set.get_mut(cat_body.body_handle).unwrap().lock_rotations(true, true);
+        space.sync_rigid_body_set.get_sync_mut(cat_body.body_handle).unwrap().lock_rotations(true, true);
+
+        let local_cat_head_body = space.sync_rigid_body_set.get_local_handle(cat_head.body_handle);
+        let local_cat_body_body = space.sync_rigid_body_set.get_local_handle(cat_body.body_handle);
 
         // joint the head to the body
         let head_joint_handle = space.impulse_joint_set.insert(
-            cat_body.body_handle,
-            cat_head.body_handle,
+            local_cat_body_body,
+            local_cat_head_body,
             RevoluteJointBuilder::new()
                 .local_anchor1(vector![0., 0.].into())
                 .local_anchor2(vector![0., -30.].into())
@@ -110,17 +114,19 @@ impl Player {
             true
         );
 
-        let shotgun = Shotgun::new(space, *position, owner.clone(), textures);
+        let shotgun = Shotgun::new(space, *position, owner.clone(), Some(cat_body.body_handle), textures);
 
         // we dont want the shotgun to collide with anything
-        space.collider_set.get_mut(shotgun.collider).unwrap().set_collision_groups(
+        space.sync_collider_set.get_sync_mut(shotgun.collider).unwrap().set_collision_groups(
             InteractionGroups::none()
         );
 
+        let shotgun_local_handle = space.sync_rigid_body_set.get_local_handle(shotgun.rigid_body);
+
         // attach the shotgun to the player
         let shotgun_joint_handle = space.impulse_joint_set.insert(
-            cat_body.body_handle,
-            shotgun.rigid_body,
+            local_cat_body_body,
+            shotgun_local_handle,
             RevoluteJointBuilder::new()
                 .local_anchor1(vector![0., 0.].into())
                 .local_anchor2(vector![30., 0.].into())
@@ -149,9 +155,10 @@ impl Player {
                 idle_frame_progress: 0.,
                 facing: Facing::Right,
                 sound,
-                head_joint_handle,
+                head_joint_handle: Some(head_joint_handle),
                 shotgun_joint_handle: Some(shotgun_joint_handle),
-                teleporter_destination: None
+                teleporter_destination: None,
+                health: 100
             }
         );
     }
@@ -178,9 +185,13 @@ impl Player {
         self.place_teleporter(ctx, teleporters, space);
         self.angle_shotgun_to_mouse(space, ctx.camera_rect);
         
+        self.detach_head_if_dead(space);
+
         if let Some(shotgun) = &mut self.shotgun {
             shotgun.tick(players, space, hit_markers, ctx);
-        }
+        }  
+
+        
 
         if is_key_released(KeyCode::N) {
 
@@ -211,8 +222,6 @@ impl Player {
         self.teleporter_destination = Some(teleporter.get_rigid_body_handle());
 
         teleporters.push(teleporter);
-
-        println!("{}", teleporters.len());
         
     }
 
@@ -248,7 +257,7 @@ impl Player {
         };
 
         // lol
-        let body_body = space.rigid_body_set.get_mut(self.body.body_handle).unwrap();
+        let body_body = space.sync_rigid_body_set.get_sync_mut(self.body.body_handle).unwrap();
 
         let body_body_pos = Vec2::new(body_body.translation().x, body_body.translation().y);
 
@@ -288,13 +297,18 @@ impl Player {
 
     pub fn angle_head_to_mouse(&mut self, space: &mut Space, camera_rect: &Rect) {
 
-        let head_body = space.rigid_body_set.get_mut(self.head.body_handle).unwrap();
+        let head_joint_handle = match self.head_joint_handle {
+            Some(head_joint_handle) => head_joint_handle,
+            None => return,
+        };
+
+        let head_body = space.sync_rigid_body_set.get_sync_mut(self.head.body_handle).unwrap();
 
         let head_body_pos = Vec2::new(head_body.translation().x, head_body.translation().y);
 
         let angle_to_mouse = get_angle_to_mouse(head_body_pos, camera_rect);
 
-        let head_joint = space.impulse_joint_set.get_mut(self.head_joint_handle).unwrap();
+        let head_joint = space.impulse_joint_set.get_mut(head_joint_handle).unwrap();
 
         let target_angle = match self.facing {
             Facing::Right => {
@@ -317,6 +331,24 @@ impl Player {
 
     }
 
+    pub fn detach_head_if_dead(&mut self, space: &mut Space) {
+
+        let head_joint_handle = match self.head_joint_handle {
+            Some(head_joint_handle) => {
+                head_joint_handle
+            },
+            None => {
+                return;
+            },
+        };
+
+        if self.health <= 0 {
+            let head_joint = space.impulse_joint_set.remove(head_joint_handle, true);
+
+            self.head_joint_handle = None;
+        }
+    }
+
     // pub fn update_arm_angle(&mut self, space: &mut Space, camera_rect: &Rect) {
 
 
@@ -336,19 +368,30 @@ impl Player {
     // }
 
     pub fn change_facing_direction(&mut self, space: &Space) {
-        let velocity = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().linvel();
+        let velocity = space.sync_rigid_body_set.get_sync(*self.rigid_body_handle()).unwrap().linvel();
+
 
         if velocity.x > 100. {
+
+            if !is_key_down(KeyCode::D) {
+                return;
+            }
+
             self.facing = Facing::Right
         }
 
         if velocity.x < -100. {
+
+            if !is_key_down(KeyCode::A) {
+                return;
+            }
+
             self.facing = Facing::Left
         }
     }
     pub fn update_idle_animation(&mut self, space: &mut Space) {
 
-        let velocity = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().linvel();
+        let velocity = space.sync_rigid_body_set.get_sync(*self.rigid_body_handle()).unwrap().linvel();
 
         if velocity.x == 0. {
 
@@ -393,7 +436,7 @@ impl Player {
         
     // }
     pub fn update_walk_animation(&mut self, space: &mut Space) {
-        let velocity = space.rigid_body_set.get(*self.rigid_body_handle()).unwrap().linvel();
+        let velocity = space.sync_rigid_body_set.get_sync(*self.rigid_body_handle()).unwrap().linvel();
 
         if velocity.x.abs() > 0. {
             self.walk_frame_progess += (velocity.x.abs() * get_frame_time()) / 20.;
@@ -421,7 +464,7 @@ impl Player {
     pub fn own_nearby_structures(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext) {
         // take ownership of nearby structures to avoid network physics delay
 
-        let our_body = space.rigid_body_set.get(self.body.body_handle).unwrap();
+        let our_body = space.sync_rigid_body_set.get_sync(self.body.body_handle).unwrap();
 
         for structure in structures {
 
@@ -429,7 +472,7 @@ impl Player {
                 continue;
             }
 
-            let structure_body = space.rigid_body_set.get(structure.rigid_body_handle).unwrap();
+            let structure_body = space.sync_rigid_body_set.get_sync(structure.rigid_body_handle).unwrap();
 
             let body_distance = structure_body.position().translation.vector - our_body.position().translation.vector;
 
@@ -470,7 +513,7 @@ impl Player {
             return;
         }
         let (player_pos, player_rotation, player_velocity) = {
-            let body = level.space.rigid_body_set.get(*self.rigid_body_handle()).unwrap();
+            let body = level.space.sync_rigid_body_set.get_sync(*self.rigid_body_handle()).unwrap();
             (body.position().clone(), body.rotation().clone(), body.linvel().clone())
         };
 
@@ -485,7 +528,7 @@ impl Player {
 
         let brick = Brick::new(&mut level.space, brick_spawn_point, Some(ctx.uuid.clone()));
         
-        let brick_body = level.space.rigid_body_set.get_mut(*brick.rigid_body_handle()).unwrap();
+        let brick_body = level.space.sync_rigid_body_set.get_sync_mut(*brick.rigid_body_handle()).unwrap();
 
         let mut brick_velocity = player_velocity;
         brick_velocity.x += 5000. * mouse_body_distance.normalize().x;
@@ -525,7 +568,7 @@ impl Player {
 
     pub fn control(&mut self, space: &mut Space, _ctx: &mut TickContext) {
 
-        let rigid_body = space.rigid_body_set.get_mut(self.body.body_handle).unwrap();
+        let rigid_body = space.sync_rigid_body_set.get_sync_mut(self.body.body_handle).unwrap();
 
         let gamepad: Option<Gamepad<'_>> = None;
 
@@ -609,17 +652,27 @@ impl Player {
 
             shotgun.draw(space, textures, flip_x, false).await
         }
+
+        let head_pos = {
+            
+            let rapier_pos = space.sync_rigid_body_set.get_sync(self.head.body_handle).unwrap().position().translation;
+
+            rapier_to_macroquad(&Vec2::new(rapier_pos.x, rapier_pos.y))
+            
+        };
+
+        draw_rectangle(head_pos.x - 25., head_pos.y - 40., (self.health as f32 / 100 as f32) as f32 * 50., 10., GREEN);
         
         
     }
 }
 
 impl HasPhysics for Player {
-    fn collider_handle(&self) -> &ColliderHandle {
+    fn collider_handle(&self) -> &SyncColliderHandle {
         &self.body.collider_handle
     }
 
-    fn rigid_body_handle(&self) -> &RigidBodyHandle {
+    fn rigid_body_handle(&self) -> &SyncRigidBodyHandle {
         &self.body.body_handle
     }
 

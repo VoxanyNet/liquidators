@@ -1,83 +1,87 @@
 {
   "level": {
     "structures": [],
-    "players": [
-      {
-        "Altered": {
-          "index": 0,
-          "changes": [
-            {
-              "head": {
-                "collider_handle": {
-                  "index": null,
-                  "generation": null
-                },
-                "body_handle": {
-                  "index": null,
-                  "generation": null
-                },
-                "sprite_path": null,
-                "scale": 0,
-                "owner": null
+    "players": {
+      "altered": {
+        "14767881905375037088": {
+          "id": 0,
+          "health": 0,
+          "head": {
+            "collider_handle": {
+              "index": null,
+              "generation": null
+            },
+            "body_handle": {
+              "index": null,
+              "generation": null
+            },
+            "sprite_path": null,
+            "scale": 0,
+            "owner": null
+          },
+          "body": {
+            "collider_handle": {
+              "index": null,
+              "generation": null
+            },
+            "body_handle": {
+              "index": null,
+              "generation": null
+            },
+            "sprite_path": null,
+            "scale": 0,
+            "owner": null
+          },
+          "sprite_path": null,
+          "owner": null,
+          "selected": null,
+          "dragging": null,
+          "drag_offset": "NoChange",
+          "max_speed": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "shotgun": "NoChange",
+          "animation_handler": {
+            "state": "NoChange",
+            "walking_frames": {
+              "frames": {
+                "paths": []
               },
-              "body": {
-                "collider_handle": {
-                  "index": null,
-                  "generation": null
-                },
-                "body_handle": {
-                  "index": null,
-                  "generation": null
-                },
-                "sprite_path": null,
-                "scale": 0,
-                "owner": null
+              "current_frame_index": 0
+            },
+            "idle_frames": {
+              "frames": {
+                "paths": []
               },
-              "sprite_path": null,
-              "owner": null,
-              "selected": null,
-              "dragging": null,
-              "drag_offset": "NoChange",
-              "max_speed": {
-                "x": 0.0,
-                "y": 0.0
+              "current_frame_index": 0
+            },
+            "gunrun_frames": {
+              "frames": {
+                "paths": []
               },
-              "shotgun": "NoChange",
-              "animation_handler": {
-                "state": "NoChange",
-                "walking_frames": {
-                  "frames": {
-                    "paths": []
-                  },
-                  "current_frame_index": 0
-                },
-                "idle_frames": {
-                  "frames": {
-                    "paths": []
-                  },
-                  "current_frame_index": 0
-                },
-                "gunrun_frames": {
-                  "frames": {
-                    "paths": []
-                  },
-                  "current_frame_index": 0
-                }
-              },
-              "walk_frame_progess": 0.000059321523,
-              "idle_frame_progress": 0.0,
-              "facing": "NoChange",
-              "sound": {
-                "state": "NoChange",
-                "position": [],
-                "id": 0,
-                "file_path": null
-              }
+              "current_frame_index": 1
             }
-          ]
+          },
+          "walk_frame_progess": -0.9719929,
+          "idle_frame_progress": 0.0,
+          "facing": "NoChange",
+          "sound": {
+            "state": "NoChange",
+            "position": [],
+            "id": 0,
+            "file_path": null
+          },
+          "head_joint_handle": {
+            "index": null,
+            "generation": null
+          },
+          "shotgun_joint_handle": "NoChange",
+          "teleporter_destination": "NoChange"
         }
-      }
-    ],
+      },
+      "removed": []
+    },
     "space": {
       "rigid_body_set": {
         "bodies": {
@@ -93,41 +97,81 @@
                         "pos": {
                           "position": {
                             "rotation": [
-                              0.9478595,
-                              0.31868845
+                              0.9955504,
+                              -0.094231054
                             ],
                             "translation": {
                               "vector": [
-                                90.448555,
-                                263.3568
+                                426.37723,
+                                444.44147
                               ]
                             }
                           },
                           "next_position": {
                             "rotation": [
-                              0.9478595,
-                              0.31868845
+                              0.9955504,
+                              -0.094231054
                             ],
                             "translation": {
                               "vector": [
-                                90.448555,
-                                263.3568
+                                426.37723,
+                                444.44147
                               ]
                             }
                           }
                         },
                         "vels": {
                           "linvel": [
-                            -40.781574,
-                            -13.78531
+                            392.11285,
+                            -131.61827
                           ],
-                          "angvel": 1.4358591
+                          "angvel": -0.7988105
                         },
                         "colliders": null,
                         "activation": null,
                         "body_type": null,
                         "enabled": null
-                      }
+                      },
+                      "meant_for_occupied": true
+                    }
+                  },
+                  {
+                    "Occupied": {
+                      "generation": null,
+                      "value": {
+                        "pos": {
+                          "position": {
+                            "rotation": null,
+                            "translation": {
+                              "vector": [
+                                423.55032,
+                                414.57483
+                              ]
+                            }
+                          },
+                          "next_position": {
+                            "rotation": null,
+                            "translation": {
+                              "vector": [
+                                423.55032,
+                                414.57483
+                              ]
+                            }
+                          }
+                        },
+                        "vels": {
+                          "linvel": [
+                            368.24884,
+                            -129.4279
+                          ],
+                          "angvel": null
+                        },
+                        "colliders": null,
+                        "activation": null,
+                        "body_type": null,
+                        "enabled": null
+                      },
+                      "meant_for_occupied": true
                     }
                   },
                   {
@@ -137,47 +181,42 @@
                         "pos": {
                           "position": {
                             "rotation": [
-                              0.9999999,
-                              -0.00050813064
+                              0.99999714,
+                              -0.0024038574
                             ],
                             "translation": {
                               "vector": [
-                                100.00938,
-                                234.92114
+                                453.55023,
+                                414.50272
                               ]
                             }
                           },
                           "next_position": {
                             "rotation": [
-                              0.9999999,
-                              -0.00050813064
+                              0.99999714,
+                              -0.0024038574
                             ],
                             "translation": {
                               "vector": [
-                                100.00938,
-                                234.92114
+                                453.55023,
+                                414.50272
                               ]
                             }
                           }
                         },
                         "vels": {
                           "linvel": [
-                            0.061341304,
-                            1.1920929e-7
+                            368.2907,
+                            -118.21116
                           ],
-                          "angvel": -0.003236626
+                          "angvel": 0.37389433
                         },
                         "colliders": null,
-                        "activation": {
-                          "normalized_linear_threshold": null,
-                          "angular_threshold": null,
-                          "time_until_sleep": null,
-                          "time_since_can_sleep": 0.01250941,
-                          "sleeping": null
-                        },
+                        "activation": null,
                         "body_type": null,
                         "enabled": null
-                      }
+                      },
+                      "meant_for_occupied": true
                     }
                   }
                 ]
@@ -205,28 +244,22 @@
                         "parent": null,
                         "pos": {
                           "rotation": [
-                            -0.016546628,
-                            -0.99986315
+                            0.92166185,
+                            -0.38799405
                           ],
                           "translation": [
-                            205.78171,
-                            245.54257
+                            353.87387,
+                            249.33102
                           ]
                         },
                         "material": null,
                         "flags": null,
                         "contact_force_event_threshold": null,
                         "user_data": null
-                      }
+                      },
+                      "meant_for_occupied": true
                     }
-                  }
-                ]
-              }
-            },
-            {
-              "Altered": {
-                "index": 6,
-                "changes": [
+                  },
                   {
                     "Occupied": {
                       "generation": null,
@@ -237,18 +270,44 @@
                         "pos": {
                           "rotation": [
                             1.0,
-                            0.0
+                            0.000043264223
                           ],
                           "translation": [
-                            100.0,
-                            299.90417
+                            342.21152,
+                            221.61467
                           ]
                         },
                         "material": null,
                         "flags": null,
                         "contact_force_event_threshold": null,
                         "user_data": null
-                      }
+                      },
+                      "meant_for_occupied": true
+                    }
+                  },
+                  {
+                    "Occupied": {
+                      "generation": null,
+                      "value": {
+                        "coll_type": null,
+                        "shape": null,
+                        "parent": null,
+                        "pos": {
+                          "rotation": [
+                            0.9201459,
+                            -0.39157543
+                          ],
+                          "translation": [
+                            369.81674,
+                            209.7638
+                          ]
+                        },
+                        "material": null,
+                        "flags": null,
+                        "contact_force_event_threshold": null,
+                        "user_data": null
+                      },
+                      "meant_for_occupied": true
                     }
                   }
                 ]
@@ -267,43 +326,20 @@
                         "parent": null,
                         "pos": {
                           "rotation": [
-                            0.9478595,
-                            0.31868845
+                            0.9955504,
+                            -0.094231054
                           ],
                           "translation": [
-                            90.448555,
-                            263.3568
+                            426.37723,
+                            444.44147
                           ]
                         },
                         "material": null,
                         "flags": null,
                         "contact_force_event_threshold": null,
                         "user_data": null
-                      }
-                    }
-                  },
-                  {
-                    "Occupied": {
-                      "generation": null,
-                      "value": {
-                        "coll_type": null,
-                        "shape": null,
-                        "parent": null,
-                        "pos": {
-                          "rotation": [
-                            0.9999999,
-                            -0.00050813064
-                          ],
-                          "translation": [
-                            100.00938,
-                            234.92114
-                          ]
-                        },
-                        "material": null,
-                        "flags": null,
-                        "contact_force_event_threshold": null,
-                        "user_data": null
-                      }
+                      },
+                      "meant_for_occupied": true
                     }
                   },
                   {
@@ -319,15 +355,41 @@
                             0.0
                           ],
                           "translation": [
-                            100.0,
-                            299.90417
+                            423.55032,
+                            414.57483
                           ]
                         },
                         "material": null,
                         "flags": null,
                         "contact_force_event_threshold": null,
                         "user_data": null
-                      }
+                      },
+                      "meant_for_occupied": true
+                    }
+                  },
+                  {
+                    "Occupied": {
+                      "generation": null,
+                      "value": {
+                        "coll_type": null,
+                        "shape": null,
+                        "parent": null,
+                        "pos": {
+                          "rotation": [
+                            0.99999714,
+                            -0.0024038574
+                          ],
+                          "translation": [
+                            453.55023,
+                            414.50272
+                          ]
+                        },
+                        "material": null,
+                        "flags": null,
+                        "contact_force_event_threshold": null,
+                        "user_data": null
+                      },
+                      "meant_for_occupied": true
                     }
                   }
                 ]
@@ -348,8 +410,9 @@
     "portal_bullets": [],
     "portals": [],
     "sky": {},
-    "boats": [],
-    "body_parts": []
+    "body_parts": [],
+    "teleporters": [],
+    "hit_markers": []
   },
   "game_started": null,
   "chat": {

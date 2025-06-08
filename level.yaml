@@ -1,10 +1,8 @@
 structures:
 - rigid_body_handle:
-    index: 0
-    generation: 0
+    id: 4179090386961712226
   collider_handle:
-    index: 0
-    generation: 0
+    id: 5074963296319915856
   color:
     r: 0.9
     g: 0.16
@@ -15,7 +13,7 @@ structures:
   dragging: false
   drag_offset: null
   owner: null
-  editor_owner: '2980917521'
+  editor_owner: '1309388257'
   sprite_path: assets/structure/brick_block.png
   last_ownership_change: 0
   grabbing: false
@@ -36,169 +34,187 @@ players:
   len: 0
   sync_index_map: {}
 space:
-  rigid_body_set:
-    bodies:
-      items:
-      - !Occupied
-        generation: 0
-        value:
-          pos:
-            position:
-              rotation:
-              - 1.0
+  sync_rigid_body_set:
+    rigid_body_set:
+      bodies:
+        items:
+        - !Occupied
+          generation: 0
+          value:
+            pos:
+              position:
+                rotation:
+                - 1.0
+                - 0.0
+                translation:
+                - 640.6666
+                - 172.66669
+              next_position:
+                rotation:
+                - 1.0
+                - 0.0
+                translation:
+                - 640.6666
+                - 172.66669
+            mprops:
+              flags: ''
+              local_mprops:
+                local_com:
+                - 0.0
+                - 0.0
+                inv_mass: 0.1
+                inv_principal_inertia_sqrt: 0.019364918
+              additional_local_mprops: null
+              world_com:
+              - 640.6666
+              - 172.66669
+              effective_inv_mass:
+              - 0.1
+              - 0.1
+              effective_world_inv_inertia_sqrt: 0.019364918
+            integrated_vels:
+              linvel:
               - 0.0
-              translation:
-              - 617.3333
-              - 182.66669
-            next_position:
-              rotation:
-              - 1.0
               - 0.0
-              translation:
-              - 617.3333
-              - 182.66669
-          mprops:
-            flags: ''
-            local_mprops:
-              local_com:
+              angvel: 0.0
+            vels:
+              linvel:
               - 0.0
               - 0.0
-              inv_mass: 0.1
-              inv_principal_inertia_sqrt: 0.019364918
-            additional_local_mprops: null
-            world_com:
-            - 617.3333
-            - 182.66669
-            effective_inv_mass:
-            - 0.1
-            - 0.1
-            effective_world_inv_inertia_sqrt: 0.019364918
-          integrated_vels:
-            linvel:
-            - 0.0
-            - 0.0
-            angvel: 0.0
-          vels:
-            linvel:
-            - 0.0
-            - 0.0
-            angvel: 0.0
-          damping:
-            linear_damping: 0.0
-            angular_damping: 0.0
-          forces:
-            force:
-            - 0.0
-            - 0.0
-            torque: 0.0
-            gravity_scale: 1.0
-            user_force:
-            - 0.0
-            - 0.0
-            user_torque: 0.0
-          ccd:
-            ccd_thickness: 20.0
-            ccd_max_dist: 28.284271
-            ccd_active: false
-            ccd_enabled: true
-            soft_ccd_prediction: 0.0
-          ids:
-            active_island_id: 0
-            active_set_id: 0
-            active_set_offset: 0
-            active_set_timestamp: 0
-          colliders:
-          - index: 0
-            generation: 0
-          activation:
-            normalized_linear_threshold: 0.4
-            angular_threshold: 0.5
-            time_until_sleep: 2.0
-            time_since_can_sleep: 0.0
-            sleeping: false
-          changes: MODIFIED | POSITION | SLEEP | COLLIDERS | TYPE | DOMINANCE | LOCAL_MASS_PROPERTIES | ENABLED_OR_DISABLED
-          body_type: Fixed
-          dominance: 0
-          enabled: true
-          additional_solver_iterations: 0
-          user_data: 0
-      - !Free
-        next_free: 2
-      - !Free
-        next_free: 3
-      - !Free
-        next_free: null
-      generation: 0
-      free_list_head: 1
-      len: 1
-    modified_bodies:
-    - index: 0
-      generation: 0
-  collider_set:
-    colliders:
-      items:
-      - !Occupied
-        generation: 0
-        value:
-          coll_type: Solid
-          shape: !Cuboid
-            half_extents:
-            - 610.0
-            - 20.0
-          mprops: !Mass 10.0
-          changes: MODIFIED | LOCAL_MASS_PROPERTIES | PARENT | POSITION | GROUPS | SHAPE | TYPE | PARENT_EFFECTIVE_DOMINANCE | ENABLED_OR_DISABLED
-          parent:
-            handle:
-              index: 0
+              angvel: 0.0
+            damping:
+              linear_damping: 0.0
+              angular_damping: 0.0
+            forces:
+              force:
+              - 0.0
+              - 0.0
+              torque: 0.0
+              gravity_scale: 1.0
+              user_force:
+              - 0.0
+              - 0.0
+              user_torque: 0.0
+            ccd:
+              ccd_thickness: 20.0
+              ccd_max_dist: 28.284271
+              ccd_active: false
+              ccd_enabled: true
+              soft_ccd_prediction: 0.0
+            ids:
+              active_island_id: 0
+              active_set_id: 0
+              active_set_offset: 0
+              active_set_timestamp: 0
+            colliders:
+            - index: 0
               generation: 0
-            pos_wrt_parent:
+            activation:
+              normalized_linear_threshold: 0.4
+              angular_threshold: 0.5
+              time_until_sleep: 2.0
+              time_since_can_sleep: 0.0
+              sleeping: false
+            changes: MODIFIED | POSITION | SLEEP | COLLIDERS | TYPE | DOMINANCE | LOCAL_MASS_PROPERTIES | ENABLED_OR_DISABLED
+            body_type: Fixed
+            dominance: 0
+            enabled: true
+            additional_solver_iterations: 0
+            user_data: 0
+        - !Free
+          next_free: 2
+        - !Free
+          next_free: 3
+        - !Free
+          next_free: null
+        generation: 0
+        free_list_head: 1
+        len: 1
+      modified_bodies:
+      - index: 0
+        generation: 0
+    sync_map:
+      ? id: 4179090386961712226
+      : index: 0
+        generation: 0
+    reverse_sync_map:
+      ? index: 0
+        generation: 0
+      : id: 4179090386961712226
+  sync_collider_set:
+    collider_set:
+      colliders:
+        items:
+        - !Occupied
+          generation: 0
+          value:
+            coll_type: Solid
+            shape: !Cuboid
+              half_extents:
+              - 630.0
+              - 20.0
+            mprops: !Mass 10.0
+            changes: MODIFIED | LOCAL_MASS_PROPERTIES | PARENT | POSITION | GROUPS | SHAPE | TYPE | PARENT_EFFECTIVE_DOMINANCE | ENABLED_OR_DISABLED
+            parent:
+              handle:
+                index: 0
+                generation: 0
+              pos_wrt_parent:
+                rotation:
+                - 1.0
+                - 0.0
+                translation:
+                - 0.0
+                - 0.0
+            pos:
               rotation:
               - 1.0
               - 0.0
               translation:
-              - 0.0
-              - 0.0
-          pos:
-            rotation:
-            - 1.0
-            - 0.0
-            translation:
-            - 27.333313
-            - 182.66669
-          material:
-            friction: 0.5
-            restitution: 0.0
-            friction_combine_rule: Average
-            restitution_combine_rule: Average
-          flags:
-            active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
-            collision_groups:
-              memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
-              filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
-            solver_groups:
-              memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
-              filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
-            active_hooks: ''
-            active_events: ''
-            enabled: Enabled
-          bf_data:
-            proxy_index: 4294967295
-          contact_skin: 0.0
-          contact_force_event_threshold: 0.0
-          user_data: 0
-      - !Free
-        next_free: 2
-      - !Free
-        next_free: 3
-      - !Free
-        next_free: null
-      generation: 0
-      free_list_head: 1
-      len: 1
-    modified_colliders:
-    - index: 0
-      generation: 0
-    removed_colliders: []
+              - 30.666626
+              - 172.66669
+            material:
+              friction: 0.5
+              restitution: 0.0
+              friction_combine_rule: Average
+              restitution_combine_rule: Average
+            flags:
+              active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+              collision_groups:
+                memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+              solver_groups:
+                memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+              active_hooks: ''
+              active_events: ''
+              enabled: Enabled
+            bf_data:
+              proxy_index: 4294967295
+            contact_skin: 0.0
+            contact_force_event_threshold: 0.0
+            user_data: 0
+        - !Free
+          next_free: 2
+        - !Free
+          next_free: 3
+        - !Free
+          next_free: null
+        generation: 0
+        free_list_head: 1
+        len: 1
+      modified_colliders:
+      - index: 0
+        generation: 0
+      removed_colliders: []
+    sync_map:
+      ? id: 5074963296319915856
+      : index: 0
+        generation: 0
+    reverse_sync_map:
+      ? index: 0
+        generation: 0
+      : id: 5074963296319915856
   gravity:
   - 0.0
   - -980.0
@@ -293,28 +309,28 @@ space:
     qbvh:
       root_aabb:
         mins:
-        - -594.8667
-        - 162.2667
+        - -611.93335
+        - 152.2667
         maxs:
-        - 649.5333
-        - 203.06668
+        - 673.2666
+        - 193.06668
       nodes:
       - simd_aabb:
           mins:
-          - - -594.8667
+          - - -611.93335
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 162.2667
+          - - 152.2667
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 649.5333
+          - - 673.2666
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 203.06668
+          - - 193.06668
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
@@ -329,20 +345,20 @@ space:
         flags: 0
       - simd_aabb:
           mins:
-          - - -594.8667
+          - - -611.93335
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 162.2667
+          - - 152.2667
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 649.5333
+          - - 673.2666
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 203.06668
+          - - 193.06668
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
@@ -372,7 +388,7 @@ shotguns: []
 portal_bullets: []
 portals: []
 sky: {}
-boats: []
 body_parts: []
 teleporters: []
 hit_markers: []
+grenades: []

@@ -1,5 +1,5 @@
 use diff::Diff;
-use gamelibrary::{space::Space, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, texture_loader::TextureLoader, traits::HasPhysics};
 use macroquad::math::{Rect, Vec2};
 use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
@@ -12,8 +12,8 @@ use crate::level::Level;
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct Radio {
-    pub rigid_body_handle: RigidBodyHandle,
-    pub collider_handle: ColliderHandle,
+    pub rigid_body_handle: SyncRigidBodyHandle,
+    pub collider_handle: SyncColliderHandle,
     pub selected: bool,
     pub texture_path: String,
     pub dragging: bool,
@@ -41,7 +41,7 @@ impl Radio {
 }
 
 impl HasPhysics for Radio {
-    fn collider_handle(&self) -> &ColliderHandle {
+    fn collider_handle(&self) -> &SyncColliderHandle {
         &self.collider_handle
     }
 
@@ -61,14 +61,14 @@ impl HasPhysics for Radio {
         todo!()
     }
 
-    fn rigid_body_handle(&self) -> &RigidBodyHandle {
+    fn rigid_body_handle(&self) -> &SyncRigidBodyHandle {
         &self.rigid_body_handle
     }
 }
 
 pub struct RadioBuilder {
-    rigid_body_handle: Option<RigidBodyHandle>,
-    collider_handle: Option<ColliderHandle>,
+    rigid_body_handle: Option<SyncRigidBodyHandle>,
+    collider_handle: Option<SyncColliderHandle>,
     selected: Option<bool>,
     dragging: Option<bool>,
     drag_offset: Option<Option<Vec2>>,
@@ -89,8 +89,8 @@ impl RadioBuilder {
             .restitution(0.)
             .build();
 
-        let rigid_body_handle = space.rigid_body_set.insert(rigid_body);
-        let collider_handle = space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut space.rigid_body_set);
+        let rigid_body_handle = space.sync_rigid_body_set.insert_sync(rigid_body);
+        let collider_handle = space.sync_collider_set.insert_with_parent_sync(collider, rigid_body_handle, &mut space.sync_rigid_body_set);
 
         Self {
             rigid_body_handle: Some(rigid_body_handle),
@@ -104,12 +104,12 @@ impl RadioBuilder {
         }
     }
 
-    pub fn rigid_body_handle(mut self, rigid_body_handle: RigidBodyHandle) -> Self {
+    pub fn rigid_body_handle(mut self, rigid_body_handle: SyncRigidBodyHandle) -> Self {
         self.rigid_body_handle = Some(rigid_body_handle);
         self
     }
 
-    pub fn collider_handle(mut self, collider_handle: ColliderHandle) -> Self {
+    pub fn collider_handle(mut self, collider_handle: SyncColliderHandle) -> Self {
         self.collider_handle = Some(collider_handle);
         self
     }

@@ -1,5 +1,5 @@
 use diff::Diff;
-use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::Space, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
 use macroquad::{color::{DARKGRAY, RED, WHITE}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, shapes::draw_circle, text::draw_text};
 use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
@@ -12,8 +12,8 @@ use crate::{level::Level, player::player::Player, Grabbable, TickContext};
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct Structure {
-    pub rigid_body_handle: RigidBodyHandle,
-    pub collider_handle: ColliderHandle,
+    pub rigid_body_handle: SyncRigidBodyHandle,
+    pub collider_handle: SyncColliderHandle,
     pub color: macroquad::color::Color,
     pub menu: Option<Menu>,
     pub selected: bool,
@@ -37,10 +37,10 @@ impl Structure {
 
     pub fn despawn(self, space: &mut Space) {
         // removes the body AND the collider!
-        space.rigid_body_set.remove(
+        space.sync_rigid_body_set.remove_sync(
             self.rigid_body_handle, 
             &mut space.island_manager, 
-            &mut space.collider_set, 
+            &mut space.sync_collider_set.collider_set, 
             &mut space.impulse_joint_set, 
             &mut space.multibody_joint_set, 
             true
@@ -50,7 +50,7 @@ impl Structure {
     pub fn new(pos: Vec2, space: &mut Space, owner: String) -> Self {
 
 
-        let rigid_body_handle = space.rigid_body_set.insert(
+        let rigid_body_handle = space.sync_rigid_body_set.insert_sync(
             RigidBodyBuilder::dynamic()
                 .position(
                     vector![pos.x, pos.y].into()
@@ -64,7 +64,7 @@ impl Structure {
             .build();
         
 
-        let collider_handle = space.collider_set.insert_with_parent(collider, rigid_body_handle, &mut space.rigid_body_set);
+        let collider_handle = space.sync_collider_set.insert_with_parent_sync(collider, rigid_body_handle, &mut space.sync_rigid_body_set);
 
         Structure { 
             editor_owner: owner.clone(),
@@ -210,12 +210,12 @@ impl Structure {
             match menu_item.text.as_str() {
                 "Delete" => {
                     self.menu = None;
-                    space.rigid_body_set.remove(self.rigid_body_handle, &mut space.island_manager, &mut space.collider_set, &mut space.impulse_joint_set, &mut space.multibody_joint_set, true);
+                    space.sync_rigid_body_set.remove_sync(self.rigid_body_handle, &mut space.island_manager, &mut space.sync_collider_set.collider_set, &mut space.impulse_joint_set, &mut space.multibody_joint_set, true);
                     return None
                 },
                 "Zero Velocity" => {
 
-                    let body = space.rigid_body_set.get_mut(self.rigid_body_handle).unwrap();
+                    let body = space.sync_rigid_body_set.get_sync_mut(self.rigid_body_handle).unwrap();
                     
                     body.set_linvel(vector![0., 0.], true);
                     //body.set_rotation(Rotation::from_angle(0.), true);
@@ -257,7 +257,7 @@ impl Structure {
             draw_circle(particle.x, particle.y, 20., WHITE);
         }
 
-        let pos = space.rigid_body_set.get(self.rigid_body_handle).unwrap().position().translation;
+        let pos = space.sync_rigid_body_set.get_sync(self.rigid_body_handle).unwrap().position().translation;
 
         let pos = rapier_to_macroquad(&Vec2::new(pos.x, pos.y));
 
@@ -270,7 +270,7 @@ impl Structure {
 
 impl HasPhysics for Structure {
 
-    fn collider_handle(&self) -> &ColliderHandle {
+    fn collider_handle(&self) -> &SyncColliderHandle {
         &self.collider_handle
     }
     fn drag_offset(&mut self) -> &mut Option<Vec2> {
@@ -289,7 +289,7 @@ impl HasPhysics for Structure {
         &mut self.dragging
     }
 
-    fn rigid_body_handle(&self) -> &RigidBodyHandle {
+    fn rigid_body_handle(&self) -> &SyncRigidBodyHandle {
         &self.rigid_body_handle
     }
 }
