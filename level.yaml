@@ -1,8 +1,8 @@
 structures:
 - rigid_body_handle:
-    id: 4179090386961712226
+    id: 3769232766268819167
   collider_handle:
-    id: 5074963296319915856
+    id: 2098275368587905447
   color:
     r: 0.9
     g: 0.16
@@ -13,7 +13,7 @@ structures:
   dragging: false
   drag_offset: null
   owner: null
-  editor_owner: '1309388257'
+  editor_owner: '1899977649'
   sprite_path: assets/structure/brick_block.png
   last_ownership_change: 0
   grabbing: false
@@ -47,15 +47,15 @@ space:
                 - 1.0
                 - 0.0
                 translation:
-                - 640.6666
-                - 172.66669
+                - 641.3334
+                - 190.66663
               next_position:
                 rotation:
                 - 1.0
                 - 0.0
                 translation:
-                - 640.6666
-                - 172.66669
+                - 641.3334
+                - 190.66663
             mprops:
               flags: ''
               local_mprops:
@@ -66,8 +66,8 @@ space:
                 inv_principal_inertia_sqrt: 0.019364918
               additional_local_mprops: null
               world_com:
-              - 640.6666
-              - 172.66669
+              - 641.3334
+              - 190.66663
               effective_inv_mass:
               - 0.1
               - 0.1
@@ -134,13 +134,13 @@ space:
       - index: 0
         generation: 0
     sync_map:
-      ? id: 4179090386961712226
+      ? id: 3769232766268819167
       : index: 0
         generation: 0
     reverse_sync_map:
       ? index: 0
         generation: 0
-      : id: 4179090386961712226
+      : id: 3769232766268819167
   sync_collider_set:
     collider_set:
       colliders:
@@ -171,8 +171,8 @@ space:
               - 1.0
               - 0.0
               translation:
-              - 30.666626
-              - 172.66669
+              - 31.333374
+              - 190.66663
             material:
               friction: 0.5
               restitution: 0.0
@@ -208,13 +208,13 @@ space:
         generation: 0
       removed_colliders: []
     sync_map:
-      ? id: 5074963296319915856
+      ? id: 2098275368587905447
       : index: 0
         generation: 0
     reverse_sync_map:
       ? index: 0
         generation: 0
-      : id: 5074963296319915856
+      : id: 2098275368587905447
   gravity:
   - 0.0
   - -980.0
@@ -309,28 +309,28 @@ space:
     qbvh:
       root_aabb:
         mins:
-        - -611.93335
-        - 152.2667
+        - -611.2666
+        - 170.26663
         maxs:
-        - 673.2666
-        - 193.06668
+        - 673.93335
+        - 211.06662
       nodes:
       - simd_aabb:
           mins:
-          - - -611.93335
+          - - -611.2666
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 152.2667
+          - - 170.26663
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 673.2666
+          - - 673.93335
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 193.06668
+          - - 211.06662
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
@@ -345,20 +345,20 @@ space:
         flags: 0
       - simd_aabb:
           mins:
-          - - -611.93335
+          - - -611.2666
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 152.2667
+          - - 170.26663
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 673.2666
+          - - 673.93335
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 193.06668
+          - - 211.06662
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38

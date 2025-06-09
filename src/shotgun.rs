@@ -213,6 +213,10 @@ impl Shotgun {
         });
 
         for rigid_body_handle in hit_rigid_bodies {
+
+            // own this rigid body for this frame so we can update its velocity
+            ctx.owned_rigid_bodies.push(rigid_body_handle);
+
             let rigid_body = space.sync_rigid_body_set.get_sync_mut(rigid_body_handle).unwrap();
 
             let mut new_velocity = rigid_body.linvel().clone();
