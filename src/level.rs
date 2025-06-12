@@ -157,7 +157,7 @@ impl Level {
             
         }
 
-        self.space.step(&ctx.owned_rigid_bodies, &ctx.owned_colliders, ctx.last_tick);
+        self.space.step(&ctx.owned_rigid_bodies, &ctx.owned_colliders, ctx.owned_impulse_joints, ctx.last_tick);
         
     }
 

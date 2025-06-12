@@ -1,9 +1,9 @@
 use std::{fs, sync::{mpsc, Arc, Mutex}, time::Instant};
 
-use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, log, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, log, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, game_state::GameState, level::Level, player::player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
-use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, text::draw_text, time::get_fps, window::{request_new_screen_size, screen_width}};
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::camera::mouse, text::draw_text, time::get_fps, window::{request_new_screen_size, screen_width}};
 
 pub struct Client<S: SoundManager> {
     pub game_state: GameState,
@@ -19,7 +19,8 @@ pub struct Client<S: SoundManager> {
     pub camera_rect: Rect,
     pub active_gamepad: Option<GamepadId>,
     pub console: Console,
-    pub sounds: S
+    pub sounds: S,
+    pub last_tick_mouse_world_pos: Vec2
 }
 
 impl<S: SoundManager> Client<S> {
@@ -47,7 +48,9 @@ impl<S: SoundManager> Client<S> {
             console: &mut self.console,
             owned_rigid_bodies: &mut vec![],
             owned_colliders: &mut vec![],
-            sounds: &mut self.sounds
+            owned_impulse_joints: &mut vec![],
+            sounds: &mut self.sounds,
+            last_tick_mouse_world_pos: &mut self.last_tick_mouse_world_pos
         };
 
 
@@ -74,6 +77,14 @@ impl<S: SoundManager> Client<S> {
     }
 
     pub fn update_camera(&mut self) {
+
+        let current_mouse_pos = rapier_mouse_world_pos(&self.camera_rect);
+
+        let mouse_delta = Vec2::new(
+            self.last_tick_mouse_world_pos.x - current_mouse_pos.x, 
+            self.last_tick_mouse_world_pos.y - current_mouse_pos.y
+        );
+
         if mouse_wheel().1 < 0. {
             self.camera_rect.w *= 1.1;
             self.camera_rect.h *= 1.1;
@@ -85,9 +96,9 @@ impl<S: SoundManager> Client<S> {
             self.camera_rect.h /= 1.1;
         }
 
-        if is_mouse_button_down(input::MouseButton::Middle) {
-            self.camera_rect.x += mouse_delta_position().x * 200.;
-            self.camera_rect.y += mouse_delta_position().y * 200.;
+        if is_key_down(KeyCode::LeftControl) {
+            self.camera_rect.x += mouse_delta.x;
+            self.camera_rect.y += mouse_delta.y;
         }
     }
 
@@ -143,7 +154,10 @@ impl<S: SoundManager> Client<S> {
 
         prevent_quit();
 
+        
         loop {
+
+            println!("{:?}", self.last_tick_mouse_world_pos);
 
             if is_quit_requested() {
                 self.disconnect();
@@ -152,8 +166,6 @@ impl<S: SoundManager> Client<S> {
             }
 
             //let then = Instant::now();
-
-            
 
             // only tick maximum 120 times per second to avoid glitchyness
             if self.last_tick.elapsed().as_millis() >= 8 {
@@ -183,9 +195,8 @@ impl<S: SoundManager> Client<S> {
             if is_key_released(KeyCode::H) {
                 log("paused");
             }
-        
 
-                     
+            self.last_tick_mouse_world_pos = rapier_mouse_world_pos(&self.camera_rect);         
 
             // calculate the time we need to sleep to lock the framerate at 120
             //let sleep_duration = Duration::from_millis(7).saturating_sub(self.last_tick.elapsed());
@@ -215,6 +226,7 @@ impl<S: SoundManager> Client<S> {
         set_default_camera();
 
         self.console.draw().await;
+        
 
         macroquad::window::next_frame().await;
     }
@@ -269,7 +281,8 @@ impl<S: SoundManager> Client<S> {
             active_gamepad,
             sync_client,
             console: Console::new(),
-            sounds: S::new()
+            sounds: S::new(),
+            last_tick_mouse_world_pos: rapier_mouse_world_pos(&camera_rect)
         }
     }
 

@@ -66,6 +66,7 @@ impl EditorClient {
 
             let mut owned_rigid_bodies = vec![];
             let mut owned_colliders = vec![];
+            let mut owned_joints = vec![];
 
             for shotgun in &self.level.shotguns {
                 owned_colliders.push(shotgun.collider);
@@ -82,7 +83,7 @@ impl EditorClient {
                 owned_colliders.push(brick.collider_handle().clone());
             }
 
-            self.level.space.step(&owned_rigid_bodies, &owned_colliders, &self.last_tick);
+            self.level.space.step(&owned_rigid_bodies, &owned_colliders, &mut owned_joints, &self.last_tick);
         }
     }
 

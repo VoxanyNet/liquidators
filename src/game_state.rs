@@ -13,7 +13,7 @@ use crate::{chat::Chat, level::Level, structure::Structure, TickContext};
 pub struct GameState {
     pub level: Level,
     pub game_started: bool,
-    pub chat: Chat
+    pub chat: Chat,
 }
 
 impl GameState {

@@ -1,7 +1,7 @@
 use std::{f32::consts::PI, time::Instant};
 
 use diff::Diff;
-use gamelibrary::{animation::TrackedFrames, collider_top_left_pos, current_unix_millis, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::{SoundHandle, SoundManager}, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{animation::TrackedFrames, collider_top_left_pos, current_unix_millis, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::{SoundHandle, SoundManager}, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::Gamepad;
 use macroquad::{color::{GREEN, WHITE}, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, shapes::draw_rectangle, time::get_frame_time};
 use nalgebra::vector;
@@ -43,8 +43,8 @@ pub struct Player {
     pub idle_frame_progress: f32,
     pub facing: Facing,
     pub sound: SoundHandle,
-    pub head_joint_handle: Option<ImpulseJointHandle>,
-    pub shotgun_joint_handle: Option<ImpulseJointHandle>,
+    pub head_joint_handle: Option<SyncImpulseJointHandle>,
+    pub shotgun_joint_handle: Option<SyncImpulseJointHandle>,
     pub teleporter_destination: Option<SyncRigidBodyHandle>,
 }
 
@@ -57,8 +57,8 @@ impl Player {
         space.sync_rigid_body_set.remove_sync(
             self.body.body_handle, 
             &mut space.island_manager, 
-            &mut space.sync_collider_set.collider_set, 
-            &mut space.impulse_joint_set, 
+            &mut space.sync_collider_set, 
+            &mut space.sync_impulse_joint_set, 
             &mut space.multibody_joint_set, 
             true
         );
@@ -66,11 +66,27 @@ impl Player {
         space.sync_rigid_body_set.remove_sync(
             self.head.body_handle, 
             &mut space.island_manager, 
-            &mut space.sync_collider_set.collider_set, 
-            &mut space.impulse_joint_set, 
+            &mut space.sync_collider_set, 
+            &mut space.sync_impulse_joint_set, 
             &mut space.multibody_joint_set, 
             true
         );
+
+        match self.shotgun {
+            Some(shotgun) => {
+                space.sync_rigid_body_set.remove_sync(
+                    shotgun.rigid_body, 
+                    &mut space.island_manager, 
+                    &mut space.sync_collider_set, 
+                    &mut space.sync_impulse_joint_set, 
+                    &mut space.multibody_joint_set, 
+                    true
+                );
+            },
+            None => {},
+        }
+
+
     } 
     
     pub fn spawn(players: &mut SyncArena<Player>, space: &mut Space, owner: String, position: &Vec2, textures: &mut TextureLoader) {
@@ -102,7 +118,7 @@ impl Player {
         let local_cat_body_body = space.sync_rigid_body_set.get_local_handle(cat_body.body_handle);
 
         // joint the head to the body
-        let head_joint_handle = space.impulse_joint_set.insert(
+        let head_joint_handle = space.sync_impulse_joint_set.insert_sync(
             local_cat_body_body,
             local_cat_head_body,
             RevoluteJointBuilder::new()
@@ -124,7 +140,7 @@ impl Player {
         let shotgun_local_handle = space.sync_rigid_body_set.get_local_handle(shotgun.rigid_body);
 
         // attach the shotgun to the player
-        let shotgun_joint_handle = space.impulse_joint_set.insert(
+        let shotgun_joint_handle = space.sync_impulse_joint_set.insert_sync(
             local_cat_body_body,
             shotgun_local_handle,
             RevoluteJointBuilder::new()
@@ -263,7 +279,7 @@ impl Player {
 
         let angle_to_mouse = get_angle_to_mouse(body_body_pos, camera_rect);
 
-        let shotgun_joint = space.impulse_joint_set.get_mut(shotgun_joint_handle).unwrap();
+        let shotgun_joint = space.sync_impulse_joint_set.get_sync_mut(shotgun_joint_handle).unwrap();
 
         let shotgun_joint_data = shotgun_joint.data.as_revolute_mut().unwrap();
 
@@ -308,7 +324,7 @@ impl Player {
 
         let angle_to_mouse = get_angle_to_mouse(head_body_pos, camera_rect);
 
-        let head_joint = space.impulse_joint_set.get_mut(head_joint_handle).unwrap();
+        let head_joint = space.sync_impulse_joint_set.get_sync_mut(head_joint_handle).unwrap();
 
         let target_angle = match self.facing {
             Facing::Right => {
@@ -343,7 +359,7 @@ impl Player {
         };
 
         if self.health <= 0 {
-            let head_joint = space.impulse_joint_set.remove(head_joint_handle, true);
+            let head_joint = space.sync_impulse_joint_set.remove_sync(head_joint_handle, true);
 
             self.head_joint_handle = None;
         }

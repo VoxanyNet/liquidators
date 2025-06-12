@@ -40,8 +40,8 @@ impl Structure {
         space.sync_rigid_body_set.remove_sync(
             self.rigid_body_handle, 
             &mut space.island_manager, 
-            &mut space.sync_collider_set.collider_set, 
-            &mut space.impulse_joint_set, 
+            &mut space.sync_collider_set, 
+            &mut space.sync_impulse_joint_set, 
             &mut space.multibody_joint_set, 
             true
         );
@@ -210,7 +210,7 @@ impl Structure {
             match menu_item.text.as_str() {
                 "Delete" => {
                     self.menu = None;
-                    space.sync_rigid_body_set.remove_sync(self.rigid_body_handle, &mut space.island_manager, &mut space.sync_collider_set.collider_set, &mut space.impulse_joint_set, &mut space.multibody_joint_set, true);
+                    space.sync_rigid_body_set.remove_sync(self.rigid_body_handle, &mut space.island_manager, &mut space.sync_collider_set, &mut space.sync_impulse_joint_set, &mut space.multibody_joint_set, true);
                     return None
                 },
                 "Zero Velocity" => {
