@@ -1,9 +1,12 @@
 use std::{fs, sync::{mpsc, Arc, Mutex}, time::Instant};
 
+use futures::executor::block_on;
 use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, log, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
-use liquidators_lib::{console::Console, game_state::GameState, level::Level, player::player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
+use liquidators_lib::{console::Console, game_state::GameState, level::Level, main_menu::MainMenu, player::player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
 use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::camera::mouse, text::draw_text, time::get_fps, window::{request_new_screen_size, screen_width}};
+use tungstenite::http::request;
+use uuid::Uuid;
 
 pub struct Client<S: SoundManager> {
     pub game_state: GameState,
@@ -14,24 +17,27 @@ pub struct Client<S: SoundManager> {
     pub uuid: String,
     pub camera_offset: Vec2,
     pub update_count: i32,
-    pub sync_client: SyncClient<GameState>,
+    pub sync_client: Option<SyncClient<GameState>>,
     pub last_sync: Instant,
     pub camera_rect: Rect,
     pub active_gamepad: Option<GamepadId>,
     pub console: Console,
     pub sounds: S,
-    pub last_tick_mouse_world_pos: Vec2
+    pub last_tick_mouse_world_pos: Vec2,
+    pub main_menu: Option<MainMenu>
 }
 
 impl<S: SoundManager> Client<S> {
     
-    pub fn tick(&mut self) {
+    pub async fn tick(&mut self) {
 
         self.console.tick();
 
         if is_key_released(KeyCode::Tab) {
             self.console.enabled = !self.console.enabled
         }
+
+        
 
         if is_key_released(KeyCode::K) {
             request_new_screen_size(886., 480.);
@@ -58,6 +64,16 @@ impl<S: SoundManager> Client<S> {
             &mut tick_context
         );
 
+        if let Some(menu) = &mut self.main_menu {
+            menu.tick(&mut tick_context);
+
+            if menu.started {
+                *self = Client::connect("ws://voxany.net:5556").await;
+            }
+
+
+        }
+
         if is_key_released(KeyCode::R) {
             self.reset_level();
         }
@@ -67,6 +83,8 @@ impl<S: SoundManager> Client<S> {
         // if is_key_released(KeyCode::B) {
         //     self.game_state.level = Level::from_save("level.yaml".to_string());
         // }
+
+        
 
         
 
@@ -120,7 +138,7 @@ impl<S: SoundManager> Client<S> {
 
 
         // send a final sync to the server
-        self.sync_client.sync(&mut self.game_state);
+        self.sync_client.as_mut().unwrap().sync(&mut self.game_state);
     }
 
     pub fn reset_level(&mut self) {
@@ -157,14 +175,13 @@ impl<S: SoundManager> Client<S> {
         
         loop {
 
-            println!("{:?}", self.last_tick_mouse_world_pos);
-
             if is_quit_requested() {
                 self.disconnect();
 
                 break;
             }
 
+            
             //let then = Instant::now();
 
             // only tick maximum 120 times per second to avoid glitchyness
@@ -172,7 +189,7 @@ impl<S: SoundManager> Client<S> {
 
                 //println!("{}", self.last_tick.elapsed().as_millis() - 8);
 
-                self.tick();
+                self.tick().await;
                 
 
                 self.draw().await;
@@ -184,7 +201,9 @@ impl<S: SoundManager> Client<S> {
             // this could probably be optimized but this is more readable
             if self.last_sync.elapsed().as_secs_f32() > 1./120. {
 
-                self.sync_client.sync(&mut self.game_state);
+                if let Some(sync_client) = &mut self.sync_client {
+                    sync_client.sync(&mut self.game_state);
+                }
 
                 self.last_sync = Instant::now();
 
@@ -226,11 +245,40 @@ impl<S: SoundManager> Client<S> {
         set_default_camera();
 
         self.console.draw().await;
+
+        if let Some(main_menu) = &self.main_menu {
+            main_menu.draw(&mut self.textures).await
+        }
         
 
         macroquad::window::next_frame().await;
     }
 
+    pub fn new_unconnected() -> Self {
+        
+        let mut textures = TextureLoader::new();
+
+        let main_menu = MainMenu::new(&mut textures);
+        Self {
+            game_state: GameState::empty(),
+            is_host: true,
+            textures: TextureLoader::new(),
+            animations: AnimationLoader::new(),
+            last_tick: Instant::now(),
+            uuid: Uuid::new_v4().to_string(),
+            camera_offset: Vec2::ZERO,
+            update_count: 0,
+            sync_client: None,
+            last_sync: Instant::now(),
+            camera_rect: Rect::new(0., 200., 1280., 720.),
+            active_gamepad: None,
+            console: Console::new(),
+            sounds: S::new(),
+            last_tick_mouse_world_pos: rapier_mouse_world_pos(&Rect::new(0., 200., 1280., 720.)),
+            main_menu: Some(main_menu)
+
+        }
+    }
     pub async fn connect(url: &str) -> Self {
 
 
@@ -279,10 +327,11 @@ impl<S: SoundManager> Client<S> {
             last_sync: Instant::now(),
             camera_rect,
             active_gamepad,
-            sync_client,
+            sync_client: Some(sync_client),
             console: Console::new(),
             sounds: S::new(),
-            last_tick_mouse_world_pos: rapier_mouse_world_pos(&camera_rect)
+            last_tick_mouse_world_pos: rapier_mouse_world_pos(&camera_rect),
+            main_menu: None
         }
     }
 
@@ -294,14 +343,14 @@ impl<S: SoundManager> Client<S> {
     fn save_state(&mut self) {
         if is_key_released(macroquad::input::KeyCode::F5) {
 
-            let game_state_json = serde_json::to_string_pretty(&self.game_state).unwrap();
+            let game_state_json = serde_yaml::to_string(&self.game_state).unwrap();
 
-            std::fs::write("state.json", game_state_json).unwrap();
+            std::fs::write("state.yaml", game_state_json).unwrap();
         }
 
         if is_key_released(macroquad::input::KeyCode::F6) {
-            self.game_state = bitcode::deserialize(
-                &std::fs::read("state.bin").expect("failed to read state file")
+            self.game_state = serde_yaml::from_str(
+                &std::fs::read_to_string("state.yaml").expect("failed to read state file")
             ).expect("failed to deserialize state file");
         }
     }

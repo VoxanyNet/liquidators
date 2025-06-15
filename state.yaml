@@ -1,0 +1,5160 @@
+level:
+  structures:
+  - rigid_body_handle:
+      id: 7823368449536967285
+    collider_handle:
+      id: 1419722112520047821
+    color:
+      r: 0.9
+      g: 0.16
+      b: 0.22
+      a: 1.0
+    menu: null
+    selected: false
+    dragging: false
+    drag_offset: null
+    owner: '2974652173'
+    editor_owner: '1076265739'
+    sprite_path: assets/structure/brick_block.png
+    last_ownership_change: 0
+    grabbing: false
+    particles: []
+    joint_test: null
+  - rigid_body_handle:
+      id: 5676817614941933154
+    collider_handle:
+      id: 10867115298251883608
+    color:
+      r: 0.9
+      g: 0.16
+      b: 0.22
+      a: 1.0
+    menu: null
+    selected: false
+    dragging: false
+    drag_offset: null
+    owner: '384871505'
+    editor_owner: '384871505'
+    sprite_path: assets/structure/brick_block.png
+    last_ownership_change: 0
+    grabbing: false
+    particles: []
+    joint_test: null
+  - rigid_body_handle:
+      id: 8292169185181452282
+    collider_handle:
+      id: 12810689756944943095
+    color:
+      r: 0.9
+      g: 0.16
+      b: 0.22
+      a: 1.0
+    menu: null
+    selected: false
+    dragging: false
+    drag_offset: null
+    owner: '384871505'
+    editor_owner: '384871505'
+    sprite_path: assets/structure/brick_block.png
+    last_ownership_change: 0
+    grabbing: false
+    particles: []
+    joint_test: null
+  - rigid_body_handle:
+      id: 5509066816955302879
+    collider_handle:
+      id: 494612227568848577
+    color:
+      r: 0.9
+      g: 0.16
+      b: 0.22
+      a: 1.0
+    menu: null
+    selected: false
+    dragging: false
+    drag_offset: null
+    owner: '384871505'
+    editor_owner: '384871505'
+    sprite_path: assets/structure/brick_block.png
+    last_ownership_change: 0
+    grabbing: false
+    particles: []
+    joint_test: null
+  - rigid_body_handle:
+      id: 12124872547051457311
+    collider_handle:
+      id: 4622452126378510654
+    color:
+      r: 0.9
+      g: 0.16
+      b: 0.22
+      a: 1.0
+    menu: null
+    selected: false
+    dragging: false
+    drag_offset: null
+    owner: '384871505'
+    editor_owner: '384871505'
+    sprite_path: assets/structure/brick_block.png
+    last_ownership_change: 0
+    grabbing: false
+    particles: []
+    joint_test: null
+  - rigid_body_handle:
+      id: 13833105660098396728
+    collider_handle:
+      id: 16501854760326022628
+    color:
+      r: 0.9
+      g: 0.16
+      b: 0.22
+      a: 1.0
+    menu: null
+    selected: false
+    dragging: false
+    drag_offset: null
+    owner: '384871505'
+    editor_owner: '384871505'
+    sprite_path: assets/structure/brick_block.png
+    last_ownership_change: 0
+    grabbing: false
+    particles: []
+    joint_test: null
+  - rigid_body_handle:
+      id: 10101903932171962427
+    collider_handle:
+      id: 6697529741895418339
+    color:
+      r: 0.9
+      g: 0.16
+      b: 0.22
+      a: 1.0
+    menu: null
+    selected: false
+    dragging: false
+    drag_offset: null
+    owner: '384871505'
+    editor_owner: '384871505'
+    sprite_path: assets/structure/brick_block.png
+    last_ownership_change: 0
+    grabbing: false
+    particles: []
+    joint_test: null
+  - rigid_body_handle:
+      id: 3242391583317771634
+    collider_handle:
+      id: 10241800869567807523
+    color:
+      r: 0.9
+      g: 0.16
+      b: 0.22
+      a: 1.0
+    menu: null
+    selected: false
+    dragging: false
+    drag_offset: null
+    owner: '384871505'
+    editor_owner: '384871505'
+    sprite_path: assets/structure/brick_block.png
+    last_ownership_change: 0
+    grabbing: false
+    particles: []
+    joint_test: null
+  players:
+    items:
+    - !Occupied
+      generation: 0
+      sync_id: 2368270812817083991
+      value:
+        id: 11686518959959447248
+        health: 100
+        head:
+          collider_handle:
+            id: 8188060797593079441
+          body_handle:
+            id: 9552862613751876112
+          sprite_path: assets/cat/head.png
+          scale: 2
+          owner: '2974652173'
+        body:
+          collider_handle:
+            id: 10122330969879694876
+          body_handle:
+            id: 17056297755814806553
+          sprite_path: assets/cat/body.png
+          scale: 2
+          owner: '2974652173'
+        sprite_path: assets/player/idle.png
+        owner: '2974652173'
+        selected: false
+        dragging: false
+        drag_offset: null
+        max_speed:
+          x: 350.0
+          y: 80.0
+        shotgun:
+          player_rigid_body_handle:
+            id: 17056297755814806553
+          collider:
+            id: 4328091864264493857
+          rigid_body:
+            id: 17050409606071599353
+          sprite: assets/shotgun.png
+          selected: false
+          dragging: false
+          drag_offset: null
+          grabbing: false
+          owner: '2974652173'
+          picked_up: false
+          sounds: []
+        animation_handler:
+          state: GunRun
+          walking_frames:
+            frames:
+              paths:
+              - assets/player/walk/0.png
+              - assets/player/walk/1.png
+              - assets/player/walk/2.png
+              - assets/player/walk/3.png
+              - assets/player/walk/4.png
+              - assets/player/walk/5.png
+              - assets/player/walk/6.png
+              - assets/player/walk/7.png
+            current_frame_index: 0
+          idle_frames:
+            frames:
+              paths:
+              - assets/player/idle/0.png
+              - assets/player/idle/1.png
+              - assets/player/idle/2.png
+              - assets/player/idle/3.png
+              - assets/player/idle/4.png
+              - assets/player/idle/5.png
+              - assets/player/idle/6.png
+              - assets/player/idle/7.png
+              - assets/player/idle/8.png
+              - assets/player/idle/9.png
+            current_frame_index: 5
+          gunrun_frames:
+            frames:
+              paths:
+              - assets/player/gunrun/0.png
+              - assets/player/gunrun/1.png
+              - assets/player/gunrun/2.png
+              - assets/player/gunrun/3.png
+              - assets/player/gunrun/4.png
+              - assets/player/gunrun/5.png
+              - assets/player/gunrun/6.png
+              - assets/player/gunrun/7.png
+            current_frame_index: 5
+        walk_frame_progess: 0.7902908
+        idle_frame_progress: 0.37455916
+        facing: Right
+        sound:
+          state: Initial
+          position:
+          - 0.0
+          - 0.0
+          - 0.0
+          id: 11701178298901679112
+          file_path: assets/sounds/brick_land.wav
+        head_joint_handle:
+          id: 14857957077591016116
+        shotgun_joint_handle:
+          id: 5080166470882773798
+        teleporter_destination: null
+    - !Occupied
+      generation: 0
+      sync_id: 12626699674194497436
+      value:
+        id: 9514347672451121679
+        health: 100
+        head:
+          collider_handle:
+            id: 16511775440453324231
+          body_handle:
+            id: 6966306171831340842
+          sprite_path: assets/cat/head.png
+          scale: 2
+          owner: '384871505'
+        body:
+          collider_handle:
+            id: 10073401409814548070
+          body_handle:
+            id: 9832913802500654647
+          sprite_path: assets/cat/body.png
+          scale: 2
+          owner: '384871505'
+        sprite_path: assets/player/idle.png
+        owner: '384871505'
+        selected: false
+        dragging: false
+        drag_offset: null
+        max_speed:
+          x: 350.0
+          y: 80.0
+        shotgun:
+          player_rigid_body_handle:
+            id: 9832913802500654647
+          collider:
+            id: 13319311027532680832
+          rigid_body:
+            id: 8464281040730213259
+          sprite: assets/shotgun.png
+          selected: false
+          dragging: false
+          drag_offset: null
+          grabbing: false
+          owner: '384871505'
+          picked_up: false
+          sounds: []
+        animation_handler:
+          state: GunRun
+          walking_frames:
+            frames:
+              paths:
+              - assets/player/walk/0.png
+              - assets/player/walk/1.png
+              - assets/player/walk/2.png
+              - assets/player/walk/3.png
+              - assets/player/walk/4.png
+              - assets/player/walk/5.png
+              - assets/player/walk/6.png
+              - assets/player/walk/7.png
+            current_frame_index: 0
+          idle_frames:
+            frames:
+              paths:
+              - assets/player/idle/0.png
+              - assets/player/idle/1.png
+              - assets/player/idle/2.png
+              - assets/player/idle/3.png
+              - assets/player/idle/4.png
+              - assets/player/idle/5.png
+              - assets/player/idle/6.png
+              - assets/player/idle/7.png
+              - assets/player/idle/8.png
+              - assets/player/idle/9.png
+            current_frame_index: 2
+          gunrun_frames:
+            frames:
+              paths:
+              - assets/player/gunrun/0.png
+              - assets/player/gunrun/1.png
+              - assets/player/gunrun/2.png
+              - assets/player/gunrun/3.png
+              - assets/player/gunrun/4.png
+              - assets/player/gunrun/5.png
+              - assets/player/gunrun/6.png
+              - assets/player/gunrun/7.png
+            current_frame_index: 2
+        walk_frame_progess: 0.594081
+        idle_frame_progress: 0.38726807
+        facing: Right
+        sound:
+          state: Initial
+          position:
+          - 0.0
+          - 0.0
+          - 0.0
+          id: 13682337692001986520
+          file_path: assets/sounds/brick_land.wav
+        head_joint_handle:
+          id: 14170805708505433159
+        shotgun_joint_handle:
+          id: 2123773476518449085
+        teleporter_destination: null
+    - !Free
+      next_free: 3
+    - !Free
+      next_free: null
+    generation: 0
+    free_list_head: 2
+    len: 2
+    sync_index_map:
+      12626699674194497436:
+      - 1
+      - 0
+      2368270812817083991:
+      - 0
+      - 0
+  space:
+    sync_rigid_body_set:
+      rigid_body_set:
+        bodies:
+          items:
+          - !Occupied
+            generation: 0
+            value:
+              pos:
+                position:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 637.3334
+                  - 190.0
+                next_position:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 637.3334
+                  - 190.0
+              mprops:
+                flags: ''
+                local_mprops:
+                  local_com:
+                  - 0.0
+                  - 0.0
+                  inv_mass: 0.1
+                  inv_principal_inertia_sqrt: 0.00086896314
+                additional_local_mprops: null
+                world_com:
+                - 637.3334
+                - 190.0
+                effective_inv_mass:
+                - 0.1
+                - 0.1
+                effective_world_inv_inertia_sqrt: 0.00086896314
+              integrated_vels:
+                linvel:
+                - 0.0
+                - 0.0
+                angvel: 0.0
+              vels:
+                linvel:
+                - 0.0
+                - 0.0
+                angvel: 0.0
+              damping:
+                linear_damping: 0.0
+                angular_damping: 0.0
+              forces:
+                force:
+                - 0.0
+                - 0.0
+                torque: 0.0
+                gravity_scale: 1.0
+                user_force:
+                - 0.0
+                - 0.0
+                user_torque: 0.0
+              ccd:
+                ccd_thickness: 20.0
+                ccd_max_dist: 28.284271
+                ccd_active: false
+                ccd_enabled: true
+                soft_ccd_prediction: 0.0
+              ids:
+                active_island_id: 0
+                active_set_id: 0
+                active_set_offset: 0
+                active_set_timestamp: 0
+              colliders:
+              - index: 0
+                generation: 0
+              activation:
+                normalized_linear_threshold: 0.4
+                angular_threshold: 0.5
+                time_until_sleep: 2.0
+                time_since_can_sleep: 0.0
+                sleeping: false
+              changes: ''
+              body_type: Fixed
+              dominance: 0
+              enabled: true
+              additional_solver_iterations: 0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              pos:
+                position:
+                  rotation:
+                  - 0.9460962
+                  - 0.32388568
+                  translation:
+                  - 388.6054
+                  - 238.69032
+                next_position:
+                  rotation:
+                  - 0.9460962
+                  - 0.32388568
+                  translation:
+                  - 388.6054
+                  - 238.69032
+              mprops:
+                flags: ''
+                local_mprops:
+                  local_com:
+                  - 0.0
+                  - 0.0
+                  inv_mass: 0.00045454546
+                  inv_principal_inertia_sqrt: 0.00072129973
+                additional_local_mprops: null
+                world_com:
+                - 388.6054
+                - 238.69032
+                effective_inv_mass:
+                - 0.00045454546
+                - 0.00045454546
+                effective_world_inv_inertia_sqrt: 0.00072129973
+              integrated_vels:
+                linvel:
+                - -0.07318464
+                - 0.9998324
+                angvel: 0.030779023
+              vels:
+                linvel:
+                - -1.8223549
+                - 2.8632984
+                angvel: 0.0061712977
+              damping:
+                linear_damping: 0.0
+                angular_damping: 0.0
+              forces:
+                force:
+                - 0.0
+                - -2156000.0
+                torque: 0.0
+                gravity_scale: 1.0
+                user_force:
+                - 0.0
+                - 0.0
+                user_torque: 0.0
+              ccd:
+                ccd_thickness: 11.0
+                ccd_max_dist: 51.1957
+                ccd_active: false
+                ccd_enabled: true
+                soft_ccd_prediction: 20.0
+              ids:
+                active_island_id: 0
+                active_set_id: 0
+                active_set_offset: 0
+                active_set_timestamp: 1553
+              colliders:
+              - index: 1
+                generation: 0
+              activation:
+                normalized_linear_threshold: 0.4
+                angular_threshold: 0.5
+                time_until_sleep: 2.0
+                time_since_can_sleep: 0.0
+                sleeping: false
+              changes: ''
+              body_type: Dynamic
+              dominance: 0
+              enabled: true
+              additional_solver_iterations: 0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              pos:
+                position:
+                  rotation:
+                  - 0.9999899
+                  - -0.004484708
+                  translation:
+                  - 360.29758
+                  - 228.82333
+                next_position:
+                  rotation:
+                  - 0.9999899
+                  - -0.004484708
+                  translation:
+                  - 360.29758
+                  - 228.82333
+              mprops:
+                flags: ''
+                local_mprops:
+                  local_com:
+                  - 0.0
+                  - 0.0
+                  inv_mass: 0.0005980861
+                  inv_principal_inertia_sqrt: 0.0014571832
+                additional_local_mprops: null
+                world_com:
+                - 360.29758
+                - 228.82333
+                effective_inv_mass:
+                - 0.0005980861
+                - 0.0005980861
+                effective_world_inv_inertia_sqrt: 0.0014571832
+              integrated_vels:
+                linvel:
+                - -0.15752257
+                - 0.19073956
+                angvel: 0.008351928
+              vels:
+                linvel:
+                - -0.61111975
+                - 0.09106388
+                angvel: 0.032401875
+              damping:
+                linear_damping: 0.0
+                angular_damping: 0.0
+              forces:
+                force:
+                - 0.0
+                - -1638560.1
+                torque: 0.0
+                gravity_scale: 1.0
+                user_force:
+                - 0.0
+                - 0.0
+                user_torque: 0.0
+              ccd:
+                ccd_thickness: 19.0
+                ccd_max_dist: 29.068884
+                ccd_active: false
+                ccd_enabled: true
+                soft_ccd_prediction: 20.0
+              ids:
+                active_island_id: 0
+                active_set_id: 1
+                active_set_offset: 1
+                active_set_timestamp: 1553
+              colliders:
+              - index: 2
+                generation: 0
+              activation:
+                normalized_linear_threshold: 0.4
+                angular_threshold: 0.5
+                time_until_sleep: 2.0
+                time_since_can_sleep: 0.0
+                sleeping: false
+              changes: ''
+              body_type: Dynamic
+              dominance: 0
+              enabled: true
+              additional_solver_iterations: 0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              pos:
+                position:
+                  rotation:
+                  - 0.9203042
+                  - 0.39120343
+                  translation:
+                  - 348.39075
+                  - 256.84985
+                next_position:
+                  rotation:
+                  - 0.9203042
+                  - 0.39120343
+                  translation:
+                  - 348.39075
+                  - 256.84985
+              mprops:
+                flags: ''
+                local_mprops:
+                  local_com:
+                  - 0.0
+                  - 0.0
+                  inv_mass: 0.00029761906
+                  inv_principal_inertia_sqrt: 0.00072814844
+                additional_local_mprops: null
+                world_com:
+                - 348.39075
+                - 256.84985
+                effective_inv_mass:
+                - 0.00029761906
+                - 0.00029761906
+                effective_world_inv_inertia_sqrt: 0.00072814844
+              integrated_vels:
+                linvel:
+                - -3.7078116
+                - 5.9340353
+                angvel: 0.04900262
+              vels:
+                linvel:
+                - -2.2966456
+                - 2.572394
+                angvel: 0.019494323
+              damping:
+                linear_damping: 0.0
+                angular_damping: 0.0
+              forces:
+                force:
+                - 0.0
+                - -3292799.8
+                torque: 0.0
+                gravity_scale: 1.0
+                user_force:
+                - 0.0
+                - 0.0
+                user_torque: 0.0
+              ccd:
+                ccd_thickness: 28.0
+                ccd_max_dist: 41.036568
+                ccd_active: false
+                ccd_enabled: true
+                soft_ccd_prediction: 20.0
+              ids:
+                active_island_id: 0
+                active_set_id: 2
+                active_set_offset: 2
+                active_set_timestamp: 1553
+              colliders:
+              - index: 3
+                generation: 0
+              activation:
+                normalized_linear_threshold: 0.4
+                angular_threshold: 0.5
+                time_until_sleep: 2.0
+                time_since_can_sleep: 0.0
+                sleeping: false
+              changes: ''
+              body_type: Dynamic
+              dominance: 0
+              enabled: true
+              additional_solver_iterations: 0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              pos:
+                position:
+                  rotation:
+                  - 0.921061
+                  - -0.38941842
+                  translation:
+                  - 851.20276
+                  - 256.60025
+                next_position:
+                  rotation:
+                  - 0.921061
+                  - -0.38941842
+                  translation:
+                  - 851.20276
+                  - 256.60025
+              mprops:
+                flags: ''
+                local_mprops:
+                  local_com:
+                  - 0.0
+                  - 0.0
+                  inv_mass: 0.1
+                  inv_principal_inertia_sqrt: 0.013347181
+                additional_local_mprops: null
+                world_com:
+                - 851.20276
+                - 256.60025
+                effective_inv_mass:
+                - 0.1
+                - 0.1
+                effective_world_inv_inertia_sqrt: 0.013347181
+              integrated_vels:
+                linvel:
+                - -0.00041530095
+                - 0.0009117313
+                angvel: 0.00010035118
+              vels:
+                linvel:
+                - -0.00036846125
+                - 0.000023112043
+                angvel: 6.195843e-10
+              damping:
+                linear_damping: 0.0
+                angular_damping: 0.0
+              forces:
+                force:
+                - 0.0
+                - -9800.0
+                torque: 0.0
+                gravity_scale: 1.0
+                user_force:
+                - 0.0
+                - 0.0
+                user_torque: 0.0
+              ccd:
+                ccd_thickness: 28.0
+                ccd_max_dist: 41.036568
+                ccd_active: false
+                ccd_enabled: true
+                soft_ccd_prediction: 0.0
+              ids:
+                active_island_id: 0
+                active_set_id: 3
+                active_set_offset: 3
+                active_set_timestamp: 1553
+              colliders:
+              - index: 4
+                generation: 0
+              activation:
+                normalized_linear_threshold: 0.4
+                angular_threshold: 0.5
+                time_until_sleep: 2.0
+                time_since_can_sleep: 0.008611022
+                sleeping: false
+              changes: ''
+              body_type: Dynamic
+              dominance: 0
+              enabled: true
+              additional_solver_iterations: 0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              pos:
+                position:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 839.5202
+                  - 228.96837
+                next_position:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 839.5202
+                  - 228.96837
+              mprops:
+                flags: ROTATION_LOCKED_X | ROTATION_LOCKED_Y | ROTATION_LOCKED_Z
+                local_mprops:
+                  local_com:
+                  - 0.0
+                  - 0.0
+                  inv_mass: 0.01
+                  inv_principal_inertia_sqrt: 0.005958436
+                additional_local_mprops: null
+                world_com:
+                - 839.5202
+                - 228.96837
+                effective_inv_mass:
+                - 0.01
+                - 0.01
+                effective_world_inv_inertia_sqrt: 0.0
+              integrated_vels:
+                linvel:
+                - 0.0
+                - -0.00008917145
+                angvel: 0.0
+              vels:
+                linvel:
+                - 0.0
+                - -6.6838766e-8
+                angvel: 0.0
+              damping:
+                linear_damping: 0.0
+                angular_damping: 0.0
+              forces:
+                force:
+                - 0.0
+                - -98000.0
+                torque: 0.0
+                gravity_scale: 1.0
+                user_force:
+                - 0.0
+                - 0.0
+                user_torque: 0.0
+              ccd:
+                ccd_thickness: 19.0
+                ccd_max_dist: 29.068884
+                ccd_active: false
+                ccd_enabled: true
+                soft_ccd_prediction: 0.0
+              ids:
+                active_island_id: 0
+                active_set_id: 4
+                active_set_offset: 4
+                active_set_timestamp: 1553
+              colliders:
+              - index: 5
+                generation: 0
+              activation:
+                normalized_linear_threshold: 0.4
+                angular_threshold: 0.5
+                time_until_sleep: 2.0
+                time_since_can_sleep: 0.008611022
+                sleeping: false
+              changes: ''
+              body_type: Dynamic
+              dominance: 0
+              enabled: true
+              additional_solver_iterations: 0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              pos:
+                position:
+                  rotation:
+                  - 0.8124519
+                  - -0.5830282
+                  translation:
+                  - 863.89374
+                  - 211.47752
+                next_position:
+                  rotation:
+                  - 0.8124519
+                  - -0.5830282
+                  translation:
+                  - 863.89374
+                  - 211.47752
+              mprops:
+                flags: ''
+                local_mprops:
+                  local_com:
+                  - 0.0
+                  - 0.0
+                  inv_mass: 1.0
+                  inv_principal_inertia_sqrt: 0.033831954
+                additional_local_mprops: null
+                world_com:
+                - 863.89374
+                - 211.47752
+                effective_inv_mass:
+                - 1.0
+                - 1.0
+                effective_world_inv_inertia_sqrt: 0.033831954
+              integrated_vels:
+                linvel:
+                - 0.010296568
+                - 0.030558765
+                angvel: 0.0012467279
+              vels:
+                linvel:
+                - 0.041499514
+                - 0.058366537
+                angvel: 0.0023940292
+              damping:
+                linear_damping: 0.0
+                angular_damping: 0.0
+              forces:
+                force:
+                - 0.0
+                - -980.0
+                torque: 0.0
+                gravity_scale: 1.0
+                user_force:
+                - 0.0
+                - 0.0
+                user_torque: 0.0
+              ccd:
+                ccd_thickness: 11.0
+                ccd_max_dist: 51.1957
+                ccd_active: false
+                ccd_enabled: true
+                soft_ccd_prediction: 0.0
+              ids:
+                active_island_id: 0
+                active_set_id: 5
+                active_set_offset: 5
+                active_set_timestamp: 1553
+              colliders:
+              - index: 6
+                generation: 0
+              activation:
+                normalized_linear_threshold: 0.4
+                angular_threshold: 0.5
+                time_until_sleep: 2.0
+                time_since_can_sleep: 0.008611022
+                sleeping: false
+              changes: ''
+              body_type: Dynamic
+              dominance: 0
+              enabled: true
+              additional_solver_iterations: 0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              pos:
+                position:
+                  rotation:
+                  - 0.99999815
+                  - -0.0019218253
+                  translation:
+                  - 582.03754
+                  - 229.80295
+                next_position:
+                  rotation:
+                  - 0.99999815
+                  - -0.0019218253
+                  translation:
+                  - 582.03754
+                  - 229.80295
+              mprops:
+                flags: ''
+                local_mprops:
+                  local_com:
+                  - 0.0
+                  - 0.0
+                  inv_mass: 0.01
+                  inv_principal_inertia_sqrt: 0.0061237244
+                additional_local_mprops: null
+                world_com:
+                - 582.03754
+                - 229.80295
+                effective_inv_mass:
+                - 0.01
+                - 0.01
+                effective_world_inv_inertia_sqrt: 0.0061237244
+              integrated_vels:
+                linvel:
+                - 0.05346883
+                - 0.09861471
+                angvel: -0.0026893015
+              vels:
+                linvel:
+                - 0.038020436
+                - -0.00003362948
+                angvel: -0.0019122997
+              damping:
+                linear_damping: 0.0
+                angular_damping: 0.0
+              forces:
+                force:
+                - 0.0
+                - -98000.0
+                torque: 0.0
+                gravity_scale: 1.0
+                user_force:
+                - 0.0
+                - 0.0
+                user_torque: 0.0
+              ccd:
+                ccd_thickness: 20.0
+                ccd_max_dist: 28.284271
+                ccd_active: false
+                ccd_enabled: true
+                soft_ccd_prediction: 20.0
+              ids:
+                active_island_id: 0
+                active_set_id: 6
+                active_set_offset: 6
+                active_set_timestamp: 1553
+              colliders:
+              - index: 7
+                generation: 0
+              activation:
+                normalized_linear_threshold: 0.4
+                angular_threshold: 0.5
+                time_until_sleep: 2.0
+                time_since_can_sleep: 0.008611022
+                sleeping: false
+              changes: ''
+              body_type: Dynamic
+              dominance: 0
+              enabled: true
+              additional_solver_iterations: 0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              pos:
+                position:
+                  rotation:
+                  - 0.9999871
+                  - -0.0050685797
+                  translation:
+                  - 583.2456
+                  - 269.4542
+                next_position:
+                  rotation:
+                  - 0.9999871
+                  - -0.0050685797
+                  translation:
+                  - 583.2456
+                  - 269.4542
+              mprops:
+                flags: ''
+                local_mprops:
+                  local_com:
+                  - 0.0
+                  - 0.0
+                  inv_mass: 0.01
+                  inv_principal_inertia_sqrt: 0.0061237244
+                additional_local_mprops: null
+                world_com:
+                - 583.2456
+                - 269.4542
+                effective_inv_mass:
+                - 0.01
+                - 0.01
+                effective_world_inv_inertia_sqrt: 0.0061237244
+              integrated_vels:
+                linvel:
+                - 0.16984044
+                - 0.28711143
+                angvel: -0.0024371673
+              vels:
+                linvel:
+                - 0.11434983
+                - 0.16497827
+                angvel: -0.0021261994
+              damping:
+                linear_damping: 0.0
+                angular_damping: 0.0
+              forces:
+                force:
+                - 0.0
+                - -98000.0
+                torque: 0.0
+                gravity_scale: 1.0
+                user_force:
+                - 0.0
+                - 0.0
+                user_torque: 0.0
+              ccd:
+                ccd_thickness: 20.0
+                ccd_max_dist: 28.284271
+                ccd_active: false
+                ccd_enabled: true
+                soft_ccd_prediction: 20.0
+              ids:
+                active_island_id: 0
+                active_set_id: 7
+                active_set_offset: 7
+                active_set_timestamp: 1553
+              colliders:
+              - index: 8
+                generation: 0
+              activation:
+                normalized_linear_threshold: 0.4
+                angular_threshold: 0.5
+                time_until_sleep: 2.0
+                time_since_can_sleep: 0.008611022
+                sleeping: false
+              changes: ''
+              body_type: Dynamic
+              dominance: 0
+              enabled: true
+              additional_solver_iterations: 0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              pos:
+                position:
+                  rotation:
+                  - 0.9999731
+                  - -0.007329463
+                  translation:
+                  - 583.43335
+                  - 309.15924
+                next_position:
+                  rotation:
+                  - 0.9999731
+                  - -0.007329463
+                  translation:
+                  - 583.43335
+                  - 309.15924
+              mprops:
+                flags: ''
+                local_mprops:
+                  local_com:
+                  - 0.0
+                  - 0.0
+                  inv_mass: 0.01
+                  inv_principal_inertia_sqrt: 0.0061237244
+                additional_local_mprops: null
+                world_com:
+                - 583.43335
+                - 309.15924
+                effective_inv_mass:
+                - 0.01
+                - 0.01
+                effective_world_inv_inertia_sqrt: 0.0061237244
+              integrated_vels:
+                linvel:
+                - 0.21151999
+                - 0.61368966
+                angvel: 0.00005547804
+              vels:
+                linvel:
+                - 0.17390014
+                - 0.4298103
+                angvel: -0.001288976
+              damping:
+                linear_damping: 0.0
+                angular_damping: 0.0
+              forces:
+                force:
+                - 0.0
+                - -98000.0
+                torque: 0.0
+                gravity_scale: 1.0
+                user_force:
+                - 0.0
+                - 0.0
+                user_torque: 0.0
+              ccd:
+                ccd_thickness: 20.0
+                ccd_max_dist: 28.284271
+                ccd_active: false
+                ccd_enabled: true
+                soft_ccd_prediction: 20.0
+              ids:
+                active_island_id: 0
+                active_set_id: 8
+                active_set_offset: 8
+                active_set_timestamp: 1553
+              colliders:
+              - index: 9
+                generation: 0
+              activation:
+                normalized_linear_threshold: 0.4
+                angular_threshold: 0.5
+                time_until_sleep: 2.0
+                time_since_can_sleep: 0.0
+                sleeping: false
+              changes: ''
+              body_type: Dynamic
+              dominance: 0
+              enabled: true
+              additional_solver_iterations: 0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              pos:
+                position:
+                  rotation:
+                  - 0.9999517
+                  - -0.009825235
+                  translation:
+                  - 582.7091
+                  - 348.9375
+                next_position:
+                  rotation:
+                  - 0.9999517
+                  - -0.009825235
+                  translation:
+                  - 582.7091
+                  - 348.9375
+              mprops:
+                flags: ''
+                local_mprops:
+                  local_com:
+                  - 0.0
+                  - 0.0
+                  inv_mass: 0.01
+                  inv_principal_inertia_sqrt: 0.0061237244
+                additional_local_mprops: null
+                world_com:
+                - 582.7091
+                - 348.9375
+                effective_inv_mass:
+                - 0.01
+                - 0.01
+                effective_world_inv_inertia_sqrt: 0.0061237244
+              integrated_vels:
+                linvel:
+                - 0.1907199
+                - 0.7943476
+                angvel: 0.0013609128
+              vels:
+                linvel:
+                - 0.19330588
+                - 0.51409554
+                angvel: 0.00015804452
+              damping:
+                linear_damping: 0.0
+                angular_damping: 0.0
+              forces:
+                force:
+                - 0.0
+                - -98000.0
+                torque: 0.0
+                gravity_scale: 1.0
+                user_force:
+                - 0.0
+                - 0.0
+                user_torque: 0.0
+              ccd:
+                ccd_thickness: 20.0
+                ccd_max_dist: 28.284271
+                ccd_active: false
+                ccd_enabled: true
+                soft_ccd_prediction: 20.0
+              ids:
+                active_island_id: 0
+                active_set_id: 9
+                active_set_offset: 9
+                active_set_timestamp: 1553
+              colliders:
+              - index: 10
+                generation: 0
+              activation:
+                normalized_linear_threshold: 0.4
+                angular_threshold: 0.5
+                time_until_sleep: 2.0
+                time_since_can_sleep: 0.0
+                sleeping: false
+              changes: ''
+              body_type: Dynamic
+              dominance: 0
+              enabled: true
+              additional_solver_iterations: 0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              pos:
+                position:
+                  rotation:
+                  - 0.9999183
+                  - -0.012782984
+                  translation:
+                  - 582.1877
+                  - 388.77472
+                next_position:
+                  rotation:
+                  - 0.9999183
+                  - -0.012782984
+                  translation:
+                  - 582.1877
+                  - 388.77472
+              mprops:
+                flags: ''
+                local_mprops:
+                  local_com:
+                  - 0.0
+                  - 0.0
+                  inv_mass: 0.01
+                  inv_principal_inertia_sqrt: 0.0061237244
+                additional_local_mprops: null
+                world_com:
+                - 582.1877
+                - 388.77472
+                effective_inv_mass:
+                - 0.01
+                - 0.01
+                effective_world_inv_inertia_sqrt: 0.0061237244
+              integrated_vels:
+                linvel:
+                - 0.13772166
+                - 0.9069214
+                angvel: 0.0015768515
+              vels:
+                linvel:
+                - 0.1576014
+                - 0.5865065
+                angvel: 0.0016952669
+              damping:
+                linear_damping: 0.0
+                angular_damping: 0.0
+              forces:
+                force:
+                - 0.0
+                - -98000.0
+                torque: 0.0
+                gravity_scale: 1.0
+                user_force:
+                - 0.0
+                - 0.0
+                user_torque: 0.0
+              ccd:
+                ccd_thickness: 20.0
+                ccd_max_dist: 28.284271
+                ccd_active: false
+                ccd_enabled: true
+                soft_ccd_prediction: 20.0
+              ids:
+                active_island_id: 0
+                active_set_id: 10
+                active_set_offset: 10
+                active_set_timestamp: 1553
+              colliders:
+              - index: 11
+                generation: 0
+              activation:
+                normalized_linear_threshold: 0.4
+                angular_threshold: 0.5
+                time_until_sleep: 2.0
+                time_since_can_sleep: 0.0
+                sleeping: false
+              changes: ''
+              body_type: Dynamic
+              dominance: 0
+              enabled: true
+              additional_solver_iterations: 0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              pos:
+                position:
+                  rotation:
+                  - 0.99990165
+                  - -0.0140239345
+                  translation:
+                  - 590.8802
+                  - 428.5408
+                next_position:
+                  rotation:
+                  - 0.99990165
+                  - -0.0140239345
+                  translation:
+                  - 590.8802
+                  - 428.5408
+              mprops:
+                flags: ''
+                local_mprops:
+                  local_com:
+                  - 0.0
+                  - 0.0
+                  inv_mass: 0.01
+                  inv_principal_inertia_sqrt: 0.0061237244
+                additional_local_mprops: null
+                world_com:
+                - 590.8802
+                - 428.5408
+                effective_inv_mass:
+                - 0.01
+                - 0.01
+                effective_world_inv_inertia_sqrt: 0.0061237244
+              integrated_vels:
+                linvel:
+                - 0.08614215
+                - 0.96370137
+                angvel: 0.00087588705
+              vels:
+                linvel:
+                - 0.09356498
+                - 0.64224607
+                angvel: 0.0015454416
+              damping:
+                linear_damping: 0.0
+                angular_damping: 0.0
+              forces:
+                force:
+                - 0.0
+                - -98000.0
+                torque: 0.0
+                gravity_scale: 1.0
+                user_force:
+                - 0.0
+                - 0.0
+                user_torque: 0.0
+              ccd:
+                ccd_thickness: 20.0
+                ccd_max_dist: 28.284271
+                ccd_active: false
+                ccd_enabled: true
+                soft_ccd_prediction: 20.0
+              ids:
+                active_island_id: 0
+                active_set_id: 11
+                active_set_offset: 11
+                active_set_timestamp: 1553
+              colliders:
+              - index: 12
+                generation: 0
+              activation:
+                normalized_linear_threshold: 0.4
+                angular_threshold: 0.5
+                time_until_sleep: 2.0
+                time_since_can_sleep: 0.0
+                sleeping: false
+              changes: ''
+              body_type: Dynamic
+              dominance: 0
+              enabled: true
+              additional_solver_iterations: 0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              pos:
+                position:
+                  rotation:
+                  - 0.99990547
+                  - -0.013747759
+                  translation:
+                  - 588.18713
+                  - 468.52463
+                next_position:
+                  rotation:
+                  - 0.99990547
+                  - -0.013747759
+                  translation:
+                  - 588.18713
+                  - 468.52463
+              mprops:
+                flags: ''
+                local_mprops:
+                  local_com:
+                  - 0.0
+                  - 0.0
+                  inv_mass: 0.01
+                  inv_principal_inertia_sqrt: 0.0061237244
+                additional_local_mprops: null
+                world_com:
+                - 588.18713
+                - 468.52463
+                effective_inv_mass:
+                - 0.01
+                - 0.01
+                effective_world_inv_inertia_sqrt: 0.0061237244
+              integrated_vels:
+                linvel:
+                - 0.072300136
+                - 0.9928655
+                angvel: -0.00013901216
+              vels:
+                linvel:
+                - 0.03314606
+                - 0.6381848
+                angvel: 0.001476734
+              damping:
+                linear_damping: 0.0
+                angular_damping: 0.0
+              forces:
+                force:
+                - 0.0
+                - -98000.0
+                torque: 0.0
+                gravity_scale: 1.0
+                user_force:
+                - 0.0
+                - 0.0
+                user_torque: 0.0
+              ccd:
+                ccd_thickness: 20.0
+                ccd_max_dist: 28.284271
+                ccd_active: false
+                ccd_enabled: true
+                soft_ccd_prediction: 20.0
+              ids:
+                active_island_id: 0
+                active_set_id: 12
+                active_set_offset: 12
+                active_set_timestamp: 1553
+              colliders:
+              - index: 13
+                generation: 0
+              activation:
+                normalized_linear_threshold: 0.4
+                angular_threshold: 0.5
+                time_until_sleep: 2.0
+                time_since_can_sleep: 0.0
+                sleeping: false
+              changes: ''
+              body_type: Dynamic
+              dominance: 0
+              enabled: true
+              additional_solver_iterations: 0
+              user_data: 0
+          - !Free
+            next_free: 15
+          - !Free
+            next_free: null
+          generation: 0
+          free_list_head: 14
+          len: 14
+        modified_bodies: []
+      sync_map:
+        ? id: 6966306171831340842
+        : index: 4
+          generation: 0
+        ? id: 17050409606071599353
+        : index: 1
+          generation: 0
+        ? id: 8464281040730213259
+        : index: 6
+          generation: 0
+        ? id: 5676817614941933154
+        : index: 7
+          generation: 0
+        ? id: 8292169185181452282
+        : index: 8
+          generation: 0
+        ? id: 10101903932171962427
+        : index: 12
+          generation: 0
+        ? id: 3242391583317771634
+        : index: 13
+          generation: 0
+        ? id: 13833105660098396728
+        : index: 11
+          generation: 0
+        ? id: 17056297755814806553
+        : index: 2
+          generation: 0
+        ? id: 5509066816955302879
+        : index: 9
+          generation: 0
+        ? id: 7823368449536967285
+        : index: 0
+          generation: 0
+        ? id: 9552862613751876112
+        : index: 3
+          generation: 0
+        ? id: 12124872547051457311
+        : index: 10
+          generation: 0
+        ? id: 9832913802500654647
+        : index: 5
+          generation: 0
+      reverse_sync_map:
+        ? index: 1
+          generation: 0
+        : id: 17050409606071599353
+        ? index: 11
+          generation: 0
+        : id: 13833105660098396728
+        ? index: 12
+          generation: 0
+        : id: 10101903932171962427
+        ? index: 13
+          generation: 0
+        : id: 3242391583317771634
+        ? index: 6
+          generation: 0
+        : id: 8464281040730213259
+        ? index: 4
+          generation: 0
+        : id: 6966306171831340842
+        ? index: 3
+          generation: 0
+        : id: 9552862613751876112
+        ? index: 8
+          generation: 0
+        : id: 8292169185181452282
+        ? index: 2
+          generation: 0
+        : id: 17056297755814806553
+        ? index: 0
+          generation: 0
+        : id: 7823368449536967285
+        ? index: 9
+          generation: 0
+        : id: 5509066816955302879
+        ? index: 10
+          generation: 0
+        : id: 12124872547051457311
+        ? index: 5
+          generation: 0
+        : id: 9832913802500654647
+        ? index: 7
+          generation: 0
+        : id: 5676817614941933154
+    sync_collider_set:
+      collider_set:
+        colliders:
+          items:
+          - !Occupied
+            generation: 0
+            value:
+              coll_type: Solid
+              shape: !Cuboid
+                half_extents:
+                - 630.0
+                - 20.0
+              mprops: !Mass 10.0
+              changes: ''
+              parent:
+                handle:
+                  index: 0
+                  generation: 0
+                pos_wrt_parent:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 0.0
+                  - 0.0
+              pos:
+                rotation:
+                - 1.0
+                - 0.0
+                translation:
+                - 637.3334
+                - 190.0
+              material:
+                friction: 0.5
+                restitution: 0.0
+                friction_combine_rule: Average
+                restitution_combine_rule: Average
+              flags:
+                active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+                collision_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                solver_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                active_hooks: ''
+                active_events: ''
+                enabled: Enabled
+              bf_data:
+                proxy_index: 0
+              contact_skin: 0.0
+              contact_force_event_threshold: 0.0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              coll_type: Solid
+              shape: !Cuboid
+                half_extents:
+                - 50.0
+                - 11.0
+              mprops: !Density 1.0
+              changes: ''
+              parent:
+                handle:
+                  index: 1
+                  generation: 0
+                pos_wrt_parent:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 0.0
+                  - 0.0
+              pos:
+                rotation:
+                - 0.9460962
+                - 0.32388568
+                translation:
+                - 388.6054
+                - 238.69032
+              material:
+                friction: 0.5
+                restitution: 0.0
+                friction_combine_rule: Average
+                restitution_combine_rule: Average
+              flags:
+                active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+                collision_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                solver_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                active_hooks: ''
+                active_events: ''
+                enabled: Enabled
+              bf_data:
+                proxy_index: 2
+              contact_skin: 0.0
+              contact_force_event_threshold: 0.0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              coll_type: Solid
+              shape: !Cuboid
+                half_extents:
+                - 22.0
+                - 19.0
+              mprops: !Density 1.0
+              changes: ''
+              parent:
+                handle:
+                  index: 2
+                  generation: 0
+                pos_wrt_parent:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 0.0
+                  - 0.0
+              pos:
+                rotation:
+                - 0.9999899
+                - -0.004484708
+                translation:
+                - 360.29758
+                - 228.82333
+              material:
+                friction: 0.5
+                restitution: 0.0
+                friction_combine_rule: Average
+                restitution_combine_rule: Average
+              flags:
+                active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+                collision_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                solver_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                active_hooks: ''
+                active_events: ''
+                enabled: Enabled
+              bf_data:
+                proxy_index: 4
+              contact_skin: 0.0
+              contact_force_event_threshold: 0.0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              coll_type: Solid
+              shape: !Cuboid
+                half_extents:
+                - 30.0
+                - 28.0
+              mprops: !Density 1.0
+              changes: ''
+              parent:
+                handle:
+                  index: 3
+                  generation: 0
+                pos_wrt_parent:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 0.0
+                  - 0.0
+              pos:
+                rotation:
+                - 0.9203042
+                - 0.39120343
+                translation:
+                - 348.39075
+                - 256.84985
+              material:
+                friction: 0.5
+                restitution: 0.0
+                friction_combine_rule: Average
+                restitution_combine_rule: Average
+              flags:
+                active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+                collision_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                solver_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                active_hooks: ''
+                active_events: ''
+                enabled: Enabled
+              bf_data:
+                proxy_index: 5
+              contact_skin: 0.0
+              contact_force_event_threshold: 0.0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              coll_type: Solid
+              shape: !Cuboid
+                half_extents:
+                - 30.0
+                - 28.0
+              mprops: !Mass 10.0
+              changes: ''
+              parent:
+                handle:
+                  index: 4
+                  generation: 0
+                pos_wrt_parent:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 0.0
+                  - 0.0
+              pos:
+                rotation:
+                - 0.921061
+                - -0.38941842
+                translation:
+                - 851.20276
+                - 256.60025
+              material:
+                friction: 0.5
+                restitution: 0.0
+                friction_combine_rule: Average
+                restitution_combine_rule: Average
+              flags:
+                active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+                collision_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                solver_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                active_hooks: ''
+                active_events: ''
+                enabled: Enabled
+              bf_data:
+                proxy_index: 6
+              contact_skin: 0.0
+              contact_force_event_threshold: 0.0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              coll_type: Solid
+              shape: !Cuboid
+                half_extents:
+                - 22.0
+                - 19.0
+              mprops: !Mass 100.0
+              changes: ''
+              parent:
+                handle:
+                  index: 5
+                  generation: 0
+                pos_wrt_parent:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 0.0
+                  - 0.0
+              pos:
+                rotation:
+                - 1.0
+                - 0.0
+                translation:
+                - 839.5202
+                - 228.96837
+              material:
+                friction: 0.5
+                restitution: 0.0
+                friction_combine_rule: Average
+                restitution_combine_rule: Average
+              flags:
+                active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+                collision_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                solver_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                active_hooks: ''
+                active_events: ''
+                enabled: Enabled
+              bf_data:
+                proxy_index: 7
+              contact_skin: 0.0
+              contact_force_event_threshold: 0.0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              coll_type: Solid
+              shape: !Cuboid
+                half_extents:
+                - 50.0
+                - 11.0
+              mprops: !Mass 1.0
+              changes: ''
+              parent:
+                handle:
+                  index: 6
+                  generation: 0
+                pos_wrt_parent:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 0.0
+                  - 0.0
+              pos:
+                rotation:
+                - 0.8124519
+                - -0.5830282
+                translation:
+                - 863.89374
+                - 211.47752
+              material:
+                friction: 0.5
+                restitution: 0.0
+                friction_combine_rule: Average
+                restitution_combine_rule: Average
+              flags:
+                active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+                collision_groups:
+                  memberships: ''
+                  filter: ''
+                solver_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                active_hooks: ''
+                active_events: ''
+                enabled: Enabled
+              bf_data:
+                proxy_index: 8
+              contact_skin: 0.0
+              contact_force_event_threshold: 0.0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              coll_type: Solid
+              shape: !Cuboid
+                half_extents:
+                - 20.0
+                - 20.0
+              mprops: !Mass 100.0
+              changes: ''
+              parent:
+                handle:
+                  index: 7
+                  generation: 0
+                pos_wrt_parent:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 0.0
+                  - 0.0
+              pos:
+                rotation:
+                - 0.99999815
+                - -0.0019218253
+                translation:
+                - 582.03754
+                - 229.80295
+              material:
+                friction: 0.5
+                restitution: 0.0
+                friction_combine_rule: Average
+                restitution_combine_rule: Average
+              flags:
+                active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+                collision_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                solver_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                active_hooks: ''
+                active_events: ''
+                enabled: Enabled
+              bf_data:
+                proxy_index: 10
+              contact_skin: 0.0
+              contact_force_event_threshold: 0.0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              coll_type: Solid
+              shape: !Cuboid
+                half_extents:
+                - 20.0
+                - 20.0
+              mprops: !Mass 100.0
+              changes: ''
+              parent:
+                handle:
+                  index: 8
+                  generation: 0
+                pos_wrt_parent:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 0.0
+                  - 0.0
+              pos:
+                rotation:
+                - 0.9999871
+                - -0.0050685797
+                translation:
+                - 583.2456
+                - 269.4542
+              material:
+                friction: 0.5
+                restitution: 0.0
+                friction_combine_rule: Average
+                restitution_combine_rule: Average
+              flags:
+                active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+                collision_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                solver_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                active_hooks: ''
+                active_events: ''
+                enabled: Enabled
+              bf_data:
+                proxy_index: 11
+              contact_skin: 0.0
+              contact_force_event_threshold: 0.0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              coll_type: Solid
+              shape: !Cuboid
+                half_extents:
+                - 20.0
+                - 20.0
+              mprops: !Mass 100.0
+              changes: ''
+              parent:
+                handle:
+                  index: 9
+                  generation: 0
+                pos_wrt_parent:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 0.0
+                  - 0.0
+              pos:
+                rotation:
+                - 0.9999731
+                - -0.007329463
+                translation:
+                - 583.43335
+                - 309.15924
+              material:
+                friction: 0.5
+                restitution: 0.0
+                friction_combine_rule: Average
+                restitution_combine_rule: Average
+              flags:
+                active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+                collision_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                solver_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                active_hooks: ''
+                active_events: ''
+                enabled: Enabled
+              bf_data:
+                proxy_index: 12
+              contact_skin: 0.0
+              contact_force_event_threshold: 0.0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              coll_type: Solid
+              shape: !Cuboid
+                half_extents:
+                - 20.0
+                - 20.0
+              mprops: !Mass 100.0
+              changes: ''
+              parent:
+                handle:
+                  index: 10
+                  generation: 0
+                pos_wrt_parent:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 0.0
+                  - 0.0
+              pos:
+                rotation:
+                - 0.9999517
+                - -0.009825235
+                translation:
+                - 582.7091
+                - 348.9375
+              material:
+                friction: 0.5
+                restitution: 0.0
+                friction_combine_rule: Average
+                restitution_combine_rule: Average
+              flags:
+                active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+                collision_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                solver_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                active_hooks: ''
+                active_events: ''
+                enabled: Enabled
+              bf_data:
+                proxy_index: 13
+              contact_skin: 0.0
+              contact_force_event_threshold: 0.0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              coll_type: Solid
+              shape: !Cuboid
+                half_extents:
+                - 20.0
+                - 20.0
+              mprops: !Mass 100.0
+              changes: ''
+              parent:
+                handle:
+                  index: 11
+                  generation: 0
+                pos_wrt_parent:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 0.0
+                  - 0.0
+              pos:
+                rotation:
+                - 0.9999183
+                - -0.012782984
+                translation:
+                - 582.1877
+                - 388.77472
+              material:
+                friction: 0.5
+                restitution: 0.0
+                friction_combine_rule: Average
+                restitution_combine_rule: Average
+              flags:
+                active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+                collision_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                solver_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                active_hooks: ''
+                active_events: ''
+                enabled: Enabled
+              bf_data:
+                proxy_index: 14
+              contact_skin: 0.0
+              contact_force_event_threshold: 0.0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              coll_type: Solid
+              shape: !Cuboid
+                half_extents:
+                - 20.0
+                - 20.0
+              mprops: !Mass 100.0
+              changes: ''
+              parent:
+                handle:
+                  index: 12
+                  generation: 0
+                pos_wrt_parent:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 0.0
+                  - 0.0
+              pos:
+                rotation:
+                - 0.99990165
+                - -0.0140239345
+                translation:
+                - 590.8802
+                - 428.5408
+              material:
+                friction: 0.5
+                restitution: 0.0
+                friction_combine_rule: Average
+                restitution_combine_rule: Average
+              flags:
+                active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+                collision_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                solver_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                active_hooks: ''
+                active_events: ''
+                enabled: Enabled
+              bf_data:
+                proxy_index: 15
+              contact_skin: 0.0
+              contact_force_event_threshold: 0.0
+              user_data: 0
+          - !Occupied
+            generation: 0
+            value:
+              coll_type: Solid
+              shape: !Cuboid
+                half_extents:
+                - 20.0
+                - 20.0
+              mprops: !Mass 100.0
+              changes: ''
+              parent:
+                handle:
+                  index: 13
+                  generation: 0
+                pos_wrt_parent:
+                  rotation:
+                  - 1.0
+                  - 0.0
+                  translation:
+                  - 0.0
+                  - 0.0
+              pos:
+                rotation:
+                - 0.99990547
+                - -0.013747759
+                translation:
+                - 588.18713
+                - 468.52463
+              material:
+                friction: 0.5
+                restitution: 0.0
+                friction_combine_rule: Average
+                restitution_combine_rule: Average
+              flags:
+                active_collision_types: DYNAMIC_DYNAMIC | DYNAMIC_KINEMATIC | DYNAMIC_FIXED
+                collision_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                solver_groups:
+                  memberships: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                  filter: GROUP_1 | GROUP_2 | GROUP_3 | GROUP_4 | GROUP_5 | GROUP_6 | GROUP_7 | GROUP_8 | GROUP_9 | GROUP_10 | GROUP_11 | GROUP_12 | GROUP_13 | GROUP_14 | GROUP_15 | GROUP_16 | GROUP_17 | GROUP_18 | GROUP_19 | GROUP_20 | GROUP_21 | GROUP_22 | GROUP_23 | GROUP_24 | GROUP_25 | GROUP_26 | GROUP_27 | GROUP_28 | GROUP_29 | GROUP_30 | GROUP_31 | GROUP_32
+                active_hooks: ''
+                active_events: ''
+                enabled: Enabled
+              bf_data:
+                proxy_index: 16
+              contact_skin: 0.0
+              contact_force_event_threshold: 0.0
+              user_data: 0
+          - !Free
+            next_free: 15
+          - !Free
+            next_free: null
+          generation: 0
+          free_list_head: 14
+          len: 14
+        modified_colliders: []
+        removed_colliders: []
+      sync_map:
+        ? id: 1419722112520047821
+        : index: 0
+          generation: 0
+        ? id: 8188060797593079441
+        : index: 3
+          generation: 0
+        ? id: 10122330969879694876
+        : index: 2
+          generation: 0
+        ? id: 12810689756944943095
+        : index: 8
+          generation: 0
+        ? id: 494612227568848577
+        : index: 9
+          generation: 0
+        ? id: 16511775440453324231
+        : index: 4
+          generation: 0
+        ? id: 13319311027532680832
+        : index: 6
+          generation: 0
+        ? id: 4622452126378510654
+        : index: 10
+          generation: 0
+        ? id: 16501854760326022628
+        : index: 11
+          generation: 0
+        ? id: 4328091864264493857
+        : index: 1
+          generation: 0
+        ? id: 6697529741895418339
+        : index: 12
+          generation: 0
+        ? id: 10241800869567807523
+        : index: 13
+          generation: 0
+        ? id: 10073401409814548070
+        : index: 5
+          generation: 0
+        ? id: 10867115298251883608
+        : index: 7
+          generation: 0
+      reverse_sync_map:
+        ? index: 9
+          generation: 0
+        : id: 494612227568848577
+        ? index: 11
+          generation: 0
+        : id: 16501854760326022628
+        ? index: 2
+          generation: 0
+        : id: 10122330969879694876
+        ? index: 12
+          generation: 0
+        : id: 6697529741895418339
+        ? index: 6
+          generation: 0
+        : id: 13319311027532680832
+        ? index: 0
+          generation: 0
+        : id: 1419722112520047821
+        ? index: 10
+          generation: 0
+        : id: 4622452126378510654
+        ? index: 13
+          generation: 0
+        : id: 10241800869567807523
+        ? index: 5
+          generation: 0
+        : id: 10073401409814548070
+        ? index: 1
+          generation: 0
+        : id: 4328091864264493857
+        ? index: 7
+          generation: 0
+        : id: 10867115298251883608
+        ? index: 8
+          generation: 0
+        : id: 12810689756944943095
+        ? index: 3
+          generation: 0
+        : id: 8188060797593079441
+        ? index: 4
+          generation: 0
+        : id: 16511775440453324231
+    gravity:
+    - 0.0
+    - -980.0
+    integration_parameters:
+      dt: 0.008611022
+      min_ccd_dt: 0.00016666668
+      contact_damping_ratio: 5.0
+      contact_natural_frequency: 30.0
+      joint_natural_frequency: 1000000.0
+      joint_damping_ratio: 1.0
+      warmstart_coefficient: 1.0
+      length_unit: 1.0
+      normalized_allowed_linear_error: 0.001
+      normalized_max_corrective_velocity: 10.0
+      normalized_prediction_distance: 0.002
+      num_solver_iterations: 4
+      num_additional_friction_iterations: 0
+      num_internal_pgs_iterations: 1
+      num_internal_stabilization_iterations: 2
+      min_island_size: 128
+      max_ccd_substeps: 100
+    island_manager:
+      active_dynamic_set:
+      - index: 1
+        generation: 0
+      - index: 2
+        generation: 0
+      - index: 3
+        generation: 0
+      - index: 4
+        generation: 0
+      - index: 5
+        generation: 0
+      - index: 6
+        generation: 0
+      - index: 7
+        generation: 0
+      - index: 8
+        generation: 0
+      - index: 9
+        generation: 0
+      - index: 10
+        generation: 0
+      - index: 11
+        generation: 0
+      - index: 12
+        generation: 0
+      - index: 13
+        generation: 0
+      active_kinematic_set: []
+      active_islands:
+      - 0
+      - 13
+      active_islands_additional_solver_iterations:
+      - 0
+      active_set_timestamp: 1553
+    broad_phase:
+      proxies:
+        elements:
+        - data: !Collider
+            index: 0
+            generation: 0
+          aabb:
+            mins:
+            - 7.332374
+            - 169.999
+            maxs:
+            - 1267.3344
+            - 210.001
+          next_free: 4294967295
+          layer_id: 0
+          layer_depth: 6
+        - data: !Region
+            axes:
+            - min_bound: 0.0
+              max_bound: 15625.0
+              endpoints:
+              - value: -3.4028235e38
+                packed_flag_proxy: 4294967295
+              - value: 0.0
+                packed_flag_proxy: 2147483651
+              - value: 7.332374
+                packed_flag_proxy: 2147483648
+              - value: 625.0
+                packed_flag_proxy: 3
+              - value: 625.0
+                packed_flag_proxy: 2147483657
+              - value: 1250.0
+                packed_flag_proxy: 9
+              - value: 1267.3344
+                packed_flag_proxy: 0
+              - value: 3.4028235e38
+                packed_flag_proxy: 2147483647
+            - min_bound: 0.0
+              max_bound: 15625.0
+              endpoints:
+              - value: -3.4028235e38
+                packed_flag_proxy: 4294967295
+              - value: 0.0
+                packed_flag_proxy: 2147483651
+              - value: 0.0
+                packed_flag_proxy: 2147483657
+              - value: 169.999
+                packed_flag_proxy: 2147483648
+              - value: 210.001
+                packed_flag_proxy: 0
+              - value: 625.0
+                packed_flag_proxy: 3
+              - value: 625.0
+                packed_flag_proxy: 9
+              - value: 3.4028235e38
+                packed_flag_proxy: 2147483647
+            existing_proxies:
+              storage:
+              - 521
+              nbits: 10
+            subregions:
+            - 3
+            - 9
+            id_in_parent_subregion: 4294967295
+            update_count: 0
+            needs_update_after_subregion_removal: false
+            subproper_proxy_count: 3
+          aabb:
+            mins:
+            - 0.0
+            - 0.0
+            maxs:
+            - 15625.0
+            - 15625.0
+          next_free: 4294967295
+          layer_id: 0
+          layer_depth: 6
+        - data: !Collider
+            index: 1
+            generation: 0
+          aabb:
+            mins:
+            - 337.72147
+            - 212.03764
+            maxs:
+            - 439.47397
+            - 265.29266
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        - data: !Region
+            axes:
+            - min_bound: 0.0
+              max_bound: 625.0
+              endpoints:
+              - value: -3.4028235e38
+                packed_flag_proxy: 4294967295
+              - value: 7.332374
+                packed_flag_proxy: 2147483648
+              - value: 309.80478
+                packed_flag_proxy: 2147483653
+              - value: 337.72147
+                packed_flag_proxy: 2147483650
+              - value: 338.21158
+                packed_flag_proxy: 2147483652
+              - value: 382.38358
+                packed_flag_proxy: 4
+              - value: 386.95456
+                packed_flag_proxy: 5
+              - value: 439.47397
+                packed_flag_proxy: 2
+              - value: 561.9327
+                packed_flag_proxy: 2147483662
+              - value: 561.99817
+                packed_flag_proxy: 2147483658
+              - value: 562.5126
+                packed_flag_proxy: 2147483661
+              - value: 563.1435
+                packed_flag_proxy: 2147483659
+              - value: 563.2863
+                packed_flag_proxy: 2147483660
+              - value: 567.9131
+                packed_flag_proxy: 2147483664
+              - value: 570.6007
+                packed_flag_proxy: 2147483663
+              - value: 602.0775
+                packed_flag_proxy: 10
+              - value: 602.4437
+                packed_flag_proxy: 14
+              - value: 602.9072
+                packed_flag_proxy: 13
+              - value: 603.34906
+                packed_flag_proxy: 11
+              - value: 603.58215
+                packed_flag_proxy: 12
+              - value: 608.46124
+                packed_flag_proxy: 16
+              - value: 611.1602
+                packed_flag_proxy: 15
+              - value: 1267.3344
+                packed_flag_proxy: 0
+              - value: 3.4028235e38
+                packed_flag_proxy: 2147483647
+            - min_bound: 0.0
+              max_bound: 625.0
+              endpoints:
+              - value: -3.4028235e38
+                packed_flag_proxy: 4294967295
+              - value: 169.999
+                packed_flag_proxy: 2147483648
+              - value: 209.65808
+                packed_flag_proxy: 2147483652
+              - value: 209.69055
+                packed_flag_proxy: 2147483658
+              - value: 210.001
+                packed_flag_proxy: 0
+              - value: 212.03764
+                packed_flag_proxy: 2147483650
+              - value: 219.29092
+                packed_flag_proxy: 2147483653
+              - value: 247.92282
+                packed_flag_proxy: 4
+              - value: 249.28046
+                packed_flag_proxy: 2147483659
+              - value: 249.84236
+                packed_flag_proxy: 10
+              - value: 265.29266
+                packed_flag_proxy: 2
+              - value: 288.943
+                packed_flag_proxy: 2147483660
+              - value: 289.5563
+                packed_flag_proxy: 11
+              - value: 294.35547
+                packed_flag_proxy: 5
+              - value: 328.67273
+                packed_flag_proxy: 2147483661
+              - value: 329.3063
+                packed_flag_proxy: 12
+              - value: 368.45236
+                packed_flag_proxy: 2147483662
+              - value: 369.13403
+                packed_flag_proxy: 13
+              - value: 408.1944
+                packed_flag_proxy: 2147483663
+              - value: 409.02975
+                packed_flag_proxy: 14
+              - value: 448.18362
+                packed_flag_proxy: 2147483664
+              - value: 448.8203
+                packed_flag_proxy: 15
+              - value: 488.7987
+                packed_flag_proxy: 16
+              - value: 3.4028235e38
+                packed_flag_proxy: 2147483647
+            existing_proxies:
+              storage:
+              - 130101
+              nbits: 17
+            subregions: []
+            id_in_parent_subregion: 0
+            update_count: 1
+            needs_update_after_subregion_removal: false
+            subproper_proxy_count: 10
+          aabb:
+            mins:
+            - 0.0
+            - 0.0
+            maxs:
+            - 625.0
+            - 625.0
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        - data: !Collider
+            index: 2
+            generation: 0
+          aabb:
+            mins:
+            - 338.21158
+            - 209.65808
+            maxs:
+            - 382.38358
+            - 247.92282
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        - data: !Collider
+            index: 3
+            generation: 0
+          aabb:
+            mins:
+            - 309.80478
+            - 219.29092
+            maxs:
+            - 386.95456
+            - 294.35547
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        - data: !Collider
+            index: 4
+            generation: 0
+          aabb:
+            mins:
+            - 812.66626
+            - 219.12698
+            maxs:
+            - 889.73926
+            - 294.07352
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        - data: !Collider
+            index: 5
+            generation: 0
+          aabb:
+            mins:
+            - 817.5192
+            - 209.96736
+            maxs:
+            - 861.5212
+            - 247.96938
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        - data: !Collider
+            index: 6
+            generation: 0
+          aabb:
+            mins:
+            - 816.8569
+            - 173.38814
+            maxs:
+            - 910.9306
+            - 249.56691
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        - data: !Region
+            axes:
+            - min_bound: 625.0
+              max_bound: 1250.0
+              endpoints:
+              - value: -3.4028235e38
+                packed_flag_proxy: 4294967295
+              - value: 7.332374
+                packed_flag_proxy: 2147483648
+              - value: 812.66626
+                packed_flag_proxy: 2147483654
+              - value: 816.8569
+                packed_flag_proxy: 2147483656
+              - value: 817.5192
+                packed_flag_proxy: 2147483655
+              - value: 861.5212
+                packed_flag_proxy: 7
+              - value: 889.73926
+                packed_flag_proxy: 6
+              - value: 910.9306
+                packed_flag_proxy: 8
+              - value: 1267.3344
+                packed_flag_proxy: 0
+              - value: 3.4028235e38
+                packed_flag_proxy: 2147483647
+            - min_bound: 0.0
+              max_bound: 625.0
+              endpoints:
+              - value: -3.4028235e38
+                packed_flag_proxy: 4294967295
+              - value: 169.999
+                packed_flag_proxy: 2147483648
+              - value: 173.38814
+                packed_flag_proxy: 2147483656
+              - value: 209.96736
+                packed_flag_proxy: 2147483655
+              - value: 210.001
+                packed_flag_proxy: 0
+              - value: 219.12698
+                packed_flag_proxy: 2147483654
+              - value: 247.96938
+                packed_flag_proxy: 7
+              - value: 249.56691
+                packed_flag_proxy: 8
+              - value: 294.07352
+                packed_flag_proxy: 6
+              - value: 3.4028235e38
+                packed_flag_proxy: 2147483647
+            existing_proxies:
+              storage:
+              - 449
+              nbits: 9
+            subregions: []
+            id_in_parent_subregion: 1
+            update_count: 1
+            needs_update_after_subregion_removal: false
+            subproper_proxy_count: 3
+          aabb:
+            mins:
+            - 625.0
+            - 0.0
+            maxs:
+            - 1250.0
+            - 625.0
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        - data: !Collider
+            index: 7
+            generation: 0
+          aabb:
+            mins:
+            - 561.99817
+            - 209.69055
+            maxs:
+            - 602.0775
+            - 249.84236
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        - data: !Collider
+            index: 8
+            generation: 0
+          aabb:
+            mins:
+            - 563.1435
+            - 249.28046
+            maxs:
+            - 603.34906
+            - 289.5563
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        - data: !Collider
+            index: 9
+            generation: 0
+          aabb:
+            mins:
+            - 563.2863
+            - 288.943
+            maxs:
+            - 603.58215
+            - 329.3063
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        - data: !Collider
+            index: 10
+            generation: 0
+          aabb:
+            mins:
+            - 562.5126
+            - 328.67273
+            maxs:
+            - 602.9072
+            - 369.13403
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        - data: !Collider
+            index: 11
+            generation: 0
+          aabb:
+            mins:
+            - 561.9327
+            - 368.45236
+            maxs:
+            - 602.4437
+            - 409.02975
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        - data: !Collider
+            index: 12
+            generation: 0
+          aabb:
+            mins:
+            - 570.6007
+            - 408.1944
+            maxs:
+            - 611.1602
+            - 448.8203
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        - data: !Collider
+            index: 13
+            generation: 0
+          aabb:
+            mins:
+            - 567.9131
+            - 448.18362
+            maxs:
+            - 608.46124
+            - 488.7987
+          next_free: 4294967295
+          layer_id: 1
+          layer_depth: 4
+        first_free: 4294967295
+      layers:
+      - depth: 6
+        layer_id: 0
+        smaller_layer: 1
+        larger_layer: null
+        region_width: 15625.0
+        regions:
+        - - - 0
+            - 0
+          - 1
+      - depth: 4
+        layer_id: 1
+        smaller_layer: null
+        larger_layer: 0
+        region_width: 625.0
+        regions:
+        - - - 0
+            - 0
+          - 3
+        - - - 1
+            - 0
+          - 9
+      smallest_layer: 1
+      largest_layer: 0
+      colliders_proxy_ids:
+      - - index: 0
+          generation: 0
+        - 0
+      - - index: 7
+          generation: 0
+        - 10
+      - - index: 11
+          generation: 0
+        - 14
+      - - index: 3
+          generation: 0
+        - 5
+      - - index: 10
+          generation: 0
+        - 13
+      - - index: 6
+          generation: 0
+        - 8
+      - - index: 2
+          generation: 0
+        - 4
+      - - index: 13
+          generation: 0
+        - 16
+      - - index: 9
+          generation: 0
+        - 12
+      - - index: 5
+          generation: 0
+        - 7
+      - - index: 1
+          generation: 0
+        - 2
+      - - index: 12
+          generation: 0
+        - 15
+      - - index: 8
+          generation: 0
+        - 11
+      - - index: 4
+          generation: 0
+        - 6
+      reporting: 14
+    narrow_phase:
+      contact_graph:
+        graph:
+          nodes:
+          - weight:
+              index: 4
+              generation: 0
+            next:
+            - 3
+            - 4294967295
+          - weight:
+              index: 6
+              generation: 0
+            next:
+            - 4294967295
+            - 7
+          - weight:
+              index: 2
+              generation: 0
+            next:
+            - 1
+            - 5
+          - weight:
+              index: 3
+              generation: 0
+            next:
+            - 4294967295
+            - 4
+          - weight:
+              index: 1
+              generation: 0
+            next:
+            - 4
+            - 4294967295
+          - weight:
+              index: 5
+              generation: 0
+            next:
+            - 6
+            - 8
+          - weight:
+              index: 0
+              generation: 0
+            next:
+            - 9
+            - 4294967295
+          - weight:
+              index: 7
+              generation: 0
+            next:
+            - 11
+            - 9
+          - weight:
+              index: 8
+              generation: 0
+            next:
+            - 10
+            - 11
+          - weight:
+              index: 9
+              generation: 0
+            next:
+            - 12
+            - 10
+          - weight:
+              index: 10
+              generation: 0
+            next:
+            - 13
+            - 12
+          - weight:
+              index: 11
+              generation: 0
+            next:
+            - 14
+            - 13
+          - weight:
+              index: 12
+              generation: 0
+            next:
+            - 15
+            - 14
+          - weight:
+              index: 13
+              generation: 0
+            next:
+            - 4294967295
+            - 15
+          edges:
+          - weight:
+              collider1:
+                index: 4
+                generation: 0
+              collider2:
+                index: 6
+                generation: 0
+              manifolds: []
+              has_any_active_contact: false
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 4294967295
+            - 4294967295
+            node:
+            - 0
+            - 1
+          - weight:
+              collider1:
+                index: 2
+                generation: 0
+              collider2:
+                index: 3
+                generation: 0
+              manifolds:
+              - points:
+                - local_p1:
+                  - 22.0
+                  - 19.0
+                  local_p2:
+                  - 27.71293
+                  - -27.999992
+                  dist: -6.3041573
+                  fid1: 1073741824
+                  fid2: 3221225534
+                  data:
+                    impulse: 0.0
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 0.0
+                    warmstart_tangent_impulse:
+                    - 0.0
+                - local_p1:
+                  - -22.0
+                  - 19.0
+                  local_p2:
+                  - -12.702846
+                  - -27.999994
+                  dist: -23.698536
+                  fid1: 1073741825
+                  fid2: 3221225534
+                  data:
+                    impulse: 0.0
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 0.0
+                    warmstart_tangent_impulse:
+                    - -0.0
+                local_n1:
+                - -0.3953268
+                - 0.9185404
+                local_n2:
+                - 0.0
+                - -0.99999976
+                subshape1: 0
+                subshape2: 0
+                subshape_pos1: null
+                subshape_pos2: null
+                data:
+                  rigid_body1:
+                    index: 2
+                    generation: 0
+                  rigid_body2:
+                    index: 3
+                    generation: 0
+                  solver_flags: COMPUTE_IMPULSES
+                  normal:
+                  - -0.3912034
+                  - 0.9203041
+                  solver_contacts:
+                  - contact_id: 0
+                    point:
+                    - 383.61566
+                    - 244.82361
+                    dist: -6.3041573
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: true
+                    warmstart_impulse: 0.0
+                    warmstart_tangent_impulse:
+                    - 0.0
+                  - contact_id: 1
+                    point:
+                    - 343.0185
+                    - 237.01688
+                    dist: -23.698536
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: true
+                    warmstart_impulse: 0.0
+                    warmstart_tangent_impulse:
+                    - -0.0
+                  relative_dominance: 0
+                  user_data: 0
+              has_any_active_contact: true
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 4294967295
+            - 4294967295
+            node:
+            - 2
+            - 3
+          - weight:
+              collider1:
+                index: 1
+                generation: 0
+              collider2:
+                index: 2
+                generation: 0
+              manifolds:
+              - points:
+                - local_p1:
+                  - -49.9997
+                  - -11.000103
+                  local_p2:
+                  - -15.365629
+                  - 18.999998
+                  dist: -35.803402
+                  fid1: 1073741827
+                  fid2: 3221225524
+                  data:
+                    impulse: 21019.35
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 4211.6226
+                    warmstart_tangent_impulse:
+                    - 1813.5387
+                - local_p1:
+                  - -10.44669
+                  - -11.000104
+                  local_p2:
+                  - 22.0
+                  - 19.0
+                  dist: -22.825058
+                  fid1: 3221225534
+                  fid2: 1073741824
+                  data:
+                    impulse: 35394.766
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 6892.009
+                    warmstart_tangent_impulse:
+                    - -1197.8861
+                local_n1:
+                - -0.32794297
+                - -0.9446975
+                local_n2:
+                - 0.0
+                - 0.99999994
+                subshape1: 0
+                subshape2: 0
+                subshape_pos1: null
+                subshape_pos2: null
+                data:
+                  rigid_body1:
+                    index: 1
+                    generation: 0
+                  rigid_body2:
+                    index: 2
+                    generation: 0
+                  solver_flags: COMPUTE_IMPULSES
+                  normal:
+                  - -0.004291624
+                  - -0.9999907
+                  solver_contacts:
+                  - contact_id: 0
+                    point:
+                    - 344.9405
+                    - 229.99052
+                    dist: -35.803402
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 4211.6226
+                    warmstart_tangent_impulse:
+                    - 1813.5387
+                  - contact_id: 1
+                    point:
+                    - 382.3336
+                    - 236.31206
+                    dist: -22.825058
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 6892.009
+                    warmstart_tangent_impulse:
+                    - -1197.8861
+                  relative_dominance: 0
+                  user_data: 0
+              has_any_active_contact: true
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 4294967295
+            - 4294967295
+            node:
+            - 4
+            - 2
+          - weight:
+              collider1:
+                index: 4
+                generation: 0
+              collider2:
+                index: 5
+                generation: 0
+              manifolds: []
+              has_any_active_contact: false
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 0
+            - 4294967295
+            node:
+            - 0
+            - 5
+          - weight:
+              collider1:
+                index: 1
+                generation: 0
+              collider2:
+                index: 3
+                generation: 0
+              manifolds:
+              - points:
+                - local_p1:
+                  - -0.6989094
+                  - 11.000056
+                  local_p2:
+                  - 30.000002
+                  - -28.000002
+                  dist: -6.577418
+                  fid1: 3221225524
+                  fid2: 1073741826
+                  data:
+                    impulse: 8860.874
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 1556.6262
+                    warmstart_tangent_impulse:
+                    - 129.7351
+                - local_p1:
+                  - -49.999226
+                  - 11.000057
+                  local_p2:
+                  - -19.172771
+                  - -28.0
+                  dist: -10.129145
+                  fid1: 1073741825
+                  fid2: 3221225534
+                  data:
+                    impulse: 23500.46
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 4642.248
+                    warmstart_tangent_impulse:
+                    - -2321.124
+                local_n1:
+                - -0.07188621
+                - 0.99741286
+                local_n2:
+                - 0.0
+                - -1.0
+                subshape1: 0
+                subshape2: 0
+                subshape_pos1: null
+                subshape_pos2: null
+                data:
+                  rigid_body1:
+                    index: 1
+                    generation: 0
+                  rigid_body2:
+                    index: 3
+                    generation: 0
+                  solver_flags: COMPUTE_IMPULSES
+                  normal:
+                  - -0.39105898
+                  - 0.9203656
+                  solver_contacts:
+                  - contact_id: 0
+                    point:
+                    - 385.66748
+                    - 245.84425
+                    dist: -6.577418
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 1556.6262
+                    warmstart_tangent_impulse:
+                    - 129.7351
+                  - contact_id: 1
+                    point:
+                    - 339.71912
+                    - 228.24214
+                    dist: -10.129145
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 4642.248
+                    warmstart_tangent_impulse:
+                    - -2321.124
+                  relative_dominance: 0
+                  user_data: 0
+              has_any_active_contact: true
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 2
+            - 1
+            node:
+            - 4
+            - 3
+          - weight:
+              collider1:
+                index: 0
+                generation: 0
+              collider2:
+                index: 2
+                generation: 0
+              manifolds:
+              - points:
+                - local_p1:
+                  - -255.12123
+                  - 20.0
+                  local_p2:
+                  - 22.0
+                  - -19.0
+                  dist: -0.27513885
+                  fid1: 3221225524
+                  fid2: 1073741826
+                  data:
+                    impulse: 50079.555
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 9400.242
+                    warmstart_tangent_impulse:
+                    - -1776.7106
+                - local_p1:
+                  - -299.1208
+                  - 20.0
+                  local_p2:
+                  - -22.0
+                  - -19.0
+                  dist: -0.077812195
+                  fid1: 3221225524
+                  fid2: 1073741827
+                  data:
+                    impulse: 24649.244
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 5316.7266
+                    warmstart_tangent_impulse:
+                    - 2290.4175
+                local_n1:
+                - 0.0
+                - 1.0
+                local_n2:
+                - -0.0
+                - -1.0
+                subshape1: 0
+                subshape2: 0
+                subshape_pos1: null
+                subshape_pos2: null
+                data:
+                  rigid_body1:
+                    index: 0
+                    generation: 0
+                  rigid_body2:
+                    index: 2
+                    generation: 0
+                  solver_flags: COMPUTE_IMPULSES
+                  normal:
+                  - 0.0
+                  - 1.0
+                  solver_contacts:
+                  - contact_id: 0
+                    point:
+                    - 382.21216
+                    - 209.86243
+                    dist: -0.27513885
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 9400.242
+                    warmstart_tangent_impulse:
+                    - -1776.7106
+                  - contact_id: 1
+                    point:
+                    - 338.2126
+                    - 209.96109
+                    dist: -0.077812195
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 5316.7266
+                    warmstart_tangent_impulse:
+                    - 2290.4175
+                  relative_dominance: 128
+                  user_data: 0
+              has_any_active_contact: true
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 4294967295
+            - 2
+            node:
+            - 6
+            - 2
+          - weight:
+              collider1:
+                index: 5
+                generation: 0
+              collider2:
+                index: 6
+                generation: 0
+              manifolds: []
+              has_any_active_contact: false
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 4294967295
+            - 0
+            node:
+            - 5
+            - 1
+          - weight:
+              collider1:
+                index: 0
+                generation: 0
+              collider2:
+                index: 6
+                generation: 0
+              manifolds: []
+              has_any_active_contact: false
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 5
+            - 6
+            node:
+            - 6
+            - 1
+          - weight:
+              collider1:
+                index: 0
+                generation: 0
+              collider2:
+                index: 5
+                generation: 0
+              manifolds:
+              - points:
+                - local_p1:
+                  - 224.18683
+                  - 20.0
+                  local_p2:
+                  - 22.0
+                  - -19.0
+                  dist: -0.03163147
+                  fid1: 3221225524
+                  fid2: 1073741826
+                  data:
+                    impulse: 1177.2863
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 234.17757
+                    warmstart_tangent_impulse:
+                    - 0.024674535
+                - local_p1:
+                  - 180.18683
+                  - 20.0
+                  local_p2:
+                  - -22.0
+                  - -19.0
+                  dist: -0.03163147
+                  fid1: 3221225524
+                  fid2: 1073741827
+                  data:
+                    impulse: 0.0
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 0.0
+                    warmstart_tangent_impulse:
+                    - 0.0
+                local_n1:
+                - 0.0
+                - 1.0
+                local_n2:
+                - -0.0
+                - -1.0
+                subshape1: 0
+                subshape2: 0
+                subshape_pos1: null
+                subshape_pos2: null
+                data:
+                  rigid_body1:
+                    index: 0
+                    generation: 0
+                  rigid_body2:
+                    index: 5
+                    generation: 0
+                  solver_flags: COMPUTE_IMPULSES
+                  normal:
+                  - 0.0
+                  - 1.0
+                  solver_contacts:
+                  - contact_id: 0
+                    point:
+                    - 861.5202
+                    - 209.98419
+                    dist: -0.03163147
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 234.17757
+                    warmstart_tangent_impulse:
+                    - 0.024674535
+                  - contact_id: 1
+                    point:
+                    - 817.5202
+                    - 209.98419
+                    dist: -0.03163147
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: true
+                    warmstart_impulse: 0.0
+                    warmstart_tangent_impulse:
+                    - 0.0
+                  relative_dominance: 128
+                  user_data: 0
+              has_any_active_contact: true
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 7
+            - 3
+            node:
+            - 6
+            - 5
+          - weight:
+              collider1:
+                index: 0
+                generation: 0
+              collider2:
+                index: 7
+                generation: 0
+              manifolds:
+              - points:
+                - local_p1:
+                  - -35.334312
+                  - 20.0
+                  local_p2:
+                  - 20.0
+                  - -20.0
+                  dist: -0.23545265
+                  fid1: 3221225524
+                  fid2: 1073741826
+                  data:
+                    impulse: 4140.839
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 806.4744
+                    warmstart_tangent_impulse:
+                    - 17.749025
+                - local_p1:
+                  - -75.334236
+                  - 20.0
+                  local_p2:
+                  - -20.0
+                  - -20.0
+                  dist: -0.15857887
+                  fid1: 3221225524
+                  fid2: 1073741827
+                  data:
+                    impulse: 3044.754
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 589.3823
+                    warmstart_tangent_impulse:
+                    - -10.661752
+                local_n1:
+                - 0.0
+                - 1.0
+                local_n2:
+                - -0.0
+                - -1.0
+                subshape1: 0
+                subshape2: 0
+                subshape_pos1: null
+                subshape_pos2: null
+                data:
+                  rigid_body1:
+                    index: 0
+                    generation: 0
+                  rigid_body2:
+                    index: 7
+                    generation: 0
+                  solver_flags: COMPUTE_IMPULSES
+                  normal:
+                  - 0.0
+                  - 1.0
+                  solver_contacts:
+                  - contact_id: 0
+                    point:
+                    - 601.9991
+                    - 209.88226
+                    dist: -0.23545265
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 806.4744
+                    warmstart_tangent_impulse:
+                    - 17.749025
+                  - contact_id: 1
+                    point:
+                    - 561.99915
+                    - 209.92072
+                    dist: -0.15857887
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 589.3823
+                    warmstart_tangent_impulse:
+                    - -10.661752
+                  relative_dominance: 128
+                  user_data: 0
+              has_any_active_contact: true
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 8
+            - 4294967295
+            node:
+            - 6
+            - 7
+          - weight:
+              collider1:
+                index: 8
+                generation: 0
+              collider2:
+                index: 9
+                generation: 0
+              manifolds:
+              - points:
+                - local_p1:
+                  - 19.941221
+                  - 20.0
+                  local_p2:
+                  - 20.0
+                  - -20.0
+                  dist: -0.33967972
+                  fid1: 3221225524
+                  fid2: 1073741826
+                  data:
+                    impulse: 2852.383
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 547.84576
+                    warmstart_tangent_impulse:
+                    - 11.132023
+                - local_p1:
+                  - -20.000648
+                  - 20.0
+                  local_p2:
+                  - -19.941975
+                  - -20.000002
+                  dist: -0.24937439
+                  fid1: 1073741825
+                  fid2: 3221225534
+                  data:
+                    impulse: 2223.1992
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 430.1936
+                    warmstart_tangent_impulse:
+                    - -3.1141214
+                local_n1:
+                - 0.0
+                - 1.0
+                local_n2:
+                - 0.00018634256
+                - -1.0
+                subshape1: 0
+                subshape2: 0
+                subshape_pos1: null
+                subshape_pos2: null
+                data:
+                  rigid_body1:
+                    index: 8
+                    generation: 0
+                  rigid_body2:
+                    index: 9
+                    generation: 0
+                  solver_flags: COMPUTE_IMPULSES
+                  normal:
+                  - 0.0050685797
+                  - 0.9999871
+                  solver_contacts:
+                  - contact_id: 0
+                    point:
+                    - 603.2871
+                    - 289.18304
+                    dist: -0.33967972
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 547.84576
+                    warmstart_tangent_impulse:
+                    - 11.132023
+                  - contact_id: 1
+                    point:
+                    - 563.34595
+                    - 289.4306
+                    dist: -0.24937439
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 430.1936
+                    warmstart_tangent_impulse:
+                    - -3.1141214
+                  relative_dominance: 0
+                  user_data: 0
+              has_any_active_contact: true
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 4294967295
+            - 4294967295
+            node:
+            - 8
+            - 9
+          - weight:
+              collider1:
+                index: 7
+                generation: 0
+              collider2:
+                index: 8
+                generation: 0
+              manifolds:
+              - points:
+                - local_p1:
+                  - 20.000486
+                  - 20.0
+                  local_p2:
+                  - 18.931643
+                  - -19.999996
+                  dist: -0.40597528
+                  fid1: 1073741824
+                  fid2: 3221225534
+                  data:
+                    impulse: 3507.297
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 678.1892
+                    warmstart_tangent_impulse:
+                    - 4.552842
+                - local_p1:
+                  - -18.93096
+                  - 20.0
+                  local_p2:
+                  - -19.999996
+                  - -19.999996
+                  dist: -0.2834663
+                  fid1: 3221225524
+                  fid2: 1073741827
+                  data:
+                    impulse: 2617.9607
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 506.6844
+                    warmstart_tangent_impulse:
+                    - 3.2709885
+                local_n1:
+                - 0.000025544025
+                - 0.9999999
+                local_n2:
+                - 0.0
+                - -0.99999976
+                subshape1: 0
+                subshape2: 0
+                subshape_pos1: null
+                subshape_pos2: null
+                data:
+                  rigid_body1:
+                    index: 7
+                    generation: 0
+                  rigid_body2:
+                    index: 8
+                    generation: 0
+                  solver_flags: COMPUTE_IMPULSES
+                  normal:
+                  - 0.0019473691
+                  - 0.999998
+                  solver_contacts:
+                  - contact_id: 0
+                    point:
+                    - 602.07605
+                    - 249.5615
+                    dist: -0.40597528
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 678.1892
+                    warmstart_tangent_impulse:
+                    - 4.552842
+                  - contact_id: 1
+                    point:
+                    - 563.1448
+                    - 249.69757
+                    dist: -0.2834663
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 506.6844
+                    warmstart_tangent_impulse:
+                    - 3.2709885
+                  relative_dominance: 0
+                  user_data: 0
+              has_any_active_contact: true
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 4294967295
+            - 4294967295
+            node:
+            - 7
+            - 8
+          - weight:
+              collider1:
+                index: 9
+                generation: 0
+              collider2:
+                index: 10
+                generation: 0
+              manifolds:
+              - points:
+                - local_p1:
+                  - 18.934242
+                  - 20.0
+                  local_p2:
+                  - 20.0
+                  - -20.0
+                  dist: -0.27797318
+                  fid1: 3221225524
+                  fid2: 1073741826
+                  data:
+                    impulse: 2368.4236
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 452.7297
+                    warmstart_tangent_impulse:
+                    - 24.515484
+                - local_p1:
+                  - -19.998344
+                  - 20.0
+                  local_p2:
+                  - -18.932709
+                  - -20.0
+                  dist: -0.1808033
+                  fid1: 1073741825
+                  fid2: 3221225534
+                  data:
+                    impulse: 1684.9734
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 326.2169
+                    warmstart_tangent_impulse:
+                    - -17.706425
+                local_n1:
+                - 0.0
+                - 1.0
+                local_n2:
+                - 0.00061500754
+                - -0.9999998
+                subshape1: 0
+                subshape2: 0
+                subshape_pos1: null
+                subshape_pos2: null
+                data:
+                  rigid_body1:
+                    index: 9
+                    generation: 0
+                  rigid_body2:
+                    index: 10
+                    generation: 0
+                  solver_flags: COMPUTE_IMPULSES
+                  normal:
+                  - 0.007329463
+                  - 0.9999731
+                  solver_contacts:
+                  - contact_id: 0
+                    point:
+                    - 602.5127
+                    - 328.88095
+                    dist: -0.27797318
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 452.7297
+                    warmstart_tangent_impulse:
+                    - 24.515484
+                  - contact_id: 1
+                    point:
+                    - 563.5815
+                    - 329.21487
+                    dist: -0.1808033
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 326.2169
+                    warmstart_tangent_impulse:
+                    - -17.706425
+                  relative_dominance: 0
+                  user_data: 0
+              has_any_active_contact: true
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 4294967295
+            - 4294967295
+            node:
+            - 9
+            - 10
+          - weight:
+              collider1:
+                index: 10
+                generation: 0
+              collider2:
+                index: 11
+                generation: 0
+              manifolds:
+              - points:
+                - local_p1:
+                  - 19.027948
+                  - 20.0
+                  local_p2:
+                  - 20.000002
+                  - -20.000002
+                  dist: -0.228899
+                  fid1: 3221225524
+                  fid2: 1073741826
+                  data:
+                    impulse: 1913.001
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 365.0932
+                    warmstart_tangent_impulse:
+                    - 7.616708
+                - local_p1:
+                  - -20.00011
+                  - 20.0
+                  local_p2:
+                  - -19.028229
+                  - -20.000002
+                  dist: -0.113456726
+                  fid1: 1073741825
+                  fid2: 3221225534
+                  data:
+                    impulse: 1127.1825
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 217.56754
+                    warmstart_tangent_impulse:
+                    - -1.4742802
+                local_n1:
+                - 0.0
+                - 1.0
+                local_n2:
+                - 0.0019308124
+                - -0.99999815
+                subshape1: 0
+                subshape2: 0
+                subshape_pos1: null
+                subshape_pos2: null
+                data:
+                  rigid_body1:
+                    index: 10
+                    generation: 0
+                  rigid_body2:
+                    index: 11
+                    generation: 0
+                  solver_flags: COMPUTE_IMPULSES
+                  normal:
+                  - 0.009825235
+                  - 0.9999517
+                  solver_contacts:
+                  - contact_id: 0
+                    point:
+                    - 601.9315
+                    - 368.63513
+                    dist: -0.228899
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 365.0932
+                    warmstart_tangent_impulse:
+                    - 7.616708
+                  - contact_id: 1
+                    point:
+                    - 562.9059
+                    - 369.07632
+                    dist: -0.113456726
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 217.56754
+                    warmstart_tangent_impulse:
+                    - -1.4742802
+                  relative_dominance: 0
+                  user_data: 0
+              has_any_active_contact: true
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 4294967295
+            - 4294967295
+            node:
+            - 10
+            - 11
+          - weight:
+              collider1:
+                index: 11
+                generation: 0
+              collider2:
+                index: 12
+                generation: 0
+              manifolds:
+              - points:
+                - local_p1:
+                  - 20.000776
+                  - 19.999998
+                  local_p2:
+                  - 11.841887
+                  - -20.0
+                  dist: -0.14073206
+                  fid1: 1073741824
+                  fid2: 3221225534
+                  data:
+                    impulse: 1229.4438
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 235.01599
+                    warmstart_tangent_impulse:
+                    - -23.866661
+                - local_p1:
+                  - -11.841158
+                  - 19.999998
+                  local_p2:
+                  - -20.0
+                  - -20.0
+                  dist: -0.10121555
+                  fid1: 3221225524
+                  fid2: 1073741827
+                  data:
+                    impulse: 797.6509
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 153.0514
+                    warmstart_tangent_impulse:
+                    - 30.890657
+                local_n1:
+                - 0.0018004626
+                - 0.9999984
+                local_n2:
+                - 0.0
+                - -1.0
+                subshape1: 0
+                subshape2: 0
+                subshape_pos1: null
+                subshape_pos2: null
+                data:
+                  rigid_body1:
+                    index: 11
+                    generation: 0
+                  rigid_body2:
+                    index: 12
+                    generation: 0
+                  solver_flags: COMPUTE_IMPULSES
+                  normal:
+                  - 0.014583279
+                  - 0.99989367
+                  solver_contacts:
+                  - contact_id: 0
+                    point:
+                    - 602.44147
+                    - 408.44708
+                    dist: -0.14073206
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 235.01599
+                    warmstart_tangent_impulse:
+                    - -23.866661
+                  - contact_id: 1
+                    point:
+                    - 570.6024
+                    - 408.87384
+                    dist: -0.10121555
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 153.0514
+                    warmstart_tangent_impulse:
+                    - 30.890657
+                  relative_dominance: 0
+                  user_data: 0
+              has_any_active_contact: true
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 4294967295
+            - 4294967295
+            node:
+            - 11
+            - 12
+          - weight:
+              collider1:
+                index: 12
+                generation: 0
+              collider2:
+                index: 13
+                generation: 0
+              manifolds:
+              - points:
+                - local_p1:
+                  - 16.751982
+                  - 20.0
+                  local_p2:
+                  - 20.0
+                  - -20.0
+                  dist: -0.052347183
+                  fid1: 3221225524
+                  fid2: 1073741826
+                  data:
+                    impulse: 476.72028
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 91.36105
+                    warmstart_tangent_impulse:
+                    - 26.191877
+                - local_p1:
+                  - -19.999544
+                  - 20.0
+                  local_p2:
+                  - -16.751524
+                  - -19.999998
+                  dist: -0.06249619
+                  fid1: 1073741825
+                  fid2: 3221225534
+                  data:
+                    impulse: 536.6165
+                    tangent_impulse:
+                    - .nan
+                    warmstart_impulse: 102.577866
+                    warmstart_tangent_impulse:
+                    - -21.660187
+                local_n1:
+                - -0.00039729383
+                - 0.9999999
+                local_n2:
+                - 0.0
+                - -0.99999994
+                subshape1: 0
+                subshape2: 0
+                subshape_pos1: null
+                subshape_pos2: null
+                data:
+                  rigid_body1:
+                    index: 12
+                    generation: 0
+                  rigid_body2:
+                    index: 13
+                    generation: 0
+                  solver_flags: COMPUTE_IMPULSES
+                  normal:
+                  - 0.013626678
+                  - 0.9999071
+                  solver_contacts:
+                  - contact_id: 0
+                    point:
+                    - 607.91064
+                    - 448.2777
+                    dist: -0.052347183
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 91.36105
+                    warmstart_tangent_impulse:
+                    - 26.191877
+                  - contact_id: 1
+                    point:
+                    - 571.16266
+                    - 448.78806
+                    dist: -0.06249619
+                    friction: 0.5
+                    restitution: 0.0
+                    tangent_velocity:
+                    - 0.0
+                    - 0.0
+                    is_new: false
+                    warmstart_impulse: 102.577866
+                    warmstart_tangent_impulse:
+                    - -21.660187
+                  relative_dominance: 0
+                  user_data: 0
+              has_any_active_contact: true
+              start_event_emitted: false
+              workspace: null
+            next:
+            - 4294967295
+            - 4294967295
+            node:
+            - 12
+            - 13
+      intersection_graph:
+        graph:
+          nodes: []
+          edges: []
+      graph_indices:
+        data:
+        - - 0
+          - contact_graph_index: 6
+            intersection_graph_index: 4294967295
+        - - 0
+          - contact_graph_index: 4
+            intersection_graph_index: 4294967295
+        - - 0
+          - contact_graph_index: 2
+            intersection_graph_index: 4294967295
+        - - 0
+          - contact_graph_index: 3
+            intersection_graph_index: 4294967295
+        - - 0
+          - contact_graph_index: 0
+            intersection_graph_index: 4294967295
+        - - 0
+          - contact_graph_index: 5
+            intersection_graph_index: 4294967295
+        - - 0
+          - contact_graph_index: 1
+            intersection_graph_index: 4294967295
+        - - 0
+          - contact_graph_index: 7
+            intersection_graph_index: 4294967295
+        - - 0
+          - contact_graph_index: 8
+            intersection_graph_index: 4294967295
+        - - 0
+          - contact_graph_index: 9
+            intersection_graph_index: 4294967295
+        - - 0
+          - contact_graph_index: 10
+            intersection_graph_index: 4294967295
+        - - 0
+          - contact_graph_index: 11
+            intersection_graph_index: 4294967295
+        - - 0
+          - contact_graph_index: 12
+            intersection_graph_index: 4294967295
+        - - 0
+          - contact_graph_index: 13
+            intersection_graph_index: 4294967295
+    sync_impulse_joint_set:
+      impulse_joint_set:
+        rb_graph_ids:
+          data:
+          - - 4294967295
+            - 4294967295
+          - - 4294967295
+            - 4294967295
+          - - 4294967295
+            - 4294967295
+          - - 4294967295
+            - 4294967295
+          - - 0
+            - 1
+          - - 0
+            - 0
+          - - 0
+            - 2
+        joint_ids:
+          items:
+          - !Occupied
+            generation: 0
+            value: 0
+          - !Occupied
+            generation: 0
+            value: 1
+          - !Free
+            next_free: 3
+          - !Free
+            next_free: null
+          generation: 0
+          free_list_head: 2
+          len: 2
+        joint_graph:
+          graph:
+            nodes:
+            - weight:
+                index: 5
+                generation: 0
+              next:
+              - 1
+              - 4294967295
+            - weight:
+                index: 4
+                generation: 0
+              next:
+              - 4294967295
+              - 0
+            - weight:
+                index: 6
+                generation: 0
+              next:
+              - 4294967295
+              - 1
+            edges:
+            - weight:
+                body1:
+                  index: 5
+                  generation: 0
+                body2:
+                  index: 4
+                  generation: 0
+                data:
+                  local_frame1:
+                    rotation:
+                    - 1.0
+                    - 0.0
+                    translation:
+                    - 0.0
+                    - 0.0
+                  local_frame2:
+                    rotation:
+                    - 1.0
+                    - 0.0
+                    translation:
+                    - 0.0
+                    - -30.0
+                  locked_axes: LIN_X | LIN_Y
+                  limit_axes: ANG_X
+                  motor_axes: ANG_X
+                  coupled_axes: ''
+                  limits:
+                  - min: -3.4028235e38
+                    max: 3.4028235e38
+                    impulse: 0.0
+                  - min: -3.4028235e38
+                    max: 3.4028235e38
+                    impulse: 0.0
+                  - min: -0.4
+                    max: 0.4
+                    impulse: -47.10786
+                  motors:
+                  - target_vel: 0.0
+                    target_pos: 0.0
+                    stiffness: 0.0
+                    damping: 0.0
+                    max_force: 3.4028235e38
+                    impulse: 0.0
+                    model: AccelerationBased
+                  - target_vel: 0.0
+                    target_pos: 0.0
+                    stiffness: 0.0
+                    damping: 0.0
+                    max_force: 3.4028235e38
+                    impulse: 0.0
+                    model: AccelerationBased
+                  - target_vel: 0.0
+                    target_pos: -0.3448329
+                    stiffness: 300.0
+                    damping: 0.0
+                    max_force: 3.4028235e38
+                    impulse: -199.99438
+                    model: AccelerationBased
+                  contacts_enabled: false
+                  enabled: Enabled
+                  user_data: 0
+                impulses:
+                - 4.011933
+                - -20.73429
+                - 0.0
+                handle:
+                  index: 0
+                  generation: 0
+              next:
+              - 4294967295
+              - 4294967295
+              node:
+              - 0
+              - 1
+            - weight:
+                body1:
+                  index: 5
+                  generation: 0
+                body2:
+                  index: 6
+                  generation: 0
+                data:
+                  local_frame1:
+                    rotation:
+                    - 1.0
+                    - 0.0
+                    translation:
+                    - 0.0
+                    - 0.0
+                  local_frame2:
+                    rotation:
+                    - 1.0
+                    - 0.0
+                    translation:
+                    - -30.0
+                    - 0.0
+                  locked_axes: LIN_X | LIN_Y
+                  limit_axes: ANG_X
+                  motor_axes: ANG_X
+                  coupled_axes: ''
+                  limits:
+                  - min: -3.4028235e38
+                    max: 3.4028235e38
+                    impulse: 0.0
+                  - min: -3.4028235e38
+                    max: 3.4028235e38
+                    impulse: 0.0
+                  - min: -0.8
+                    max: 0.8
+                    impulse: 0.0
+                  motors:
+                  - target_vel: 0.0
+                    target_pos: 0.0
+                    stiffness: 0.0
+                    damping: 0.0
+                    max_force: 3.4028235e38
+                    impulse: 0.0
+                    model: AccelerationBased
+                  - target_vel: 0.0
+                    target_pos: 0.0
+                    stiffness: 0.0
+                    damping: 0.0
+                    max_force: 3.4028235e38
+                    impulse: 0.0
+                    model: AccelerationBased
+                  - target_vel: 0.0
+                    target_pos: -0.5311109
+                    stiffness: 300.0
+                    damping: 20.0
+                    max_force: 3.4028235e38
+                    impulse: -51.444996
+                    model: AccelerationBased
+                  contacts_enabled: false
+                  enabled: Enabled
+                  user_data: 0
+                impulses:
+                - -0.7555062
+                - -2.1105847
+                - 0.0
+                handle:
+                  index: 1
+                  generation: 0
+              next:
+              - 0
+              - 4294967295
+              node:
+              - 0
+              - 2
+        to_wake_up: []
+      sync_map:
+        ? id: 14170805708505433159
+        : index: 0
+          generation: 0
+        ? id: 2123773476518449085
+        : index: 1
+          generation: 0
+      reverse_sync_map:
+        ? index: 0
+          generation: 0
+        : id: 14170805708505433159
+        ? index: 1
+          generation: 0
+        : id: 2123773476518449085
+    multibody_joint_set:
+      multibodies:
+        items:
+        - !Free
+          next_free: 1
+        - !Free
+          next_free: 2
+        - !Free
+          next_free: 3
+        - !Free
+          next_free: null
+        generation: 0
+        free_list_head: 0
+        len: 0
+      rb2mb:
+        data: []
+      connectivity_graph:
+        graph:
+          nodes: []
+          edges: []
+      to_wake_up: []
+    ccd_solver: {}
+    query_pipeline:
+      qbvh:
+        root_aabb:
+          mins:
+          - -5.2666254
+          - 169.6
+          maxs:
+          - 1279.9333
+          - 489.19458
+        nodes:
+        - simd_aabb:
+            mins:
+            - - -5.2666254
+              - 3.4028235e38
+              - 3.4028235e38
+              - 3.4028235e38
+            - - 169.6
+              - 3.4028235e38
+              - 3.4028235e38
+              - 3.4028235e38
+            maxs:
+            - - 1279.9333
+              - -3.4028235e38
+              - -3.4028235e38
+              - -3.4028235e38
+            - - 489.19458
+              - -3.4028235e38
+              - -3.4028235e38
+              - -3.4028235e38
+          children:
+          - 3
+          - 4294967295
+          - 4294967295
+          - 4294967295
+          parent:
+            index: 4294967295
+            lane: 0
+          flags: 0
+        - simd_aabb:
+            mins:
+            - - -5.2666254
+              - 811.8965
+              - 3.4028235e38
+              - 3.4028235e38
+            - - 169.6
+              - 218.37852
+              - 3.4028235e38
+              - 3.4028235e38
+            maxs:
+            - - 1279.9333
+              - 890.50903
+              - -3.4028235e38
+              - -3.4028235e38
+            - - 210.4
+              - 294.82196
+              - -3.4028235e38
+              - -3.4028235e38
+          children:
+          - 0
+          - 4
+          - 4294967295
+          - 4294967295
+          parent:
+            index: 3
+            lane: 3
+          flags: 1
+        - simd_aabb:
+            mins:
+            - - 561.5983
+              - 3.4028235e38
+              - 3.4028235e38
+              - 3.4028235e38
+            - - 209.3634
+              - 3.4028235e38
+              - 3.4028235e38
+              - 3.4028235e38
+            maxs:
+            - - 602.47577
+              - -3.4028235e38
+              - -3.4028235e38
+              - -3.4028235e38
+            - - 250.24078
+              - -3.4028235e38
+              - -3.4028235e38
+              - -3.4028235e38
+          children:
+          - 7
+          - 4294967295
+          - 4294967295
+          - 4294967295
+          parent:
+            index: 4
+            lane: 2
+          flags: 1
+        - simd_aabb:
+            mins:
+            - - 309.09464
+              - 561.52716
+              - 815.9172
+              - -5.2666254
+            - - 209.33965
+              - 288.60498
+              - 172.62674
+              - 169.6
+            maxs:
+            - - 603.74695
+              - 611.5637
+              - 911.87006
+              - 1279.9333
+            - - 295.04626
+              - 489.19458
+              - 250.32779
+              - 294.82196
+          children:
+          - 4
+          - 9
+          - 13
+          - 1
+          parent:
+            index: 0
+            lane: 0
+          flags: 0
+        - simd_aabb:
+            mins:
+            - - 336.71954
+              - 309.09464
+              - 561.5983
+              - 562.74146
+            - - 209.33965
+              - 218.5512
+              - 209.3634
+              - 248.94902
+            maxs:
+            - - 440.4925
+              - 387.7507
+              - 602.47577
+              - 603.74695
+            - - 265.80325
+              - 295.04626
+              - 250.24078
+              - 289.95444
+          children:
+          - 5
+          - 6
+          - 2
+          - 8
+          parent:
+            index: 3
+            lane: 0
+          flags: 0
+        - simd_aabb:
+            mins:
+            - - 336.71954
+              - 337.77087
+              - 3.4028235e38
+              - 3.4028235e38
+            - - 211.56015
+              - 209.33965
+              - 3.4028235e38
+              - 3.4028235e38
+            maxs:
+            - - 440.4925
+              - 382.82697
+              - -3.4028235e38
+              - -3.4028235e38
+            - - 265.80325
+              - 248.30376
+              - -3.4028235e38
+              - -3.4028235e38
+          children:
+          - 1
+          - 2
+          - 4294967295
+          - 4294967295
+          parent:
+            index: 4
+            lane: 0
+          flags: 1
+        - simd_aabb:
+            mins:
+            - - 309.09464
+              - 3.4028235e38
+              - 3.4028235e38
+              - 3.4028235e38
+            - - 218.5512
+              - 3.4028235e38
+              - 3.4028235e38
+              - 3.4028235e38
+            maxs:
+            - - 387.7507
+              - -3.4028235e38
+              - -3.4028235e38
+              - -3.4028235e38
+            - - 295.04626
+              - -3.4028235e38
+              - -3.4028235e38
+              - -3.4028235e38
+          children:
+          - 3
+          - 4294967295
+          - 4294967295
+          - 4294967295
+          parent:
+            index: 4
+            lane: 1
+          flags: 1
+        - simd_aabb:
+            mins:
+            - - 570.1952
+              - 3.4028235e38
+              - 3.4028235e38
+              - 3.4028235e38
+            - - 407.84827
+              - 3.4028235e38
+              - 3.4028235e38
+              - 3.4028235e38
+            maxs:
+            - - 611.5637
+              - -3.4028235e38
+              - -3.4028235e38
+              - -3.4028235e38
+            - - 449.21674
+              - -3.4028235e38
+              - -3.4028235e38
+              - -3.4028235e38
+          children:
+          - 12
+          - 4294967295
+          - 4294967295
+          - 4294967295
+          parent:
+            index: 9
+            lane: 2
+          flags: 1
+        - simd_aabb:
+            mins:
+            - - 562.74146
+              - 3.4028235e38
+              - 3.4028235e38
+              - 3.4028235e38
+            - - 248.94902
+              - 3.4028235e38
+              - 3.4028235e38
+              - 3.4028235e38
+            maxs:
+            - - 603.74695
+              - -3.4028235e38
+              - -3.4028235e38
+              - -3.4028235e38
+            - - 289.95444
+              - -3.4028235e38
+              - -3.4028235e38
+              - -3.4028235e38
+          children:
+          - 8
+          - 4294967295
+          - 4294967295
+          - 4294967295
+          parent:
+            index: 4
+            lane: 3
+          flags: 1
+        - simd_aabb:
+            mins:
+            - - 561.52716
+              - 562.1078
+              - 570.1952
+              - 567.508
+            - - 368.10748
+              - 288.60498
+              - 407.84827
+              - 447.8376
+            maxs:
+            - - 602.8459
+              - 603.98047
+              - 611.5637
+              - 608.86505
+            - - 409.42627
+              - 369.53033
+              - 449.21674
+              - 489.19458
+          children:
+          - 10
+          - 11
+          - 7
+          - 12
+          parent:
+            index: 3
+            lane: 1
+          flags: 0
+        - simd_aabb:
+            mins:
+            - - 561.52716
+              - 3.4028235e38
+              - 3.4028235e38
+              - 3.4028235e38
+            - - 368.10748
+              - 3.4028235e38
+              - 3.4028235e38
+              - 3.4028235e38
+            maxs:
+            - - 602.8459
+              - -3.4028235e38
+              - -3.4028235e38
+              - -3.4028235e38
+            - - 409.42627
+              - -3.4028235e38
+              - -3.4028235e38
+              - -3.4028235e38
+          children:
+          - 11
+          - 4294967295
+          - 4294967295
+          - 4294967295
+          parent:
+            index: 9
+            lane: 0
+          flags: 1
+        - simd_aabb:
+            mins:
+            - - 562.88257
+              - 562.1078
+              - 3.4028235e38
+              - 3.4028235e38
+            - - 288.60498
+              - 328.33093
+              - 3.4028235e38
+              - 3.4028235e38
+            maxs:
+            - - 603.98047
+              - 603.3071
+              - -3.4028235e38
+              - -3.4028235e38
+            - - 329.70294
+              - 369.53033
+              - -3.4028235e38
+              - -3.4028235e38
+          children:
+          - 9
+          - 10
+          - 4294967295
+          - 4294967295
+          parent:
+            index: 9
+            lane: 1
+          flags: 1
+        - simd_aabb:
+            mins:
+            - - 567.508
+              - 3.4028235e38
+              - 3.4028235e38
+              - 3.4028235e38
+            - - 447.8376
+              - 3.4028235e38
+              - 3.4028235e38
+              - 3.4028235e38
+            maxs:
+            - - 608.86505
+              - -3.4028235e38
+              - -3.4028235e38
+              - -3.4028235e38
+            - - 489.19458
+              - -3.4028235e38
+              - -3.4028235e38
+              - -3.4028235e38
+          children:
+          - 13
+          - 4294967295
+          - 4294967295
+          - 4294967295
+          parent:
+            index: 9
+            lane: 3
+          flags: 1
+        - simd_aabb:
+            mins:
+            - - 817.0802
+              - 815.9172
+              - 3.4028235e38
+              - 3.4028235e38
+            - - 209.58836
+              - 172.62674
+              - 3.4028235e38
+              - 3.4028235e38
+            maxs:
+            - - 861.9602
+              - 911.87006
+              - -3.4028235e38
+              - -3.4028235e38
+            - - 248.34837
+              - 250.32779
+              - -3.4028235e38
+              - -3.4028235e38
+          children:
+          - 5
+          - 6
+          - 4294967295
+          - 4294967295
+          parent:
+            index: 3
+            lane: 2
+          flags: 1
+        dirty_nodes: []
+        free_list: []
+        proxies:
+        - node:
+            index: 1
+            lane: 0
+          data:
+            index: 0
+            generation: 0
+        - node:
+            index: 5
+            lane: 0
+          data:
+            index: 1
+            generation: 0
+        - node:
+            index: 5
+            lane: 1
+          data:
+            index: 2
+            generation: 0
+        - node:
+            index: 6
+            lane: 0
+          data:
+            index: 3
+            generation: 0
+        - node:
+            index: 1
+            lane: 1
+          data:
+            index: 4
+            generation: 0
+        - node:
+            index: 13
+            lane: 0
+          data:
+            index: 5
+            generation: 0
+        - node:
+            index: 13
+            lane: 1
+          data:
+            index: 6
+            generation: 0
+        - node:
+            index: 2
+            lane: 0
+          data:
+            index: 7
+            generation: 0
+        - node:
+            index: 8
+            lane: 0
+          data:
+            index: 8
+            generation: 0
+        - node:
+            index: 11
+            lane: 0
+          data:
+            index: 9
+            generation: 0
+        - node:
+            index: 11
+            lane: 1
+          data:
+            index: 10
+            generation: 0
+        - node:
+            index: 10
+            lane: 0
+          data:
+            index: 11
+            generation: 0
+        - node:
+            index: 7
+            lane: 0
+          data:
+            index: 12
+            generation: 0
+        - node:
+            index: 12
+            lane: 0
+          data:
+            index: 13
+            generation: 0
+      dilation_factor: 0.01
+    physics_hooks: null
+  bricks: []
+  radios: []
+  shotguns: []
+  portal_bullets: []
+  portals: []
+  sky: {}
+  body_parts: []
+  teleporters: []
+  hit_markers: []
+  grenades: []
+game_started: false
+chat:
+  messages: []

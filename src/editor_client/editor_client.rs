@@ -28,13 +28,15 @@ impl EditorClient {
         let save_button = Button::new(
             "Save".into(),
             Rect { x: 0., y: 0., w: 50., h: 30. },
-            DARKGRAY
+            DARKGRAY,
+            20
         );
     
         let load_button = Button::new(
             "Load".into(),
             Rect { x: 0., y: 30., w: 50., h: 30. },
-            DARKGRAY
+            DARKGRAY,
+            20
         );
 
         let camera_rect = Rect::new(0., 200., screen_width() / 1.50, screen_height() / 1.5);

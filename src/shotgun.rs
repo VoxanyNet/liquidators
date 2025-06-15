@@ -141,8 +141,8 @@ impl Shotgun {
             let new_player_rigid_body_velocity = {
                 let mut new_player_rigid_body_velocity = player_rigid_body.linvel().clone();
 
-                new_player_rigid_body_velocity.x -= mouse_vector.x * 1000.;
-                new_player_rigid_body_velocity.y -= mouse_vector.y * 1000.; 
+                new_player_rigid_body_velocity.x -= mouse_vector.x * 500.;
+                new_player_rigid_body_velocity.y -= mouse_vector.y * 500.; 
 
                 new_player_rigid_body_velocity
             }; 
@@ -160,7 +160,7 @@ impl Shotgun {
         let solid = true;
         let filter = QueryFilter::default();
 
-        let mut hit_rigid_bodies: Vec<SyncRigidBodyHandle> = Vec::new();
+        let mut hit_rigid_bodies: Vec<RigidBodyHandle> = Vec::new();
 
         let local_collider = space.sync_collider_set.get_local_handle(self.collider);
 
@@ -171,14 +171,17 @@ impl Shotgun {
                 return true;
             }
 
+            let collider = space.sync_collider_set.get_local(handle).unwrap();
+
+            hit_rigid_bodies.push(collider.parent().unwrap());
+
             for (_, player) in &mut *players {
 
                 let local_player_head_collider_handle = space.sync_collider_set.get_local_handle(player.head.collider_handle);
 
                 if local_player_head_collider_handle == handle {
 
-                    hit_rigid_bodies.push(player.body.body_handle);
-
+            
                     if player.health <= 10 {
                         player.health = 0;
 
@@ -192,7 +195,6 @@ impl Shotgun {
 
                 if space.sync_collider_set.get_local_handle(player.body.collider_handle) == handle {
 
-                    hit_rigid_bodies.push(player.body.body_handle);
 
                     if player.health <= 5 {
                         player.health = 0;
@@ -214,10 +216,11 @@ impl Shotgun {
 
         for rigid_body_handle in hit_rigid_bodies {
 
+            
             // own this rigid body for this frame so we can update its velocity
-            ctx.owned_rigid_bodies.push(rigid_body_handle);
+            ctx.owned_rigid_bodies.push(space.sync_rigid_body_set.get_sync_handle(rigid_body_handle));
 
-            let rigid_body = space.sync_rigid_body_set.get_sync_mut(rigid_body_handle).unwrap();
+            let rigid_body = space.sync_rigid_body_set.get_local_mut(rigid_body_handle).unwrap();
 
             let mut new_velocity = rigid_body.linvel().clone();
 

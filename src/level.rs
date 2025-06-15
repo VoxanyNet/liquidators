@@ -1,7 +1,7 @@
 use std::fs;
 
 use diff::Diff;
-use gamelibrary::{arenaiter::SyncArenaIterator, macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{arenaiter::SyncArenaIterator, macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
 use macroquad::{color::{RED, WHITE}, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}, shapes::{draw_rectangle, draw_rectangle_ex, DrawRectangleParams}};
 use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
@@ -135,11 +135,25 @@ impl Level {
 
         }
 
-        for structure in &mut self.structures {
+        let mut structure_iter = SwapIter::new(&mut self.structures);
+
+        while structure_iter.not_done() {
+            let (structures, mut structure) = structure_iter.next();
 
             structure.tick(ctx, &mut self.space, &self.players);
-            
-        }  
+
+            if structure.contains_point(&mut self.space, rapier_mouse_world_pos(ctx.camera_rect)) && is_key_down(KeyCode::F) {
+
+                ctx.owned_rigid_bodies.push(structure.rigid_body_handle);
+                ctx.owned_colliders.push(structure.collider_handle);
+                
+                structure.despawn(&mut self.space);
+
+                continue;
+            }
+
+            structure_iter.restore(structure);
+        }
 
         for brick in &mut self.bricks {
 
