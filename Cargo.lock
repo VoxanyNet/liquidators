@@ -640,6 +640,7 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
+source = "git+https://github.com/VoxanyNet/gamelibrary?rev=1b5bb65fef6e88aae43689b35e79ffad10cad773#1b5bb65fef6e88aae43689b35e79ffad10cad773"
 dependencies = [
  "bitcode",
  "chrono",
