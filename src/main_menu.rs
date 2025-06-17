@@ -2,7 +2,7 @@ use std::{f32::consts::PI, time::Instant};
 
 use futures::executor::block_on;
 use gamelibrary::{get_angle_to_mouse, macroquad_to_rapier, menu::Button, space::{Space, SyncImpulseJointHandle, SyncRigidBodyHandle}, texture_loader::TextureLoader};
-use macroquad::{color::{BLACK, DARKGRAY}, math::{Rect, Vec2}, miniquad::window::request_quit, text::{draw_text_ex, load_ttf_font, Font, TextParams}};
+use macroquad::{color::{Color, BLACK, DARKGRAY}, math::{Rect, Vec2}, miniquad::window::request_quit, text::{draw_text_ex, load_ttf_font, Font, TextParams}};
 use nalgebra::vector;
 use rapier2d::prelude::{RevoluteJointBuilder, RigidBodyBuilder};
 use uuid::Uuid;
@@ -26,9 +26,13 @@ impl MainMenu {
 
     pub fn new(textures: &mut TextureLoader) -> Self {
 
-        let start_button = Button::new("Start".to_string(), Rect::new(50., 300., 150., 60.), DARKGRAY, 50);
+        let mut clear_color = Color::default();
 
-        let quit_button = Button::new("Quit".to_string(), Rect::new(50., 420., 150., 60.), DARKGRAY, 50);
+        clear_color.a = 0.;
+
+        let start_button = Button::new("Start".to_string(), Rect::new(50., 300., 150., 60.), clear_color, Some(clear_color), Some(clear_color), 50, "assets/fonts/CutePixel.ttf".to_string());
+
+        let quit_button = Button::new("Quit".to_string(), Rect::new(50., 420., 150., 60.), clear_color, Some(clear_color), Some(clear_color), 50, "assets/fonts/CutePixel.ttf".to_string());
 
         let font = block_on(load_ttf_font("assets/fonts/CutePixel.ttf")).unwrap();
         

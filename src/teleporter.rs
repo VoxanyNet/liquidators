@@ -107,7 +107,6 @@ impl Teleporter {
                     return true;
                 }
                 
-                println!("{}", players.len());
                 for (_, player) in &*players {
 
                     let local_player_body_collider_handle = space.sync_collider_set.get_local_handle(player.body.collider_handle);

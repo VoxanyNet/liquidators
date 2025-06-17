@@ -75,7 +75,10 @@ impl PhysicsSquare {
 
         let mut menu = Menu::new(
             position,
-            DARKGRAY
+            DARKGRAY,
+            "assets/fonts/CutePixel.ttf".to_string(),
+            None,
+            None
         );
 
         menu.add_button("Delete".to_string());

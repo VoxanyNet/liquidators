@@ -29,14 +29,20 @@ impl EditorClient {
             "Save".into(),
             Rect { x: 0., y: 0., w: 50., h: 30. },
             DARKGRAY,
-            20
+            None,
+            None,
+            20,
+            "assets/fonts/CutePixel.ttf".to_string()
         );
     
         let load_button = Button::new(
             "Load".into(),
             Rect { x: 0., y: 30., w: 50., h: 30. },
             DARKGRAY,
-            20
+            None,
+            None,
+            20,
+            "assets/fonts/CutePixel.ttf".to_string()
         );
 
         let camera_rect = Rect::new(0., 200., screen_width() / 1.50, screen_height() / 1.5);

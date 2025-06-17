@@ -59,10 +59,11 @@ impl<S: SoundManager> Client<S> {
             last_tick_mouse_world_pos: &mut self.last_tick_mouse_world_pos
         };
 
-
         self.game_state.tick(
             &mut tick_context
         );
+
+        
 
         if let Some(menu) = &mut self.main_menu {
             menu.tick(&mut tick_context);
@@ -83,10 +84,6 @@ impl<S: SoundManager> Client<S> {
         // if is_key_released(KeyCode::B) {
         //     self.game_state.level = Level::from_save("level.yaml".to_string());
         // }
-
-        
-
-        
 
         self.save_state();
 
@@ -139,6 +136,8 @@ impl<S: SoundManager> Client<S> {
 
         // send a final sync to the server
         self.sync_client.as_mut().unwrap().sync(&mut self.game_state);
+
+        self.sync_client.as_mut().unwrap().disconnect();
     }
 
     pub fn reset_level(&mut self) {
@@ -189,10 +188,15 @@ impl<S: SoundManager> Client<S> {
 
                 //println!("{}", self.last_tick.elapsed().as_millis() - 8);
 
+                let then = Instant::now();
                 self.tick().await;
-                
+
+                //println!("tick: {:?}", then.elapsed());
+            
 
                 self.draw().await;
+
+                
                 
                 // self.tick() updates self.last_tick automatically unlike self.last_sync
             }
@@ -202,7 +206,12 @@ impl<S: SoundManager> Client<S> {
             if self.last_sync.elapsed().as_secs_f32() > 1./120. {
 
                 if let Some(sync_client) = &mut self.sync_client {
+
+                    let then = Instant::now();
+                    
                     sync_client.sync(&mut self.game_state);
+
+                    //println!("sync: {:?}", then.elapsed());
                 }
 
                 self.last_sync = Instant::now();
@@ -228,7 +237,8 @@ impl<S: SoundManager> Client<S> {
 
  
     pub async fn draw(&mut self) {
-    
+        
+        let then = Instant::now();
         draw_text(format!("fps: {}", get_fps()).as_str(), screen_width() - 120., 25., 30., WHITE);
         //draw_text(format!("uuid: {}", self.uuid).as_str(), screen_width() - 120., 25., 30., WHITE);
         
@@ -249,6 +259,8 @@ impl<S: SoundManager> Client<S> {
         if let Some(main_menu) = &self.main_menu {
             main_menu.draw(&mut self.textures).await
         }
+
+        //println!("draw: {:?}", then.elapsed());
         
 
         macroquad::window::next_frame().await;

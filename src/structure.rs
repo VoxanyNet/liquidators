@@ -100,7 +100,10 @@ impl Structure {
 
         let mut menu = Menu::new(
             mouse_pos,
-            DARKGRAY
+            DARKGRAY,
+            "assets/fonts/CutePixel.ttf".to_string(), 
+            None,
+            None
         );
 
         menu.add_button("Delete".to_string());
