@@ -260,8 +260,6 @@ impl Player {
 
             structures_iter.restore(structure);
         }
-
-        println!("iterate over structures: {:?}", then.elapsed());
         
     }
 
@@ -504,8 +502,6 @@ impl Player {
                     if owner == ctx.uuid {
                         continue;    
                     }
-
-                    println!("taking ownership of structure!");
                         
                     *owner = ctx.uuid.clone();
 
@@ -560,7 +556,6 @@ impl Player {
         if is_key_down(KeyCode::Space) || gamepad.map_or(false, |gamepad| {gamepad.is_pressed(gilrs::Button::South)}) {
 
             // dont allow if moving if falling or jumping
-
             if rigid_body.linvel().y.abs() > 0.5 {
                 return
             }

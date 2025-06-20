@@ -69,7 +69,7 @@ impl<S: SoundManager> Client<S> {
             menu.tick(&mut tick_context);
 
             if menu.started {
-                *self = Client::connect("ws://voxany.net:5556").await;
+                *self = Client::connect("ws://127.0.0.1:5556").await;
             }
 
 
@@ -154,7 +154,7 @@ impl<S: SoundManager> Client<S> {
             brick.owner = Some(self.uuid.clone());
         }
 
-        Player::spawn(&mut self.game_state.level.players, &mut self.game_state.level.space, self.uuid.clone(), &vec2(100., 300.), &mut self.textures);
+        //Player::spawn(&mut self.game_state.level.players, &mut self.game_state.level.space, self.uuid.clone(), &vec2(100., 300.), &mut self.textures);
 
     }
 

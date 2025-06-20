@@ -46,10 +46,6 @@ impl GameState {
 
         self.spawn_brick(ctx);
 
-        if is_key_released(macroquad::input::KeyCode::Backspace) {
-            self.chat.add_message("Test".to_string(), "Super cool!".to_string())
-        }
-
     }
 
     pub async fn draw(&self, textures: &mut TextureLoader, camera_rect: &Rect) {

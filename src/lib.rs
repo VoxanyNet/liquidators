@@ -29,6 +29,7 @@ pub mod sky;
 pub mod teleporter;
 pub mod grenade;
 pub mod main_menu;
+pub mod enemy;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(

@@ -7,7 +7,7 @@ use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::{brick::Brick, grenade::Grenade, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
+use crate::{brick::Brick, enemy::Enemy, grenade::Grenade, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -26,7 +26,8 @@ pub struct Level {
     pub body_parts: Vec<BodyPart>,
     pub teleporters: Vec<Teleporter>,
     pub hit_markers: Vec<Vec2>,
-    pub grenades: Vec<Grenade>
+    pub grenades: Vec<Grenade>,
+    pub enemies: SyncArena<Enemy>
 }
 
 impl Level {
@@ -44,7 +45,8 @@ impl Level {
             body_parts: vec![],
             teleporters: Vec::new(),
             hit_markers: Vec::new(),
-            grenades: Vec::new()
+            grenades: Vec::new(),
+            enemies: SyncArena::new()
         };
     
         level.space.gravity.y = -980.;
@@ -67,16 +69,28 @@ impl Level {
         ctx: &mut TickContext,
     ) {
 
-        if is_key_down(KeyCode::C) {
+        
+        if is_key_released(KeyCode::C) {
 
             let mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);
 
-            for (_, rigid_body) in self.space.sync_rigid_body_set.rigid_body_set.iter_mut() {
+            self.enemies.insert(
+                Enemy::new(mouse_pos, ctx.uuid.clone(), &mut self.space, ctx.textures)
+            
+            );
+        }
 
-                let distance_to_mouse = Vec2::new(mouse_pos.x - rigid_body.translation().x, mouse_pos.y - rigid_body.translation().y);
+        if is_key_released(KeyCode::H) {
+            let mut players_iter = SyncArenaIterator::new(&mut self.players);
+    
+            while let Some((mut player, _)) = players_iter.next() {
+                if player.contains_point(&mut self.space, rapier_mouse_world_pos(ctx.camera_rect)) {
+                    player.despawn(&mut self.space);
+                }
 
-                rigid_body.apply_impulse(vector![distance_to_mouse.x * 5., distance_to_mouse.y * 5.].into(), true);
-
+                else {
+                    players_iter.restore(player);
+                }
             }
         }
 
@@ -93,6 +107,15 @@ impl Level {
             );
 
 
+        }
+
+        for (_, enemy) in &mut self.enemies {
+
+            if enemy.owner != *ctx.uuid {
+                continue;
+            }
+
+            enemy.tick(&mut self.space, ctx, &self.players);
         }
 
         for grenade in &mut self.grenades {
@@ -327,6 +350,10 @@ impl Level {
         }
         for shotgun in &self.shotguns {
             shotgun.draw(&self.space, textures, false, false).await;
+        }
+
+        for (_, enemy) in &self.enemies {
+            enemy.draw(&self.space, textures).await;
         }
 
         for grenade in &self.grenades {

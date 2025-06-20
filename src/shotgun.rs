@@ -88,7 +88,8 @@ impl Shotgun {
         ctx.owned_colliders.push(self.collider);
 
         self.fire(space, players, hit_markers, ctx);
-        self.sync_sound(ctx);
+        
+        //self.sync_sound(ctx);
     }
 
     pub fn all_tick(&mut self, players: &mut SyncArena<Player>, space: &mut Space, ctx: &mut TickContext) {
