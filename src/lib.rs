@@ -30,6 +30,7 @@ pub mod teleporter;
 pub mod grenade;
 pub mod main_menu;
 pub mod enemy;
+pub mod pixel;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(

@@ -179,12 +179,13 @@ impl Player {
         );
     }
 
+
     pub fn sync_sound(&mut self, sounds: &mut dyn SoundManager) {
         sounds.sync_sound(&mut self.sound);
     }
 
 
-    pub fn tick(&mut self, space: &mut Space, structures: &mut Vec<Structure>, teleporters: &mut Vec<Teleporter>, hit_markers: &mut Vec<Vec2>, ctx: &mut TickContext, players: &mut SyncArena<Player>) {
+    pub fn tick(&mut self, space: &mut Space, structures: &mut Vec<Structure>, bricks: &mut Vec<Brick>, teleporters: &mut Vec<Teleporter>, hit_markers: &mut Vec<Vec2>, ctx: &mut TickContext, players: &mut SyncArena<Player>) {
         //self.launch_brick(level, ctx);
         self.control(space, ctx);
         self.update_selected(space, &ctx.camera_rect);
@@ -200,6 +201,7 @@ impl Player {
         self.sync_sound(ctx.sounds);
         self.place_teleporter(ctx, teleporters, space);
         self.angle_shotgun_to_mouse(space, ctx.camera_rect);
+        self.launch_brick(bricks, space, ctx);
         
         self.detach_head_if_dead(space);
 
@@ -518,14 +520,14 @@ impl Player {
             //self.portal_gun.fire(camera_rect, portal_bullets);
         }
     }
-
-    pub fn launch_brick(&mut self, level: &mut Level, ctx: &mut TickContext) {
+    
+    pub fn launch_brick(&mut self, bricks: &mut Vec<Brick>, space: &mut Space, ctx: &mut TickContext) {
 
         if !is_mouse_button_down(macroquad::input::MouseButton::Left) {
             return;
         }
         let (player_pos, player_rotation, player_velocity) = {
-            let body = level.space.sync_rigid_body_set.get_sync(*self.rigid_body_handle()).unwrap();
+            let body = space.sync_rigid_body_set.get_sync(*self.rigid_body_handle()).unwrap();
             (body.position().clone(), body.rotation().clone(), body.linvel().clone())
         };
 
@@ -538,9 +540,9 @@ impl Player {
             player_pos.translation.y + mouse_body_distance.normalize().y * 40.
         );
 
-        let brick = Brick::new(&mut level.space, brick_spawn_point, Some(ctx.uuid.clone()));
+        let brick = Brick::new(space, brick_spawn_point, Some(ctx.uuid.clone()));
         
-        let brick_body = level.space.sync_rigid_body_set.get_sync_mut(*brick.rigid_body_handle()).unwrap();
+        let brick_body = space.sync_rigid_body_set.get_sync_mut(*brick.rigid_body_handle()).unwrap();
 
         let mut brick_velocity = player_velocity;
         brick_velocity.x += 5000. * mouse_body_distance.normalize().x;
@@ -548,7 +550,7 @@ impl Player {
         brick_body.set_rotation(player_rotation, true);
         brick_body.set_linvel(brick_velocity, true);
 
-        level.bricks.push(brick);
+        bricks.push(brick);
 
     }
 

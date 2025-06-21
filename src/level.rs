@@ -1,4 +1,4 @@
-use std::fs;
+use std::{collections::HashSet, fs};
 
 use diff::Diff;
 use gamelibrary::{arenaiter::SyncArenaIterator, macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
@@ -7,7 +7,7 @@ use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::{brick::Brick, enemy::Enemy, grenade::Grenade, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
+use crate::{brick::Brick, enemy::Enemy, grenade::Grenade, pixel::Pixel, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -27,7 +27,8 @@ pub struct Level {
     pub teleporters: Vec<Teleporter>,
     pub hit_markers: Vec<Vec2>,
     pub grenades: Vec<Grenade>,
-    pub enemies: SyncArena<Enemy>
+    pub enemies: SyncArena<Enemy>,
+    pub pixels: HashSet<Pixel>
 }
 
 impl Level {
@@ -46,12 +47,26 @@ impl Level {
             teleporters: Vec::new(),
             hit_markers: Vec::new(),
             grenades: Vec::new(),
-            enemies: SyncArena::new()
+            enemies: SyncArena::new(),
+            pixels: HashSet::new()
         };
     
         level.space.gravity.y = -980.;
         
         level
+    }
+
+    pub fn spawn_pixel(&mut self, pos: Vec2, ctx: &mut TickContext) {
+        self.pixels.insert(
+            Pixel::new(
+                WHITE, 
+                rapier_mouse_world_pos(ctx.camera_rect), 
+                &mut self.space, 
+                None, 
+                None, 
+                ctx.uuid.clone()
+            )
+        );
     }
 
     pub fn from_save(path: String) -> Self {
@@ -95,7 +110,9 @@ impl Level {
         }
 
         if is_key_released(KeyCode::J) {
-            self.structures.remove(0).despawn(&mut self.space);
+            self.spawn_pixel(rapier_mouse_world_pos(ctx.camera_rect), ctx);
+
+            println!("{:?}", self.pixels.len());
         }
 
         if is_key_released(KeyCode::G) {
@@ -127,6 +144,10 @@ impl Level {
             portal_bullet.tick();
             
         }
+        
+        for pixel in self.pixels.iter() {
+            pixel.tick(ctx);
+        }
 
         if is_key_released(KeyCode::Delete) {
             self.hit_markers = Vec::new();
@@ -151,7 +172,7 @@ impl Level {
                 continue;
             }
 
-            player.tick(&mut self.space, &mut self.structures, &mut self.teleporters, &mut self.hit_markers, ctx, players);
+            player.tick(&mut self.space, &mut self.structures, &mut self.bricks, &mut self.teleporters, &mut self.hit_markers, ctx, players);
                 
 
             players_iter.restore(player);   
@@ -354,6 +375,10 @@ impl Level {
 
         for (_, enemy) in &self.enemies {
             enemy.draw(&self.space, textures).await;
+        }
+
+        for pixel in &self.pixels {
+            pixel.draw(&self.space).await;
         }
 
         for grenade in &self.grenades {
