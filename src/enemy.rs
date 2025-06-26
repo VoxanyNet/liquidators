@@ -16,14 +16,14 @@ use crate::{player::{self, body_part::BodyPart, player::{Facing, Player}}, TickC
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct Enemy {
-    head: BodyPart,
-    body: BodyPart,
-    health: u32,
+    pub head: BodyPart,
+    pub body: BodyPart,
+    pub health: i32,
     facing: Facing,
     pub owner: String,
-    head_body_joint: SyncImpulseJointHandle,
+    head_body_joint: Option<SyncImpulseJointHandle>,
     last_jump: Time,
-    player_target: Option<Index>
+    player_target: Option<Index>,
 }
 
 impl Enemy {
@@ -68,7 +68,7 @@ impl Enemy {
             health: 100,
             facing: Facing::Right,
             owner,
-            head_body_joint,
+            head_body_joint: Some(head_body_joint),
             last_jump: Time::new(0),
             player_target: None
         }
@@ -77,18 +77,39 @@ impl Enemy {
 
     pub fn tick(&mut self, space: &mut Space, ctx: &mut TickContext, players: &SyncArena<Player>) {
 
+        if self.health > 0 {
+            self.upright(space, ctx);
+
+            self.target_player(players, space);
+
+            self.follow_target(space, players);
+        }
         self.head.tick(space, ctx);
 
         self.body.tick(space, ctx);
 
         self.change_facing_direction(space);
 
-        self.upright(space, ctx);
+        self.detach_head_if_dead(space);
 
-        self.target_player(players, space);
+    }
+    
+    pub fn detach_head_if_dead(&mut self, space: &mut Space) {
 
-        self.follow_target(space, players);
+        let head_joint_handle = match self.head_body_joint {
+            Some(head_joint_handle) => {
+                head_joint_handle
+            },
+            None => {
+                return;
+            },
+        };
 
+        if self.health <= 0 {
+            space.sync_impulse_joint_set.remove_sync(head_joint_handle, true);
+
+            self.head_body_joint = None;
+        }
     }
 
     pub fn follow_target(&mut self, space: &mut Space, players: &SyncArena<Player>) {
@@ -107,7 +128,7 @@ impl Enemy {
 
         enemy_body.set_linvel(
             vector![
-                target_vector.x * 100., 
+                (enemy_body.linvel().x) + (10. * target_vector.x), 
                 enemy_body.linvel().y
             ], 
             true
@@ -157,7 +178,7 @@ impl Enemy {
     }
 
     pub fn upright(&mut self, space: &mut Space, ctx: &mut TickContext) {
-
+        
         let body = space.sync_rigid_body_set.get_sync_mut(self.body.body_handle).unwrap();
 
         // dont try to upright if we aren't knocked over
@@ -180,7 +201,7 @@ impl Enemy {
             self.last_jump = Time::now();
         }
 
-        let joint = space.sync_impulse_joint_set.get_sync_mut(self.head_body_joint).unwrap();
+        let joint = space.sync_impulse_joint_set.get_sync_mut(self.head_body_joint.unwrap()).unwrap();
 
         joint.data.as_revolute_mut().unwrap().set_motor_position(0., 1000., 2.);
 

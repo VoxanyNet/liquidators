@@ -1,9 +1,10 @@
 use diff::Diff;
+use gamelibrary::time::Time;
 use macroquad::{color::WHITE, math::Vec2, text::draw_text, window::screen_height};
 use serde::{Deserialize, Serialize};
 
 
-#[derive(Serialize, Deserialize, Diff, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Diff, Clone, PartialEq, Default)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]
@@ -17,6 +18,7 @@ impl Chat {
             Message {
                 author,
                 content,
+                timstamp: Time::now()
             }
         )
     }
@@ -33,8 +35,14 @@ impl Chat {
             screen_height()
         );
 
+        let mut index = 0;
         // iterate through messages in reverse order
-        for (index, message) in self.messages.iter().rev().enumerate() {
+        for message in self.messages.iter().rev(){
+
+            if message.timstamp.elapsed().num_seconds() > 10 {
+                continue;
+            }
+
             draw_text(
                 &message.content, 
                 origin.x + 30., 
@@ -42,15 +50,18 @@ impl Chat {
                 30., 
                 WHITE
             );
+
+            index += 1;
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Diff, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Diff, Clone, PartialEq, Default)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct Message {
     pub author: String,
-    pub content: String
+    pub content: String,
+    pub timstamp: Time
 }

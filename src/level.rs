@@ -1,13 +1,13 @@
-use std::{collections::HashSet, fs};
+use std::{collections::{HashMap, HashSet}, fs};
 
 use diff::Diff;
-use gamelibrary::{arenaiter::SyncArenaIterator, macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{arenaiter::SyncArenaIterator, font_loader::FontLoader, macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics, uuid};
 use macroquad::{color::{RED, WHITE}, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}, shapes::{draw_rectangle, draw_rectangle_ex, DrawRectangleParams}};
 use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::{brick::Brick, enemy::Enemy, grenade::Grenade, pixel::Pixel, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
+use crate::{brick::Brick, damage_number::DamageNumber, enemy::Enemy, grenade::Grenade, pixel::Pixel, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -28,7 +28,8 @@ pub struct Level {
     pub hit_markers: Vec<Vec2>,
     pub grenades: Vec<Grenade>,
     pub enemies: SyncArena<Enemy>,
-    pub pixels: HashSet<Pixel>
+    pub pixels: HashSet<Pixel>,
+    pub damage_numbers: HashSet<DamageNumber>
 }
 
 impl Level {
@@ -48,7 +49,8 @@ impl Level {
             hit_markers: Vec::new(),
             grenades: Vec::new(),
             enemies: SyncArena::new(),
-            pixels: HashSet::new()
+            pixels: HashSet::new(),
+            damage_numbers: HashSet::new()
         };
     
         level.space.gravity.y = -980.;
@@ -84,6 +86,10 @@ impl Level {
         ctx: &mut TickContext,
     ) {
 
+        
+        self.spawn_fixed_structure(ctx.camera_rect, ctx.uuid);
+
+        self.spawn_damage_number(ctx.camera_rect);
         
         if is_key_released(KeyCode::C) {
 
@@ -158,7 +164,7 @@ impl Level {
         }
         for shotgun in &mut self.shotguns {
 
-            shotgun.tick(&mut self.players, &mut self.space, &mut self.hit_markers, ctx);
+            shotgun.tick(&mut self.players, &mut self.space, &mut self.hit_markers, ctx, &mut self.enemies, &mut self.damage_numbers);
 
         }
 
@@ -172,7 +178,17 @@ impl Level {
                 continue;
             }
 
-            player.tick(&mut self.space, &mut self.structures, &mut self.bricks, &mut self.teleporters, &mut self.hit_markers, ctx, players);
+            player.tick(
+                &mut self.space, 
+                &mut self.structures, 
+                &mut self.bricks, 
+                &mut self.teleporters, 
+                &mut self.hit_markers, 
+                ctx, 
+                players, 
+                &mut self.enemies,
+                &mut self.damage_numbers
+            );
                 
 
             players_iter.restore(player);   
@@ -286,6 +302,62 @@ impl Level {
         }
     }
 
+    pub fn spawn_damage_number(&mut self, camera_rect: &Rect) {
+
+        if !is_key_released(KeyCode::L) {
+            return;
+        }
+        let mouse_pos = rapier_mouse_world_pos(camera_rect);
+
+        self.damage_numbers.insert(
+            DamageNumber::new(&mut self.space, 5, mouse_pos, Some(24), Some(WHITE))
+        );
+    }
+
+    pub fn spawn_fixed_structure(&mut self, camera_rect: &Rect, uuid: &String) {
+        if is_key_released(input::KeyCode::Q) {
+
+            let mouse_world_pos = mouse_world_pos(camera_rect);
+
+            let rapier_mouse_world_pos = macroquad_to_rapier(&mouse_world_pos);
+
+            let rigid_body_handle = self.space.sync_rigid_body_set.insert_sync(
+                RigidBodyBuilder::fixed()
+                    .position(
+                        vector![rapier_mouse_world_pos.x, rapier_mouse_world_pos.y].into()
+                    )
+                    .ccd_enabled(true)
+            );
+
+            let collider = ColliderBuilder::cuboid(20., 20.)
+                .mass(10.)
+                .restitution(0.)
+                .build();
+
+            let collider_handle = self.space.sync_collider_set.insert_with_parent_sync(collider, rigid_body_handle, &mut self.space.sync_rigid_body_set);
+
+            let new_structure = Structure { 
+                grabbing: false,
+                editor_owner: uuid.clone(),
+                rigid_body_handle: rigid_body_handle,
+                collider_handle: collider_handle,
+                color: RED,
+                menu: None,
+                selected: false,
+                dragging: false,
+                owner: Some(uuid.to_string()),
+                drag_offset: None,
+                sprite_path: "assets/structure/brick_block.png".to_string(),
+                last_ownership_change: 0,
+                particles: vec![],
+                joint_test: None.into()
+            };
+            
+            self.structures.push(new_structure);
+
+        }
+    }
+
     pub fn editor_spawn_structure(&mut self, camera_rect: &Rect, uuid: &String) {
 
         if is_key_released(input::KeyCode::E) {
@@ -362,10 +434,18 @@ impl Level {
             brick.editor_draw(&self.space, textures).await
         }
     }
-    pub async fn draw(&self, textures: &mut TextureLoader, camera_rect: &Rect) {
+    pub async fn draw(
+        &self, 
+        textures: &mut TextureLoader, 
+        camera_rect: &Rect,
+        fonts: &mut FontLoader
+    ) {
 
         //self.sky.draw();
 
+        for damage_number in &self.damage_numbers {
+            damage_number.draw(&self.space, fonts);
+        }
         for teleporter in &self.teleporters {
             teleporter.draw(&self.space);
         }

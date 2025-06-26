@@ -2,10 +2,11 @@ use std::{fs, path::Path, time::Instant};
 
 use console::Console;
 use diff::Diff;
-use gamelibrary::{rapier_mouse_world_pos, sound::soundmanager::SoundManager, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{font_loader::FontLoader, rapier_mouse_world_pos, sound::soundmanager::SoundManager, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
 use macroquad::{input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}};
-use nalgebra::vector;
+use nalgebra::{coordinates::X, vector};
+use noise::Perlin;
 use rand::{rng, seq::IndexedRandom};
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, QueryFilter, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
@@ -31,6 +32,7 @@ pub mod grenade;
 pub mod main_menu;
 pub mod enemy;
 pub mod pixel;
+pub mod damage_number;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -160,7 +162,7 @@ pub struct TickContext<'a> {
     pub textures: &'a mut TextureLoader,
     pub last_tick: &'a Instant,
     pub uuid: &'a String,
-    pub camera_rect: &'a Rect,
+    pub camera_rect: &'a mut Rect,
     pub camera_offset: &'a mut Vec2,
     pub active_gamepad: &'a Option<GamepadId>,
     pub console: &'a mut Console,
@@ -168,5 +170,56 @@ pub struct TickContext<'a> {
     pub owned_colliders: &'a mut Vec<SyncColliderHandle>,
     pub owned_impulse_joints: &'a mut Vec<SyncImpulseJointHandle>,
     pub sounds: &'a mut dyn SoundManager,
-    pub last_tick_mouse_world_pos: &'a mut Vec2
+    pub last_tick_mouse_world_pos: &'a mut Vec2,
+    pub font_loader: &'a mut FontLoader,
+    pub screen_shake: &'a mut ScreenShakeParameters
+}
+
+pub struct ScreenShakeParameters {
+    pub x_intensity: f64,
+    pub x_frequency: f64,
+    pub x_offset: f64,
+    pub x_noise: Perlin,
+    pub x_intensity_decay: f64,
+    pub x_frequency_decay: f64,
+
+    pub y_intensity: f64,
+    pub y_frequency: f64,
+    pub y_offset: f64,
+    pub y_noise: Perlin,
+    pub y_intensity_decay: f64,
+    pub y_frequency_decay: f64
+
+}
+
+impl ScreenShakeParameters {
+    pub fn default(x_seed: Option<u32>, y_seed: Option<u32>) -> Self {
+
+        let x_seed = match x_seed {
+            Some(seed) => seed,
+            None => 69420,
+        };
+
+        let y_seed = match y_seed {
+            Some(seed) => seed,
+            None => 42069,
+        };
+
+
+        Self {
+            x_intensity: 0.,
+            x_frequency: 0.,
+            x_offset: 0.,
+            x_noise: Perlin::new(x_seed),
+            x_intensity_decay: 0.,
+            x_frequency_decay: 0.,
+
+            y_intensity: 0.,
+            y_frequency: 0.,
+            y_offset: 0.,
+            y_noise: Perlin::new(y_seed),
+            y_intensity_decay: 0.,
+            y_frequency_decay: 0.,
+        }
+    }
 }

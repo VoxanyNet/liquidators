@@ -1,8 +1,8 @@
 structures:
 - rigid_body_handle:
-    id: 2909101602040005740
+    id: 3539766641873014780
   collider_handle:
-    id: 78761545525185380
+    id: 10401440916012944545
   color:
     r: 0.9
     g: 0.16
@@ -13,7 +13,7 @@ structures:
   dragging: false
   drag_offset: null
   owner: null
-  editor_owner: '4247899652'
+  editor_owner: '4164150168'
   sprite_path: assets/structure/brick_block.png
   last_ownership_change: 0
   grabbing: false
@@ -47,15 +47,15 @@ space:
                 - 1.0
                 - 0.0
                 translation:
-                - 664.0
-                - 176.0
+                - 1641.3334
+                - 202.66663
               next_position:
                 rotation:
                 - 1.0
                 - 0.0
                 translation:
-                - 664.0
-                - 176.0
+                - 1641.3334
+                - 202.66663
             mprops:
               flags: ''
               local_mprops:
@@ -66,8 +66,8 @@ space:
                 inv_principal_inertia_sqrt: 0.019364918
               additional_local_mprops: null
               world_com:
-              - 664.0
-              - 176.0
+              - 1641.3334
+              - 202.66663
               effective_inv_mass:
               - 0.1
               - 0.1
@@ -134,13 +134,13 @@ space:
       - index: 0
         generation: 0
     sync_map:
-      ? id: 2909101602040005740
+      ? id: 3539766641873014780
       : index: 0
         generation: 0
     reverse_sync_map:
       ? index: 0
         generation: 0
-      : id: 2909101602040005740
+      : id: 3539766641873014780
   sync_collider_set:
     collider_set:
       colliders:
@@ -151,7 +151,7 @@ space:
             coll_type: Solid
             shape: !Cuboid
               half_extents:
-              - 670.0
+              - 1650.0
               - 20.0
             mprops: !Mass 10.0
             changes: MODIFIED | LOCAL_MASS_PROPERTIES | PARENT | POSITION | GROUPS | SHAPE | TYPE | PARENT_EFFECTIVE_DOMINANCE | ENABLED_OR_DISABLED
@@ -171,8 +171,8 @@ space:
               - 1.0
               - 0.0
               translation:
-              - 14.0
-              - 176.0
+              - 11.333374
+              - 202.66663
             material:
               friction: 0.5
               restitution: 0.0
@@ -208,13 +208,13 @@ space:
         generation: 0
       removed_colliders: []
     sync_map:
-      ? id: 78761545525185380
+      ? id: 10401440916012944545
       : index: 0
         generation: 0
     reverse_sync_map:
       ? index: 0
         generation: 0
-      : id: 78761545525185380
+      : id: 10401440916012944545
   gravity:
   - 0.0
   - -980.0
@@ -312,28 +312,28 @@ space:
     qbvh:
       root_aabb:
         mins:
-        - -669.4
-        - 155.6
+        - -1671.6666
+        - 182.26663
         maxs:
-        - 697.4
-        - 196.4
+        - 1694.3334
+        - 223.06662
       nodes:
       - simd_aabb:
           mins:
-          - - -669.4
+          - - -1671.6666
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 155.6
+          - - 182.26663
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 697.4
+          - - 1694.3334
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 196.4
+          - - 223.06662
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
@@ -348,20 +348,20 @@ space:
         flags: 0
       - simd_aabb:
           mins:
-          - - -669.4
+          - - -1671.6666
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 155.6
+          - - 182.26663
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 697.4
+          - - 1694.3334
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 196.4
+          - - 223.06662
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
@@ -410,3 +410,4 @@ enemies:
   len: 0
   sync_index_map: {}
 pixels: []
+damage_numbers: []

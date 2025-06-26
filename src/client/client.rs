@@ -1,10 +1,11 @@
 use std::{fs, sync::{mpsc, Arc, Mutex}, time::Instant};
 
 use futures::executor::block_on;
-use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, log, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, font_loader::FontLoader, log, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics};
 use gilrs::GamepadId;
-use liquidators_lib::{console::Console, game_state::GameState, level::Level, main_menu::MainMenu, player::player::Player, vec_remove_iter::IntoVecRemoveIter, TickContext};
-use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::camera::mouse, text::draw_text, time::get_fps, window::{request_new_screen_size, screen_width}};
+use liquidators_lib::{console::Console, game_state::GameState, level::Level, main_menu::MainMenu, player::player::Player, vec_remove_iter::IntoVecRemoveIter, ScreenShakeParameters, TickContext};
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::{camera::mouse, gl_use_default_material, gl_use_material, load_material, MaterialParams, PipelineParams, ShaderSource, UniformDesc, UniformType}, text::draw_text, time::get_fps, window::{request_new_screen_size, screen_height, screen_width}};
+use noise::{NoiseFn, Perlin};
 use tungstenite::http::request;
 use uuid::Uuid;
 
@@ -24,7 +25,10 @@ pub struct Client<S: SoundManager> {
     pub console: Console,
     pub sounds: S,
     pub last_tick_mouse_world_pos: Vec2,
-    pub main_menu: Option<MainMenu>
+    pub main_menu: Option<MainMenu>,
+    pub font_loader: FontLoader,
+    pub start: Instant,
+    pub screen_shake: ScreenShakeParameters,
 }
 
 impl<S: SoundManager> Client<S> {
@@ -49,14 +53,16 @@ impl<S: SoundManager> Client<S> {
             uuid: &self.uuid,
             camera_offset: &mut self.camera_offset,
             last_tick: &self.last_tick,
-            camera_rect: &self.camera_rect,
+            camera_rect: &mut self.camera_rect,
             active_gamepad: &self.active_gamepad,
             console: &mut self.console,
             owned_rigid_bodies: &mut vec![],
             owned_colliders: &mut vec![],
             owned_impulse_joints: &mut vec![],
             sounds: &mut self.sounds,
-            last_tick_mouse_world_pos: &mut self.last_tick_mouse_world_pos
+            last_tick_mouse_world_pos: &mut self.last_tick_mouse_world_pos,
+            font_loader: &mut self.font_loader,
+            screen_shake: &mut self.screen_shake
         };
 
         self.game_state.tick(
@@ -154,7 +160,7 @@ impl<S: SoundManager> Client<S> {
             brick.owner = Some(self.uuid.clone());
         }
 
-        //Player::spawn(&mut self.game_state.level.players, &mut self.game_state.level.space, self.uuid.clone(), &vec2(100., 300.), &mut self.textures);
+        Player::spawn(&mut self.game_state.level.players, &mut self.game_state.level.space, self.uuid.clone(), &vec2(100., 300.), &mut self.textures);
 
     }
 
@@ -163,16 +169,28 @@ impl<S: SoundManager> Client<S> {
         Self::tick(&mut *client.lock().unwrap());
     }
 
-    pub fn draw_loop(rx: mpsc::Receiver<GameState>) {
-        
-    }
-
     pub async fn run(&mut self) {
 
         prevent_quit();
 
+        // let shader = load_material(
+        //     ShaderSource::Glsl {
+        //         vertex: include_str!("default_share.glsl"),
+        //         fragment: include_str!("shader.glsl"),
+        //     },
+        //     MaterialParams {
+        //         uniforms: vec![
+        //             UniformDesc { name: "screen_size".to_string(), uniform_type: UniformType::Float2, array_count: 1 },
+        //         ],
+        //         textures: vec!["texture".to_string()],
+        //         pipeline_params: PipelineParams::default()
+        //     },
+        // )   
+        // .unwrap();
         
         loop {
+
+            
 
             if is_quit_requested() {
                 self.disconnect();
@@ -242,7 +260,44 @@ impl<S: SoundManager> Client<S> {
         draw_text(format!("fps: {}", get_fps()).as_str(), screen_width() - 120., 25., 30., WHITE);
         //draw_text(format!("uuid: {}", self.uuid).as_str(), screen_width() - 120., 25., 30., WHITE);
         
-        let mut camera = Camera2D::from_display_rect(self.camera_rect);
+        let elapsed = self.start.elapsed().as_secs_f64();
+
+        let x_shake = {
+            let frequency_modifier = self.screen_shake.x_frequency;
+            
+            let magnitude_modifier = self.screen_shake.x_intensity;
+
+            let offset = self.screen_shake.x_offset;
+
+            magnitude_modifier * ((frequency_modifier * elapsed) + offset).sin()
+
+            
+        };
+
+        println!("x_shake: {:?}", x_shake);
+
+        let y_shake = {
+            let frequency_modifier = self.screen_shake.y_frequency;
+            
+            let magnitude_modifier = self.screen_shake.y_intensity;
+
+            let offset = self.screen_shake.y_offset;
+
+            magnitude_modifier * ((frequency_modifier * elapsed) + offset).sin()
+        };
+
+        println!("y_shake: {:?}", y_shake);
+        
+        // add shake
+        let shaken_camera_rect = Rect {
+            x: self.camera_rect.x + x_shake as f32,
+            y: self.camera_rect.y + y_shake as f32,
+            w: self.camera_rect.w,
+            h: self.camera_rect.h,
+        };
+
+
+        let mut camera = Camera2D::from_display_rect(shaken_camera_rect);
         camera.zoom.y = -camera.zoom.y;
 
         set_camera(
@@ -250,11 +305,13 @@ impl<S: SoundManager> Client<S> {
         );
 
     
-        self.game_state.draw(&mut self.textures, &self.camera_rect).await;
+        self.game_state.draw(&mut self.textures, &self.camera_rect, &mut self.font_loader).await;
 
         set_default_camera();
 
         self.console.draw().await;
+
+        self.game_state.chat.draw().await;
 
         if let Some(main_menu) = &self.main_menu {
             main_menu.draw(&mut self.textures).await
@@ -287,7 +344,10 @@ impl<S: SoundManager> Client<S> {
             console: Console::new(),
             sounds: S::new(),
             last_tick_mouse_world_pos: rapier_mouse_world_pos(&Rect::new(0., 200., 1280., 720.)),
-            main_menu: Some(main_menu)
+            main_menu: Some(main_menu),
+            font_loader: FontLoader::new(),
+            start: Instant::now(),
+            screen_shake: ScreenShakeParameters::default(None, None)
 
         }
     }
@@ -343,7 +403,10 @@ impl<S: SoundManager> Client<S> {
             console: Console::new(),
             sounds: S::new(),
             last_tick_mouse_world_pos: rapier_mouse_world_pos(&camera_rect),
-            main_menu: None
+            main_menu: None,
+            font_loader: FontLoader::new(),
+            start: Instant::now(),
+            screen_shake: ScreenShakeParameters::default(None, None)
         }
     }
 

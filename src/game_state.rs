@@ -1,6 +1,6 @@
 
 use diff::Diff;
-use gamelibrary::{rapier_mouse_world_pos, texture_loader::TextureLoader};
+use gamelibrary::{font_loader::FontLoader, rapier_mouse_world_pos, texture_loader::TextureLoader};
 use macroquad::{input::is_key_released, math::Rect};
 use serde::{Deserialize, Serialize};
 
@@ -46,13 +46,15 @@ impl GameState {
 
         self.spawn_brick(ctx);
 
+        if is_key_released(macroquad::input::KeyCode::Backspace) {
+            self.chat.add_message("Gamer".to_string(), "Test message".to_string());
+        }
+
     }
 
-    pub async fn draw(&self, textures: &mut TextureLoader, camera_rect: &Rect) {
+    pub async fn draw(&self, textures: &mut TextureLoader, camera_rect: &Rect, fonts: &mut FontLoader) {
 
-        self.level.draw(textures, camera_rect).await;
-
-        self.chat.draw().await;
+        self.level.draw(textures, camera_rect, fonts).await;
     }
 
 }

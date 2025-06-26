@@ -1,12 +1,14 @@
+use std::collections::HashSet;
+
 use diff::Diff;
 use gamelibrary::{get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::SoundHandle, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::{draw_texture_onto_physics_body, HasPhysics}};
-use macroquad::{color::RED, input::is_mouse_button_released, math::Vec2, shapes::draw_rectangle};
+use macroquad::{color::{RED, WHITE}, input::is_mouse_button_released, math::{vec2, Vec2}, shapes::draw_rectangle};
 use nalgebra::{point, vector};
 use parry2d::query::Ray;
 use rapier2d::prelude::{ColliderHandle, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{collider_from_texture_size, player::player::Player, Grabbable, TickContext};
+use crate::{collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, player::player::Player, Grabbable, TickContext};
 
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -24,7 +26,7 @@ pub struct Shotgun {
     pub grabbing: bool,
     pub owner: String,
     pub picked_up: bool,
-    pub sounds: Vec<SoundHandle> // is this the best way to do this?
+    pub sounds: Vec<SoundHandle>, // is this the best way to do this?
 }
 
 impl Grabbable for Shotgun {
@@ -83,11 +85,19 @@ impl Shotgun {
         );
     }
 
-    pub fn owner_tick(&mut self, players: &mut SyncArena<Player>, hit_markers: &mut Vec<Vec2>, space: &mut Space, ctx: &mut TickContext) {
+    pub fn owner_tick(
+        &mut self, 
+        players: &mut SyncArena<Player>, 
+        hit_markers: &mut Vec<Vec2>, 
+        space: &mut Space, 
+        ctx: &mut TickContext,
+        enemies: &mut SyncArena<Enemy>,
+        damage_numbers: &mut HashSet<DamageNumber>
+    ) {
         ctx.owned_rigid_bodies.push(self.rigid_body);
         ctx.owned_colliders.push(self.collider);
 
-        self.fire(space, players, hit_markers, ctx);
+        self.fire(space, players, enemies, hit_markers, damage_numbers, ctx);
         
         //self.sync_sound(ctx);
     }
@@ -96,10 +106,18 @@ impl Shotgun {
         self.grab(players, space, ctx);
     }
 
-    pub fn tick(&mut self, players: &mut SyncArena<Player>, space: &mut Space, hit_markers: &mut Vec<Vec2>, ctx: &mut TickContext) {
+    pub fn tick(
+        &mut self, 
+        players: &mut SyncArena<Player>, 
+        space: &mut Space, 
+        hit_markers: &mut Vec<Vec2>, 
+        ctx: &mut TickContext,
+        enemies: &mut SyncArena<Enemy>,
+        damage_numbers: &mut HashSet<DamageNumber>
+    ) {
 
         if *ctx.uuid == self.owner {
-            self.owner_tick(players, hit_markers, space, ctx);
+            self.owner_tick(players, hit_markers, space, ctx, enemies, damage_numbers);
         }
 
         self.all_tick(players, space, ctx);
@@ -112,15 +130,21 @@ impl Shotgun {
         }
     }
 
-    pub fn fire(&mut self, space: &mut Space, players: &mut SyncArena<Player>, hit_markers: &mut Vec<Vec2>, ctx: &mut TickContext) {
+    pub fn fire(
+        &mut self, 
+        space: &mut Space, 
+        players: &mut SyncArena<Player>,
+        enemies: &mut SyncArena<Enemy>, 
+        hit_markers: &mut Vec<Vec2>, 
+        damage_numbers: &mut HashSet<DamageNumber>,
+        ctx: &mut TickContext
+    ) {
         
         if !is_mouse_button_released(macroquad::input::MouseButton::Left) {
             return;
         }
 
-        
-
-        let shotgun_pos = space.sync_rigid_body_set.get_sync(self.rigid_body).unwrap().position().translation;
+        let shotgun_pos = space.sync_rigid_body_set.get_sync(self.rigid_body).unwrap().position().translation.clone();
 
         let mut fire_sound = SoundHandle::new("assets/sounds/shotgun/fire.wav", [0., 0., 0.]);
 
@@ -136,6 +160,7 @@ impl Shotgun {
             mouse_pos.y - shotgun_pos.y 
         ).normalize();
 
+        // knock the player back
         if let Some(player_rigid_body_handle) = self.player_rigid_body_handle {
             let player_rigid_body = space.sync_rigid_body_set.get_sync_mut(player_rigid_body_handle).unwrap();
             
@@ -163,19 +188,95 @@ impl Shotgun {
 
         let mut hit_rigid_bodies: Vec<RigidBodyHandle> = Vec::new();
 
+        let shotgun_position = space.sync_rigid_body_set.get_sync(self.rigid_body).unwrap().translation().clone();
+
         let local_collider = space.sync_collider_set.get_local_handle(self.collider);
 
+        let mut intersections: Vec<ColliderHandle> = Vec::new();
+        
+        // get a vector with all the intersections
         space.query_pipeline.intersections_with_ray(&space.sync_rigid_body_set.rigid_body_set, &space.sync_collider_set.collider_set, &ray, max_toi, solid, filter, 
         |handle, _intersection| {
 
+            // dont want to intersect with shotgun
             if local_collider == handle {
                 return true;
-            }
+            };
 
+            intersections.push(handle);
+
+            true
+
+        });
+
+        for handle in intersections {
             let collider = space.sync_collider_set.get_local(handle).unwrap();
 
+            let distance = collider.translation() - shotgun_position;
+            
             hit_rigid_bodies.push(collider.parent().unwrap());
 
+            let fall_off_multiplier = (-0.01 * distance.norm()).exp();
+
+            // ENEMIES
+            for (_, enemy) in &mut *enemies {
+
+                if enemy.health <= 0 {
+                    continue;
+                }
+
+                // dont want to hit the enemy twice
+
+                let mut enemy_hit = false;
+
+                let enemy_position = space.sync_rigid_body_set.get_sync(enemy.head.body_handle).unwrap().translation();
+
+                let enemy_position_macroquad = rapier_to_macroquad(&vec2(enemy_position.x, enemy_position.y));
+
+                let damage_number_position = Vec2 {
+                    x: enemy_position_macroquad.x,
+                    y: enemy_position_macroquad.y - 120.,
+                };
+
+                if space.sync_collider_set.get_local_handle(enemy.body.collider_handle) == handle {
+
+                    let damage = (50.0 * fall_off_multiplier).round() as i32;
+
+                    enemy.health -= damage;
+
+                    let damage_number = DamageNumber::new(space, damage, damage_number_position, Some(40), Some(RED));
+                    
+                    // temporary workaround to make damage number move with player when shot
+                    hit_rigid_bodies.push(space.sync_rigid_body_set.get_local_handle(damage_number.rigid_body_handle));
+
+                    damage_numbers.insert(
+                        damage_number
+                    );
+
+                    enemy_hit = true;
+
+                }
+
+
+                if space.sync_collider_set.get_local_handle(enemy.head.collider_handle) == handle && enemy_hit == false {
+
+                    
+                    let damage = (100.0 * fall_off_multiplier).round() as i32;
+
+                    enemy.health -= damage;
+
+                    let damage_number = DamageNumber::new(space, damage, damage_number_position, Some(45), Some(RED));
+                    
+                    // temporary workaround to make damage number move with player when shot
+                    hit_rigid_bodies.push(space.sync_rigid_body_set.get_local_handle(damage_number.rigid_body_handle));
+
+                    damage_numbers.insert(
+                        damage_number
+                    );
+                }
+            }
+
+            // PLAYERS
             for (_, player) in &mut *players {
 
                 let local_player_head_collider_handle = space.sync_collider_set.get_local_handle(player.head.collider_handle);
@@ -209,11 +310,7 @@ impl Shotgun {
                 }
             }
 
-            
-
-
-            true
-        });
+        }
 
         for rigid_body_handle in hit_rigid_bodies {
 

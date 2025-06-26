@@ -1,4 +1,4 @@
-use std::{f32::consts::PI, time::Instant};
+use std::{collections::HashSet, f32::consts::PI, time::Instant};
 
 use diff::Diff;
 use gamelibrary::{animation::TrackedFrames, collider_top_left_pos, current_unix_millis, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::{SoundHandle, SoundManager}, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics};
@@ -9,7 +9,7 @@ use rapier2d::prelude::{ImpulseJointHandle, InteractionGroups, RevoluteJointBuil
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{brick::Brick, level::Level, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
+use crate::{brick::Brick, damage_number::DamageNumber, enemy::Enemy, level::Level, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
 
 use super::body_part::BodyPart;
 
@@ -49,6 +49,40 @@ pub struct Player {
 }
 
 impl Player {
+
+    pub fn move_camera(&mut self, camera_rect: &mut Rect, space: &Space) {
+        let position = space.sync_rigid_body_set.get_sync(self.body.body_handle).unwrap().translation();
+
+        let macroquad_position = rapier_to_macroquad(&vec2(position.x, position.y));
+
+        // if self.rect.right() > camera_rect.right() - 100.{
+            
+        //     camera_rect.x = (self.rect.right() - camera_rect.w) + 100.;
+        // }
+        
+        if macroquad_position.x > camera_rect.right() - 100. {
+            camera_rect.x = (macroquad_position.x - camera_rect.w) + 100.;
+        }
+
+        if macroquad_position.x < camera_rect.left() + 100. {
+            
+            camera_rect.x = macroquad_position.x - 100.
+        }
+
+        if macroquad_position.y > camera_rect.bottom() - 100. {
+           
+
+            camera_rect.y = (macroquad_position.y - camera_rect.h) + 100.;
+        }
+
+        if macroquad_position.y < camera_rect.top() + 100. {
+        
+
+            camera_rect.y = macroquad_position.y - 100.
+        }
+
+
+    }
 
     pub fn despawn(self, space: &mut Space) {
 
@@ -185,9 +219,21 @@ impl Player {
     }
 
 
-    pub fn tick(&mut self, space: &mut Space, structures: &mut Vec<Structure>, bricks: &mut Vec<Brick>, teleporters: &mut Vec<Teleporter>, hit_markers: &mut Vec<Vec2>, ctx: &mut TickContext, players: &mut SyncArena<Player>) {
+    pub fn tick(
+        &mut self, 
+        space: &mut Space, 
+        structures: &mut Vec<Structure>, 
+        bricks: &mut Vec<Brick>, 
+        teleporters: &mut Vec<Teleporter>, 
+        hit_markers: &mut Vec<Vec2>, 
+        ctx: &mut TickContext, 
+        players: &mut SyncArena<Player>,
+        enemies: &mut SyncArena<Enemy>,
+        damage_numbers: &mut HashSet<DamageNumber>
+    ) {
         //self.launch_brick(level, ctx);
         self.control(space, ctx);
+        //self.move_camera(ctx.camera_rect, space);
         self.update_selected(space, &ctx.camera_rect);
         self.update_is_dragging(space, &ctx.camera_rect);
         self.update_drag(space, &ctx.camera_rect);
@@ -201,12 +247,19 @@ impl Player {
         self.sync_sound(ctx.sounds);
         self.place_teleporter(ctx, teleporters, space);
         self.angle_shotgun_to_mouse(space, ctx.camera_rect);
-        self.launch_brick(bricks, space, ctx);
+        //self.launch_brick(bricks, space, ctx);
         
         self.detach_head_if_dead(space);
 
         if let Some(shotgun) = &mut self.shotgun {
-            shotgun.tick(players, space, hit_markers, ctx);
+            shotgun.tick(
+                players, 
+                space, 
+                hit_markers, 
+                ctx,
+                enemies,
+                damage_numbers
+            );
         }  
 
         
