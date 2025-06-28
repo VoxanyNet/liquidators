@@ -660,6 +660,7 @@ dependencies = [
 [[package]]
 name = "gamelibrary"
 version = "0.1.0"
+source = "git+https://github.com/VoxanyNet/gamelibrary?rev=07412ef5fe8aa0438bcf1e62727c9d0554d9d45f#07412ef5fe8aa0438bcf1e62727c9d0554d9d45f"
 dependencies = [
  "bincode",
  "bitcode",

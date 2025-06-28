@@ -298,11 +298,24 @@ impl<S: SoundManager> Client<S> {
 
 
         let mut camera = Camera2D::from_display_rect(shaken_camera_rect);
+
         camera.zoom.y = -camera.zoom.y;
 
         set_camera(
             &camera
         );
+
+
+        // apply decays
+        let x_frequency_decay = self.screen_shake.x_frequency_decay * self.last_tick.elapsed().as_secs_f64();
+        let y_frequency_decay = self.screen_shake.y_frequency_decay * self.last_tick.elapsed().as_secs_f64();
+
+        let x_intensity_decay = self.screen_shake.x_intensity_decay * self.last_tick.elapsed().as_secs_f64();
+        let y_intensity_decay = self.screen_shake.y_intensity_decay * self.last_tick.elapsed().as_secs_f64();
+
+        self.screen_shake.x_frequency -= x_frequency_decay;
+        
+
 
     
         self.game_state.draw(&mut self.textures, &self.camera_rect, &mut self.font_loader).await;
