@@ -9,7 +9,7 @@ use rapier2d::prelude::{ImpulseJointHandle, InteractionGroups, RevoluteJointBuil
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{brick::Brick, damage_number::DamageNumber, enemy::Enemy, level::Level, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
+use crate::{brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, level::Level, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
 
 use super::body_part::BodyPart;
 
@@ -229,11 +229,12 @@ impl Player {
         ctx: &mut TickContext, 
         players: &mut SyncArena<Player>,
         enemies: &mut SyncArena<Enemy>,
-        damage_numbers: &mut HashSet<DamageNumber>
+        damage_numbers: &mut HashSet<DamageNumber>,
+        bullet_trails: &mut SyncArena<BulletTrail>
     ) {
         //self.launch_brick(level, ctx);
         self.control(space, ctx);
-        //self.move_camera(ctx.camera_rect, space);
+        self.move_camera(ctx.camera_rect, space);
         self.update_selected(space, &ctx.camera_rect);
         self.update_is_dragging(space, &ctx.camera_rect);
         self.update_drag(space, &ctx.camera_rect);
@@ -258,7 +259,8 @@ impl Player {
                 hit_markers, 
                 ctx,
                 enemies,
-                damage_numbers
+                damage_numbers,
+                bullet_trails
             );
         }  
 
@@ -446,7 +448,12 @@ impl Player {
                 return;
             }
 
-            self.facing = Facing::Right
+            self.facing = Facing::Right;
+
+            if let Some(shotgun) = &mut self.shotgun {
+                shotgun.facing = self.facing.clone();
+            };
+
         }
 
         if velocity.x < -100. {
@@ -455,7 +462,11 @@ impl Player {
                 return;
             }
 
-            self.facing = Facing::Left
+            self.facing = Facing::Left;
+
+            if let Some(shotgun) = &mut self.shotgun {
+                shotgun.facing = self.facing.clone();
+            };
         }
     }
     pub fn update_idle_animation(&mut self, space: &mut Space) {

@@ -7,7 +7,7 @@ use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::{brick::Brick, damage_number::DamageNumber, enemy::Enemy, grenade::Grenade, pixel::Pixel, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
+use crate::{brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, grenade::Grenade, pixel::Pixel, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -29,7 +29,9 @@ pub struct Level {
     pub grenades: Vec<Grenade>,
     pub enemies: SyncArena<Enemy>,
     pub pixels: HashSet<Pixel>,
-    pub damage_numbers: HashSet<DamageNumber>
+    pub damage_numbers: HashSet<DamageNumber>,
+    #[serde(default)]
+    pub bullet_trails: SyncArena<BulletTrail>
 }
 
 impl Level {
@@ -50,7 +52,8 @@ impl Level {
             grenades: Vec::new(),
             enemies: SyncArena::new(),
             pixels: HashSet::new(),
-            damage_numbers: HashSet::new()
+            damage_numbers: HashSet::new(),
+            bullet_trails: SyncArena::new()
         };
     
         level.space.gravity.y = -980.;
@@ -164,7 +167,7 @@ impl Level {
         }
         for shotgun in &mut self.shotguns {
 
-            shotgun.tick(&mut self.players, &mut self.space, &mut self.hit_markers, ctx, &mut self.enemies, &mut self.damage_numbers);
+            shotgun.tick(&mut self.players, &mut self.space, &mut self.hit_markers, ctx, &mut self.enemies, &mut self.damage_numbers, &mut self.bullet_trails);
 
         }
 
@@ -187,7 +190,8 @@ impl Level {
                 ctx, 
                 players, 
                 &mut self.enemies,
-                &mut self.damage_numbers
+                &mut self.damage_numbers,
+                &mut self.bullet_trails
             );
                 
 
@@ -231,7 +235,7 @@ impl Level {
             
         }
 
-        self.space.step(&ctx.owned_rigid_bodies, &ctx.owned_colliders, ctx.owned_impulse_joints, ctx.last_tick);
+        self.space.step(&ctx.owned_rigid_bodies, &ctx.owned_colliders, ctx.owned_impulse_joints, ctx.last_tick_duration);
         
     }
 
@@ -453,6 +457,9 @@ impl Level {
             shotgun.draw(&self.space, textures, false, false).await;
         }
 
+        for (_, bullet_trail) in &self.bullet_trails {
+            bullet_trail.draw();
+        }
         for (_, enemy) in &self.enemies {
             enemy.draw(&self.space, textures).await;
         }

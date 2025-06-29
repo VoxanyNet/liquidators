@@ -1,4 +1,4 @@
-use std::{fs, time::Instant};
+use std::{fs, time::{Duration, Instant}};
 
 use gamelibrary::{log, menu::Button, sync::client::SyncClient, texture_loader::TextureLoader, uuid};
 use liquidators_lib::level::Level;
@@ -14,7 +14,8 @@ pub struct EditorClient {
     pub sync_client: SyncClient<Level>,
     pub textures: TextureLoader,
     pub last_tick: Instant,
-    pub enable_physics: bool
+    pub enable_physics: bool,
+    pub last_tick_duration: Duration
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 
 impl EditorClient {
@@ -56,7 +57,8 @@ impl EditorClient {
             sync_client,
             textures: TextureLoader::new(),
             last_tick: Instant::now(),
-            enable_physics: false
+            enable_physics: false,
+            last_tick_duration: Duration::from_nanos(500)
 
         }
     }
@@ -91,7 +93,7 @@ impl EditorClient {
                 owned_colliders.push(brick.collider_handle().clone());
             }
 
-            self.level.space.step(&owned_rigid_bodies, &owned_colliders, &mut owned_joints, &self.last_tick);
+            self.level.space.step(&owned_rigid_bodies, &owned_colliders, &mut owned_joints, self.last_tick_duration);
         }
     }
 

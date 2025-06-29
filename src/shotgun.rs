@@ -1,14 +1,14 @@
 use std::collections::HashSet;
 
 use diff::Diff;
-use gamelibrary::{get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::SoundHandle, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::{draw_texture_onto_physics_body, HasPhysics}};
-use macroquad::{color::{RED, WHITE}, input::is_mouse_button_released, math::{vec2, Vec2}, shapes::draw_rectangle};
+use gamelibrary::{get_angle_to_mouse, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::SoundHandle, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::{draw_texture_onto_physics_body, HasPhysics}};
+use macroquad::{color::{RED, WHITE}, input::is_mouse_button_released, math::{vec2, Vec2}, shapes::{draw_circle, draw_rectangle}};
 use nalgebra::{point, vector};
-use parry2d::query::Ray;
+use parry2d::{query::Ray, shape::Shape};
 use rapier2d::prelude::{ColliderHandle, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, player::player::Player, Grabbable, TickContext};
+use crate::{bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, player::player::{Facing, Player}, Grabbable, TickContext};
 
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -27,6 +27,7 @@ pub struct Shotgun {
     pub owner: String,
     pub picked_up: bool,
     pub sounds: Vec<SoundHandle>, // is this the best way to do this?
+    pub facing: Facing
 }
 
 impl Grabbable for Shotgun {
@@ -74,7 +75,8 @@ impl Shotgun {
             drag_offset: None,
             grabbing: false,
             owner,
-            sounds: vec![]
+            sounds: vec![],
+            facing: Facing::Left
         }
     }
 
@@ -92,12 +94,13 @@ impl Shotgun {
         space: &mut Space, 
         ctx: &mut TickContext,
         enemies: &mut SyncArena<Enemy>,
-        damage_numbers: &mut HashSet<DamageNumber>
+        damage_numbers: &mut HashSet<DamageNumber>,
+        bullet_trails: &mut SyncArena<BulletTrail>
     ) {
         ctx.owned_rigid_bodies.push(self.rigid_body);
         ctx.owned_colliders.push(self.collider);
 
-        self.fire(space, players, enemies, hit_markers, damage_numbers, ctx);
+        self.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, ctx);
         
         //self.sync_sound(ctx);
     }
@@ -113,14 +116,18 @@ impl Shotgun {
         hit_markers: &mut Vec<Vec2>, 
         ctx: &mut TickContext,
         enemies: &mut SyncArena<Enemy>,
-        damage_numbers: &mut HashSet<DamageNumber>
+        damage_numbers: &mut HashSet<DamageNumber>,
+        bullet_trails: &mut SyncArena<BulletTrail>
     ) {
 
         if *ctx.uuid == self.owner {
-            self.owner_tick(players, hit_markers, space, ctx, enemies, damage_numbers);
+            self.owner_tick(players, hit_markers, space, ctx, enemies, damage_numbers, bullet_trails);
         }
 
         self.all_tick(players, space, ctx);
+        
+        
+
         
     }   
 
@@ -137,12 +144,21 @@ impl Shotgun {
         enemies: &mut SyncArena<Enemy>, 
         hit_markers: &mut Vec<Vec2>, 
         damage_numbers: &mut HashSet<DamageNumber>,
+        bullet_trails: &mut SyncArena<BulletTrail>,
         ctx: &mut TickContext
     ) {
         
         if !is_mouse_button_released(macroquad::input::MouseButton::Left) {
             return;
         }
+
+
+        ctx.screen_shake.x_frequency += 20.;
+        ctx.screen_shake.x_intensity += 10.;
+
+        ctx.screen_shake.x_frequency_decay = 10.;
+        ctx.screen_shake.x_intensity_decay = 20.;
+        
 
         let shotgun_pos = space.sync_rigid_body_set.get_sync(self.rigid_body).unwrap().position().translation.clone();
 
@@ -159,6 +175,32 @@ impl Shotgun {
             mouse_pos.x - shotgun_pos.x,
             mouse_pos.y - shotgun_pos.y 
         ).normalize();
+
+        // spawn bullet trail
+        {
+            let shotgun_collider = space.sync_collider_set.get_sync(self.collider).unwrap();
+
+            let vertex_index = match self.facing {
+                Facing::Right => 3,
+                Facing::Left => 1,
+            };
+
+            //let vertex_index = match facing
+            let bullet_trail_start = shotgun_collider.shape().as_cuboid().unwrap().aabb(shotgun_collider.position()).vertices()[vertex_index];
+
+            let mouse_pos = mouse_world_pos(&ctx.camera_rect);
+            
+            let fortnite = rapier_to_macroquad(&Vec2::new(bullet_trail_start.x, bullet_trail_start.y));
+
+            
+
+            bullet_trails.insert(
+                BulletTrail::new(
+                    Vec2::new(fortnite.x, fortnite.y), 
+                    mouse_pos
+                )
+            );
+        }
 
         // knock the player back
         if let Some(player_rigid_body_handle) = self.player_rigid_body_handle {

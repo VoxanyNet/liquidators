@@ -1,4 +1,4 @@
-use std::{fs, sync::{mpsc, Arc, Mutex}, time::Instant};
+use std::{fs, sync::{mpsc, Arc, Mutex}, time::{Duration, Instant}};
 
 use futures::executor::block_on;
 use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, font_loader::FontLoader, log, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics};
@@ -29,6 +29,7 @@ pub struct Client<S: SoundManager> {
     pub font_loader: FontLoader,
     pub start: Instant,
     pub screen_shake: ScreenShakeParameters,
+    pub last_tick_duration: Duration
 }
 
 impl<S: SoundManager> Client<S> {
@@ -62,7 +63,8 @@ impl<S: SoundManager> Client<S> {
             sounds: &mut self.sounds,
             last_tick_mouse_world_pos: &mut self.last_tick_mouse_world_pos,
             font_loader: &mut self.font_loader,
-            screen_shake: &mut self.screen_shake
+            screen_shake: &mut self.screen_shake,
+            last_tick_duration: self.last_tick_duration
         };
 
         self.game_state.tick(
@@ -93,6 +95,7 @@ impl<S: SoundManager> Client<S> {
 
         self.save_state();
 
+        self.last_tick_duration = self.last_tick.elapsed();
         self.last_tick = Instant::now();
 
     }
@@ -307,15 +310,20 @@ impl<S: SoundManager> Client<S> {
 
 
         // apply decays
-        let x_frequency_decay = self.screen_shake.x_frequency_decay * self.last_tick.elapsed().as_secs_f64();
-        let y_frequency_decay = self.screen_shake.y_frequency_decay * self.last_tick.elapsed().as_secs_f64();
+        let x_frequency_decay = self.screen_shake.x_frequency_decay * self.last_tick_duration.as_secs_f64();
+        let y_frequency_decay = self.screen_shake.y_frequency_decay * self.last_tick_duration.as_secs_f64();
 
-        let x_intensity_decay = self.screen_shake.x_intensity_decay * self.last_tick.elapsed().as_secs_f64();
-        let y_intensity_decay = self.screen_shake.y_intensity_decay * self.last_tick.elapsed().as_secs_f64();
+        let x_intensity_decay = self.screen_shake.x_intensity_decay * self.last_tick_duration.as_secs_f64();
+        let y_intensity_decay = self.screen_shake.y_intensity_decay * self.last_tick_duration.as_secs_f64();
 
-        self.screen_shake.x_frequency -= x_frequency_decay;
-        
 
+        dbg!(self.screen_shake.x_intensity_decay);
+        dbg!((self.screen_shake.x_frequency - x_frequency_decay).max(0.0));
+        self.screen_shake.x_frequency = (self.screen_shake.x_frequency - x_frequency_decay).max(0.0);
+        self.screen_shake.y_frequency = (self.screen_shake.y_frequency - y_frequency_decay).max(0.0);
+
+        self.screen_shake.x_intensity = (self.screen_shake.x_intensity - x_intensity_decay).max(0.0);
+        self.screen_shake.y_intensity = (self.screen_shake.y_intensity - y_intensity_decay).max(0.0);
 
     
         self.game_state.draw(&mut self.textures, &self.camera_rect, &mut self.font_loader).await;
@@ -360,7 +368,8 @@ impl<S: SoundManager> Client<S> {
             main_menu: Some(main_menu),
             font_loader: FontLoader::new(),
             start: Instant::now(),
-            screen_shake: ScreenShakeParameters::default(None, None)
+            screen_shake: ScreenShakeParameters::default(None, None),
+            last_tick_duration: Duration::new(0, 500)
 
         }
     }
@@ -419,7 +428,8 @@ impl<S: SoundManager> Client<S> {
             main_menu: None,
             font_loader: FontLoader::new(),
             start: Instant::now(),
-            screen_shake: ScreenShakeParameters::default(None, None)
+            screen_shake: ScreenShakeParameters::default(None, None),
+            last_tick_duration: Duration::new(0, 500)
         }
     }
 

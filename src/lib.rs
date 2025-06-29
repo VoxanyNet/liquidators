@@ -1,4 +1,4 @@
-use std::{fs, path::Path, time::Instant};
+use std::{fs, path::Path, time::{Duration, Instant}};
 
 use console::Console;
 use diff::Diff;
@@ -33,6 +33,7 @@ pub mod main_menu;
 pub mod enemy;
 pub mod pixel;
 pub mod damage_number;
+pub mod bullet_trail;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -172,7 +173,8 @@ pub struct TickContext<'a> {
     pub sounds: &'a mut dyn SoundManager,
     pub last_tick_mouse_world_pos: &'a mut Vec2,
     pub font_loader: &'a mut FontLoader,
-    pub screen_shake: &'a mut ScreenShakeParameters
+    pub screen_shake: &'a mut ScreenShakeParameters,
+    pub last_tick_duration: Duration
 }
 
 pub struct ScreenShakeParameters {

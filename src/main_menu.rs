@@ -136,7 +136,7 @@ impl MainMenu {
 
         self.angle_head_to_mouse(ctx.camera_rect);
 
-        self.space.step(&ctx.owned_rigid_bodies, &ctx.owned_colliders, &Vec::new(), &Instant::now());
+        self.space.step(&ctx.owned_rigid_bodies, &ctx.owned_colliders, &Vec::new(), ctx.last_tick_duration);
 
         self.start_game_button.update(Some(ctx.camera_rect));
         self.quit_button.update(Some(ctx.camera_rect));
