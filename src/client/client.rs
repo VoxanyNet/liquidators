@@ -277,8 +277,6 @@ impl<S: SoundManager> Client<S> {
             
         };
 
-        println!("x_shake: {:?}", x_shake);
-
         let y_shake = {
             let frequency_modifier = self.screen_shake.y_frequency;
             
@@ -288,8 +286,6 @@ impl<S: SoundManager> Client<S> {
 
             magnitude_modifier * ((frequency_modifier * elapsed) + offset).sin()
         };
-
-        println!("y_shake: {:?}", y_shake);
         
         // add shake
         let shaken_camera_rect = Rect {
@@ -316,9 +312,6 @@ impl<S: SoundManager> Client<S> {
         let x_intensity_decay = self.screen_shake.x_intensity_decay * self.last_tick_duration.as_secs_f64();
         let y_intensity_decay = self.screen_shake.y_intensity_decay * self.last_tick_duration.as_secs_f64();
 
-
-        dbg!(self.screen_shake.x_intensity_decay);
-        dbg!((self.screen_shake.x_frequency - x_frequency_decay).max(0.0));
         self.screen_shake.x_frequency = (self.screen_shake.x_frequency - x_frequency_decay).max(0.0);
         self.screen_shake.y_frequency = (self.screen_shake.y_frequency - y_frequency_decay).max(0.0);
 
