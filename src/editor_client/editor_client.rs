@@ -79,8 +79,8 @@ impl EditorClient {
             let mut owned_joints = vec![];
 
             for shotgun in &self.level.shotguns {
-                owned_colliders.push(shotgun.collider);
-                owned_rigid_bodies.push(shotgun.rigid_body)
+                owned_colliders.push(shotgun.collider());
+                owned_rigid_bodies.push(shotgun.rigid_body())
             }
 
             for structure in &self.level.structures {

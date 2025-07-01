@@ -250,7 +250,6 @@ impl Level {
         self.editor_spawn_structure(camera_rect, uuid);
         self.editor_spawn_brick(camera_rect, uuid);
         self.editor_spawn_radio(camera_rect, uuid);
-        self.editor_spawn_shotgun(camera_rect, uuid, textures);
 
         for structure_index in 0..self.structures.len() {
             let mut structure = self.structures.remove(structure_index);
@@ -302,14 +301,6 @@ impl Level {
         self.bricks.push(
             Brick::new(&mut self.space, pos, Some(uuid.clone()))
         );
-    }
-
-    pub fn editor_spawn_shotgun(&mut self, camera_rect: &Rect, uuid: &String, textures: &mut TextureLoader) {
-
-        if is_key_pressed(input::KeyCode::P) {
-            Shotgun::spawn(&mut self.space, rapier_mouse_world_pos(camera_rect), &mut self.shotguns, uuid.clone(), None, textures);
-
-        }
     }
 
     pub fn spawn_damage_number(&mut self, camera_rect: &Rect) {

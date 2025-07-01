@@ -390,7 +390,7 @@ impl<S: SoundManager> Client<S> {
             }
             
             for shotgun in game_state.level.shotguns.iter_mut() {
-                shotgun.owner = uuid.clone();
+                shotgun.set_owner(uuid.clone());
             }
         }
 

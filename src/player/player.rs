@@ -9,7 +9,7 @@ use rapier2d::prelude::{ImpulseJointHandle, InteractionGroups, RevoluteJointBuil
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, level::Level, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
+use crate::{brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, level::Level, pistol::Pistol, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
 
 use super::body_part::BodyPart;
 
@@ -20,6 +20,33 @@ use super::body_part::BodyPart;
 pub enum Facing {
     Right,
     Left
+}
+
+#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
+#[diff(attr(
+    #[derive(Serialize, Deserialize)]
+))]
+pub enum Weapon {
+    Shotgun(Shotgun),
+    Pistol(Pistol)
+}
+
+impl Weapon {
+    pub fn tick(
+        &mut self, 
+        players: &mut SyncArena<Player>, 
+        space: &mut Space, 
+        hit_markers: &mut Vec<Vec2>, 
+        ctx: &mut TickContext,
+        enemies: &mut SyncArena<Enemy>,
+        damage_numbers: &mut HashSet<DamageNumber>,
+        bullet_trails: &mut SyncArena<BulletTrail>
+    ) {
+        match self {
+            Weapon::Shotgun(shotgun) => shotgun.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails),
+            Weapon::Pistol(pistol) => pistol.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails),
+        }
+    } 
 }
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -37,7 +64,7 @@ pub struct Player {
     pub dragging: bool,
     pub drag_offset: Option<Vec2>,
     pub max_speed: Vec2,
-    shotgun: Option<Shotgun>,
+    weapon: Option<Weapon>,
     pub animation_handler: PlayerAnimationHandler,
     pub walk_frame_progess: f32,
     pub idle_frame_progress: f32,
@@ -106,10 +133,10 @@ impl Player {
             true
         );
 
-        match self.shotgun {
-            Some(shotgun) => {
+        match self.weapon {
+            Some(weapon) => {
                 space.sync_rigid_body_set.remove_sync(
-                    shotgun.rigid_body, 
+                    shotgun.rigid_body(), 
                     &mut space.island_manager, 
                     &mut space.sync_collider_set, 
                     &mut space.sync_impulse_joint_set, 
@@ -167,11 +194,11 @@ impl Player {
         let shotgun = Shotgun::new(space, *position, owner.clone(), Some(cat_body.body_handle), textures);
 
         // we dont want the shotgun to collide with anything
-        space.sync_collider_set.get_sync_mut(shotgun.collider).unwrap().set_collision_groups(
+        space.sync_collider_set.get_sync_mut(shotgun.collider()).unwrap().set_collision_groups(
             InteractionGroups::none()
         );
 
-        let shotgun_local_handle = space.sync_rigid_body_set.get_local_handle(shotgun.rigid_body);
+        let shotgun_local_handle = space.sync_rigid_body_set.get_local_handle(shotgun.rigid_body());
 
         // attach the shotgun to the player
         let shotgun_joint_handle = space.sync_impulse_joint_set.insert_sync(
@@ -451,7 +478,7 @@ impl Player {
             self.facing = Facing::Right;
 
             if let Some(shotgun) = &mut self.shotgun {
-                shotgun.facing = self.facing.clone();
+                shotgun.set_facing(self.facing.clone());
             };
 
         }
@@ -465,7 +492,7 @@ impl Player {
             self.facing = Facing::Left;
 
             if let Some(shotgun) = &mut self.shotgun {
-                shotgun.facing = self.facing.clone();
+                shotgun.set_facing(self.facing.clone());
             };
         }
     }
