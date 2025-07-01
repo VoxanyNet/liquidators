@@ -1,6 +1,9 @@
 use diff::Diff;
-use macroquad::{color::{RED, WHITE}, math::Vec2, shapes::draw_line};
+use gamelibrary::time::Time;
+use macroquad::{color::{self, Color, RED, WHITE}, math::Vec2, shapes::draw_line};
 use serde::{Deserialize, Serialize};
+
+use crate::TickContext;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone, Default)]
 #[diff(attr(
@@ -8,27 +11,48 @@ use serde::{Deserialize, Serialize};
 ))]
 pub struct BulletTrail {
     start: Vec2,
-    end: Vec2
+    end: Vec2,
+    color: Color,
+    pub owner: String
 }
 
 impl BulletTrail {
     
     pub fn draw(&self) {
 
-        // brain damage gaming
-        let mut color = RED.clone();
-        color.a = 0.2;
 
-        draw_line(self.start.x, self.start.y, self.end.x, self.end.y, 5., color);
+        draw_line(self.start.x, self.start.y, self.end.x, self.end.y, 5., self.color);
+    }
+
+    pub fn tick(&mut self, ctx: &TickContext) {
+
+        println!("{}", 1. * ctx.last_tick_duration.as_secs_f32());
+        self.color.a -= 0.3 * ctx.last_tick_duration.as_secs_f32();
+
+        println!("{}", self.color.a);
     }
 
     pub fn new(
         start: Vec2,
-        end: Vec2
+        end: Vec2,
+        color: Option<Color>,
+        owner: String
     ) -> Self {
+
+        let color = match color {
+            Some(color) => color,
+            None => {
+                let mut color = WHITE.clone();
+                color.a = 0.2;
+
+                color
+            },
+        };
         Self {
             start,
             end,
+            color,
+            owner: owner.clone()
         }
     }
 }

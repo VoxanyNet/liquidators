@@ -90,6 +90,12 @@ impl Level {
     ) {
 
         
+        for (_, bullet_trail) in &mut self.bullet_trails {
+            if bullet_trail.owner == *ctx.uuid {
+                bullet_trail.tick(ctx);
+            }
+        };
+
         self.spawn_fixed_structure(ctx.camera_rect, ctx.uuid);
 
         self.spawn_damage_number(ctx.camera_rect);

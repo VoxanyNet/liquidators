@@ -1,8 +1,8 @@
 structures:
 - rigid_body_handle:
-    id: 8705163129467719446
+    id: 8769343720839990471
   collider_handle:
-    id: 9185468009879454536
+    id: 4043289233089121834
   color:
     r: 0.9
     g: 0.16
@@ -13,7 +13,7 @@ structures:
   dragging: false
   drag_offset: null
   owner: null
-  editor_owner: '2788894721'
+  editor_owner: '1367677177'
   sprite_path: assets/structure/brick_block.png
   last_ownership_change: 0
   grabbing: false
@@ -47,15 +47,15 @@ space:
                 - 1.0
                 - 0.0
                 translation:
-                - 877.3333
-                - 180.0
+                - 640.0
+                - 190.0
               next_position:
                 rotation:
                 - 1.0
                 - 0.0
                 translation:
-                - 877.3333
-                - 180.0
+                - 640.0
+                - 190.0
             mprops:
               flags: ''
               local_mprops:
@@ -66,8 +66,8 @@ space:
                 inv_principal_inertia_sqrt: 0.019364918
               additional_local_mprops: null
               world_com:
-              - 877.3333
-              - 180.0
+              - 640.0
+              - 190.0
               effective_inv_mass:
               - 0.1
               - 0.1
@@ -134,13 +134,13 @@ space:
       - index: 0
         generation: 0
     sync_map:
-      ? id: 8705163129467719446
+      ? id: 8769343720839990471
       : index: 0
         generation: 0
     reverse_sync_map:
       ? index: 0
         generation: 0
-      : id: 8705163129467719446
+      : id: 8769343720839990471
   sync_collider_set:
     collider_set:
       colliders:
@@ -151,7 +151,7 @@ space:
             coll_type: Solid
             shape: !Cuboid
               half_extents:
-              - 880.0
+              - 650.0
               - 20.0
             mprops: !Mass 10.0
             changes: MODIFIED | LOCAL_MASS_PROPERTIES | PARENT | POSITION | GROUPS | SHAPE | TYPE | PARENT_EFFECTIVE_DOMINANCE | ENABLED_OR_DISABLED
@@ -171,8 +171,8 @@ space:
               - 1.0
               - 0.0
               translation:
-              - 17.333313
-              - 180.0
+              - 10.0
+              - 190.0
             material:
               friction: 0.5
               restitution: 0.0
@@ -208,13 +208,13 @@ space:
         generation: 0
       removed_colliders: []
     sync_map:
-      ? id: 9185468009879454536
+      ? id: 4043289233089121834
       : index: 0
         generation: 0
     reverse_sync_map:
       ? index: 0
         generation: 0
-      : id: 9185468009879454536
+      : id: 4043289233089121834
   gravity:
   - 0.0
   - -980.0
@@ -312,28 +312,28 @@ space:
     qbvh:
       root_aabb:
         mins:
-        - -880.26666
-        - 159.6
+        - -653.0
+        - 169.6
         maxs:
-        - 914.9333
-        - 200.4
+        - 673.0
+        - 210.4
       nodes:
       - simd_aabb:
           mins:
-          - - -880.26666
+          - - -653.0
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 159.6
+          - - 169.6
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 914.9333
+          - - 673.0
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 200.4
+          - - 210.4
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
@@ -348,20 +348,20 @@ space:
         flags: 0
       - simd_aabb:
           mins:
-          - - -880.26666
+          - - -653.0
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 159.6
+          - - 169.6
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 914.9333
+          - - 673.0
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 200.4
+          - - 210.4
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38

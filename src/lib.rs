@@ -34,6 +34,8 @@ pub mod enemy;
 pub mod pixel;
 pub mod damage_number;
 pub mod bullet_trail;
+pub mod muzzle_flash;
+pub mod pistol;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(

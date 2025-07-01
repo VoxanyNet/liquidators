@@ -3,110 +3,12 @@ use std::{collections::HashSet, time::{Duration, Instant}};
 use diff::Diff;
 use gamelibrary::{get_angle_to_mouse, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::SoundHandle, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, time::Time, traits::{draw_texture_onto_physics_body, HasPhysics}};
 use macroquad::{color::{RED, WHITE}, input::is_mouse_button_released, math::{vec2, Vec2}, miniquad::TextureParams, shapes::{draw_circle, draw_rectangle}, texture::{draw_texture_ex, DrawTextureParams}};
-use nalgebra::{point, vector};
+use nalgebra::{point, vector, Const, OPoint};
 use parry2d::{query::Ray, shape::Shape};
 use rapier2d::prelude::{ColliderHandle, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, player::player::{Facing, Player}, Grabbable, TickContext};
-
-
-#[derive(Serialize, Deserialize, PartialEq, Clone, Default)]
-pub struct MuzzleFlash {
-    last_flash: Time,
-    sprite: String,
-    duration: Duration
-}
-
-impl MuzzleFlash {
-
-    pub fn flash(&mut self) {
-        self.last_flash = Time::now()
-    }
-
-    // creating a new muzzle flash does not flash it by default
-    pub fn new(sprite_path: String, duration: Duration) -> Self {
-        Self {
-            last_flash: Time::new(0),
-            sprite: sprite_path,
-            duration,
-        }
-    }
-    pub async fn draw(&self, position: Vec2, textures: &mut TextureLoader) {
-
-
-        if self.last_flash.elapsed().num_milliseconds() > self.duration.as_millis() as i64 {
-            return;
-        }
-
-        let texture = textures.get(&self.sprite).await;
-        
-        draw_texture_ex(texture, position.x, position.y, WHITE, DrawTextureParams::default());
-        
-    }
-
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct MuzzleFlashDiff {
-    flash: bool,
-    sprite: Option<String>,
-    duration: Option<Duration>
-}
-
-impl Diff for MuzzleFlash {
-    type Repr = MuzzleFlashDiff;
-
-    fn diff(&self, other: &Self) -> Self::Repr {
-        // this is an example where we are implementing the diff function a lot differently
-        // instead of diffing the muzzle flash in a way you would expect FUCK YOU
-
-        let mut diff = MuzzleFlashDiff {
-            
-            flash: false,
-            sprite: None,
-            duration: None,
-        };
-        
-        if other.last_flash != self.last_flash {
-            diff.flash = true;
-        };
-
-        if other.sprite != self.sprite {
-            diff.sprite = Some(other.sprite.clone());
-        }
-
-        if other.duration != self.duration {
-            diff.duration = Some(other.duration);
-        }
-
-        diff
-    }
-
-    fn apply(&mut self, diff: &Self::Repr) {
-
-        if diff.flash {
-
-            self.last_flash = Time::now();
-        }
-
-        if let Some(duration) = diff.duration {
-            self.duration = duration;
-        }
-
-        if let Some(sprite) = &diff.sprite {
-            self.sprite = sprite.clone();
-        }
-    }
-
-    fn identity() -> Self {
-        Self { 
-            last_flash: Time::new(0),
-            sprite: String::identity(),
-            duration: Duration::ZERO,
-        }
-    }
-}
+use crate::{bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::player::{Facing, Player}, Grabbable, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -237,6 +139,73 @@ impl Shotgun {
         }
     }
 
+    pub fn get_weapon_tip(&self, space: &Space) -> OPoint<f32, Const<2>>{
+        let shotgun_collider = space.sync_collider_set.get_sync(self.collider).unwrap();
+
+        // get the tip of the gun
+        let vertex_index = match self.facing {
+            Facing::Right => 3,
+            Facing::Left => 1,
+        };
+
+        //let vertex_index = match facing
+        let shotgun_tip = shotgun_collider.shape().as_cuboid().unwrap().aabb(shotgun_collider.position()).vertices()[vertex_index];
+        
+        shotgun_tip
+    }
+
+    pub fn get_weapon_rear(&self, space: &Space) -> OPoint<f32, Const<2>> {
+        let shotgun_collider = space.sync_collider_set.get_sync(self.collider).unwrap();
+
+        let vertex_index = match self.facing {
+            Facing::Right => 1,
+            Facing::Left => 3,
+        };
+
+        let shotgun_rear = shotgun_collider.shape().as_cuboid().unwrap().aabb(shotgun_collider.position()).vertices()[vertex_index];
+        
+        shotgun_rear
+    }
+
+    pub fn shake_screen(&self, ctx: &mut TickContext) {
+        ctx.screen_shake.x_frequency += 20.;
+        ctx.screen_shake.x_intensity += 10.;
+
+        ctx.screen_shake.x_frequency_decay = 10.;
+        ctx.screen_shake.x_intensity_decay = 20.;
+    }
+
+    pub fn play_sound(&mut self) {
+        let mut fire_sound = SoundHandle::new("assets/sounds/shotgun/fire.wav", [0., 0., 0.]);
+
+        fire_sound.play();
+
+        self.sounds.push(fire_sound);
+    }
+
+    pub fn knockback_player(&mut self, space: &mut Space, bullet_vector: Vec2) {
+        // knock the player back
+        if let Some(player_rigid_body_handle) = self.player_rigid_body_handle {
+            let player_rigid_body = space.sync_rigid_body_set.get_sync_mut(player_rigid_body_handle).unwrap();
+            
+            let new_player_rigid_body_velocity = {
+                let mut new_player_rigid_body_velocity = player_rigid_body.linvel().clone();
+
+                new_player_rigid_body_velocity.x -= bullet_vector.x * 500.;
+                new_player_rigid_body_velocity.y -= bullet_vector.y * 500.; 
+
+                new_player_rigid_body_velocity
+            }; 
+
+            
+
+            player_rigid_body.set_linvel(
+                new_player_rigid_body_velocity, 
+                true
+            );
+        }
+    }
+
     pub fn fire(
         &mut self, 
         space: &mut Space, 
@@ -253,78 +222,64 @@ impl Shotgun {
         }
 
         self.muzzle_flash.flash();
-
-
-        ctx.screen_shake.x_frequency += 20.;
-        ctx.screen_shake.x_intensity += 10.;
-
-        ctx.screen_shake.x_frequency_decay = 10.;
-        ctx.screen_shake.x_intensity_decay = 20.;
         
+        self.shake_screen(ctx);
+
+        self.play_sound();
+
+        let shotgun_angle = space.sync_rigid_body_set.get_sync(self.rigid_body).unwrap().rotation().angle().clone();
 
         let shotgun_pos = space.sync_rigid_body_set.get_sync(self.rigid_body).unwrap().position().translation.clone();
 
-        let mut fire_sound = SoundHandle::new("assets/sounds/shotgun/fire.wav", [0., 0., 0.]);
+        let shotgun_pos_macroquad = rapier_to_macroquad(&vec2(shotgun_pos.x , shotgun_pos.y));
+        
+        let rapier_mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);
 
-        fire_sound.play();
+        let macroquad_mouse_pos = mouse_world_pos(&ctx.camera_rect);
 
-        self.sounds.push(fire_sound);
-
-
-        let mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);
-
-        let mouse_vector = Vec2::new(
-            mouse_pos.x - shotgun_pos.x,
-            mouse_pos.y - shotgun_pos.y 
+        // the direction of the bullet
+        let bullet_vector = Vec2::new(
+            rapier_mouse_pos.x - shotgun_pos.x,
+            rapier_mouse_pos.y - shotgun_pos.y 
         ).normalize();
 
-        // spawn bullet trail
-        {
-            let shotgun_collider = space.sync_collider_set.get_sync(self.collider).unwrap();
-
-            let vertex_index = match self.facing {
-                Facing::Right => 3,
-                Facing::Left => 1,
-            };
-
-            //let vertex_index = match facing
-            let bullet_trail_start = shotgun_collider.shape().as_cuboid().unwrap().aabb(shotgun_collider.position()).vertices()[vertex_index];
-            
-            let fortnite = rapier_to_macroquad(&Vec2::new(bullet_trail_start.x, bullet_trail_start.y));
-
-            let mouse_pos = mouse_world_pos(&ctx.camera_rect);
-            
-
-            bullet_trails.insert(
-                BulletTrail::new(
-                    Vec2::new(fortnite.x, fortnite.y), 
-                    mouse_pos
-                )
-            );
+        let mut angle_bullet_vector = Vec2 {
+            x:  shotgun_angle.cos(),
+            y: shotgun_angle.sin() * -1.,
+        };
+        
+        match self.facing {
+            Facing::Right => {},
+            Facing::Left => {
+                angle_bullet_vector.x *= -1.;
+                angle_bullet_vector.y *= -1.;
+            }
         }
 
-        // knock the player back
-        if let Some(player_rigid_body_handle) = self.player_rigid_body_handle {
-            let player_rigid_body = space.sync_rigid_body_set.get_sync_mut(player_rigid_body_handle).unwrap();
-            
-            let new_player_rigid_body_velocity = {
-                let mut new_player_rigid_body_velocity = player_rigid_body.linvel().clone();
+        println!("epic: {:?}", bullet_vector);
+        println!("angle: {:?}", angle_bullet_vector);
 
-                new_player_rigid_body_velocity.x -= mouse_vector.x * 500.;
-                new_player_rigid_body_velocity.y -= mouse_vector.y * 500.; 
+        self.knockback_player(space, bullet_vector);
 
-                new_player_rigid_body_velocity
-            }; 
+        let shotgun_tip = self.get_weapon_tip(space);
+        let shotgun_tip_macroquad = rapier_to_macroquad(&vec2(shotgun_tip.x, shotgun_tip.y));
 
-            
-
-            player_rigid_body.set_linvel(
-                new_player_rigid_body_velocity, 
-                true
-            );
-        }
-
-        let ray = Ray::new(point![shotgun_pos.x, shotgun_pos.y], vector![mouse_vector.x, mouse_vector.y]);
+        bullet_trails.insert(
+            BulletTrail::new(
+                Vec2::new(
+                    shotgun_pos_macroquad.x, 
+                    shotgun_pos_macroquad.y - 10.
+                ), 
+                Vec2 {
+                    x: shotgun_pos_macroquad.x + (angle_bullet_vector.x * 10000.),
+                    y: shotgun_pos_macroquad.y + (angle_bullet_vector.y * 10000.),
+                },
+                None,
+                self.owner.clone()
+            )
+        );
+        
+        let ray = Ray::new(point![shotgun_pos.x, shotgun_pos.y], vector![angle_bullet_vector.x, angle_bullet_vector.y]);
         let max_toi = 1000.0;
         let solid = true;
         let filter = QueryFilter::default();
@@ -455,6 +410,19 @@ impl Shotgun {
 
         }
 
+        self.knockback_intersections(hit_rigid_bodies, space, ctx, bullet_vector);
+
+
+
+    }
+
+    pub fn knockback_intersections(
+        &self, 
+        hit_rigid_bodies: Vec<RigidBodyHandle>, 
+        space: &mut Space, 
+        ctx: &mut TickContext,
+        bullet_vector: Vec2
+    ) {
         for rigid_body_handle in hit_rigid_bodies {
 
             
@@ -466,16 +434,14 @@ impl Shotgun {
             let mut new_velocity = rigid_body.linvel().clone();
 
             
-            new_velocity.x += mouse_vector.x * 500.;
-            new_velocity.y += mouse_vector.y * 500.;
+            new_velocity.x += bullet_vector.x * 500.;
+            new_velocity.y += bullet_vector.y * 500.;
         
             rigid_body.set_linvel(
                 new_velocity, 
                 true
             );
         }
-
-
     }
 
     pub fn grab(&mut self, players: &mut SyncArena<Player>, space: &mut Space, ctx: &mut TickContext) {
