@@ -28,6 +28,8 @@ pub struct Weapon {
     pub sounds: Vec<SoundHandle>, // is this the best way to do this?
     pub facing: Facing,
     pub muzzle_flash: MuzzleFlash,
+    pub scale: f32,
+    pub aim_angle_offset: f32
 }
 
 impl Grabbable for Weapon {
@@ -44,11 +46,13 @@ impl Weapon {
         owner: String, 
         player_rigid_body_handle: Option<SyncRigidBodyHandle>, 
         textures: &mut TextureLoader,
-        sprite_path: String
+        sprite_path: String,
+        scale: f32,
+        aim_angle_offset: Option<f32>
     ) -> Self {
 
         let texture_size = textures.get_blocking(&sprite_path).size() 
-            * 2.; // scale the size of the shotgun
+            * scale ; // scale the size of the shotgun
         
         let rigid_body = space.sync_rigid_body_set.insert_sync(
             RigidBodyBuilder::dynamic()
@@ -65,6 +69,11 @@ impl Weapon {
             &mut space.sync_rigid_body_set
         );
 
+        let aim_angle_offset = match aim_angle_offset {
+            Some(aim_angle_offset) => aim_angle_offset,
+            None => 0.,
+        };
+
         Self {
             player_rigid_body_handle,
             picked_up: false,
@@ -78,7 +87,9 @@ impl Weapon {
             owner,
             sounds: vec![],
             facing: Facing::Left,
-            muzzle_flash: MuzzleFlash::new("assets/particles/shotgun_muzzle_flash.png".to_string(), Duration::from_millis(50))
+            muzzle_flash: MuzzleFlash::new("assets/particles/shotgun_muzzle_flash.png".to_string(), Duration::from_millis(50)),
+            scale,
+            aim_angle_offset
         }
     }
 

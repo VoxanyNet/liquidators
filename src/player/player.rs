@@ -47,7 +47,12 @@ impl PlayerWeapon {
             PlayerWeapon::Pistol(pistol) => pistol.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails),
         }
     } 
-
+    pub fn aim_angle_offset(&self) -> f32 {
+        match self {
+            PlayerWeapon::Shotgun(shotgun) => shotgun.aim_angle_offset(),
+            PlayerWeapon::Pistol(pistol) => pistol.aim_angle_offset(),
+        }
+    }
     pub fn rigid_body(&self) -> SyncRigidBodyHandle{
         match self {
             PlayerWeapon::Shotgun(shotgun) => shotgun.rigid_body(),
@@ -213,6 +218,7 @@ impl Player {
         );
 
         let pistol = Pistol::new(space, *position, owner.clone(), Some(cat_body.body_handle), textures);
+        //let pistol = Shotgun::new(space, *position, owner.clone(), Some(cat_body.body_handle), textures);
 
         // we dont want the shotgun to collide with anything
         space.sync_collider_set.get_sync_mut(pistol.collider()).unwrap().set_collision_groups(
@@ -295,7 +301,7 @@ impl Player {
         self.angle_head_to_mouse(space, ctx.camera_rect);
         self.sync_sound(ctx.sounds);
         self.place_teleporter(ctx, teleporters, space);
-        self.angle_shotgun_to_mouse(space, ctx.camera_rect);
+        self.angle_weapon_to_mouse(space, ctx.camera_rect);
         //self.launch_brick(bricks, space, ctx);
         
         self.detach_head_if_dead(space);
@@ -368,12 +374,14 @@ impl Player {
         
     }
 
-    pub fn angle_shotgun_to_mouse(&mut self, space: &mut Space, camera_rect: &Rect) {
+    pub fn angle_weapon_to_mouse(&mut self, space: &mut Space, camera_rect: &Rect) {
 
         let shotgun_joint_handle = match self.shotgun_joint_handle {
             Some(shotgun_joint_handle) => shotgun_joint_handle,
             None => return,
         };
+
+        let aim_angle_offset = self.weapon.as_ref().unwrap().aim_angle_offset();
 
         // lol
         let body_body = space.sync_rigid_body_set.get_sync_mut(self.body.body_handle).unwrap();
@@ -396,10 +404,10 @@ impl Player {
 
         let target_angle = match self.facing {
             Facing::Right => {
-                -angle_to_mouse + (PI / 2.)
+                (-angle_to_mouse + (PI / 2.)) + aim_angle_offset
             },
             Facing::Left => {
-                (angle_to_mouse + (PI / 2.)) * -1.
+                ((angle_to_mouse + (PI / 2.)) * -1.) - aim_angle_offset
             },
         };
 

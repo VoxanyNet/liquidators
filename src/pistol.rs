@@ -24,8 +24,12 @@ impl Pistol {
         textures: &mut TextureLoader,
     ) -> Self {
         Self {
-            weapon: Weapon::new(space, pos, owner, player_rigid_body_handle, textures, "assets/weapons/pistol.png".to_string())
+            weapon: Weapon::new(space, pos, owner, player_rigid_body_handle, textures, "assets/weapons/pistol.png".to_string(), 1.5, Some(0.25))
         }
+    }
+
+    pub fn aim_angle_offset(&self) -> f32 {
+        self.weapon.aim_angle_offset
     }
 
     pub async fn draw(&self, space: &Space, textures: &mut TextureLoader, flip_x: bool, flip_y: bool) {

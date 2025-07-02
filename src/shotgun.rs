@@ -24,6 +24,10 @@ impl Shotgun {
         self.weapon.rigid_body
     }
 
+    pub fn aim_angle_offset(&self) -> f32 {
+        self.weapon.aim_angle_offset
+    }
+
     pub fn collider(&self) -> SyncColliderHandle {
         self.weapon.collider
     }
@@ -47,7 +51,7 @@ impl Shotgun {
     pub fn new(space: &mut Space, pos: Vec2, owner: String, player_rigid_body_handle: Option<SyncRigidBodyHandle>, textures: &mut TextureLoader) -> Self {
 
         Self {
-            weapon: Weapon::new(space, pos, owner, player_rigid_body_handle, textures, "assets/shotgun.png".to_string()),
+            weapon: Weapon::new(space, pos, owner, player_rigid_body_handle, textures, "assets/shotgun.png".to_string(), 2., Some(0.1)),
         }
         
     }
