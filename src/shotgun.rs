@@ -8,7 +8,7 @@ use parry2d::{query::Ray, shape::Shape};
 use rapier2d::prelude::{ColliderHandle, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::player::{Facing, Player}, weapon::Weapon, Grabbable, TickContext};
+use crate::{bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::player::{Facing, Player, PlayerWeapon}, weapon::Weapon, Grabbable, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -131,6 +131,12 @@ impl Shotgun {
 
         self.weapon.draw(space, textures, flip_x, flip_y).await
 
+    }
+}
+
+impl Into<PlayerWeapon> for Shotgun {
+    fn into(self) -> PlayerWeapon {
+        PlayerWeapon::Shotgun(self)
     }
 }
 

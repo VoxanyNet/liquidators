@@ -26,12 +26,12 @@ pub enum Facing {
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]
-pub enum Weapon {
+pub enum PlayerWeapon {
     Shotgun(Shotgun),
     Pistol(Pistol)
 }
 
-impl Weapon {
+impl PlayerWeapon {
     pub fn tick(
         &mut self, 
         players: &mut SyncArena<Player>, 
@@ -43,10 +43,31 @@ impl Weapon {
         bullet_trails: &mut SyncArena<BulletTrail>
     ) {
         match self {
-            Weapon::Shotgun(shotgun) => shotgun.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails),
-            Weapon::Pistol(pistol) => pistol.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails),
+            PlayerWeapon::Shotgun(shotgun) => shotgun.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails),
+            PlayerWeapon::Pistol(pistol) => pistol.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails),
         }
     } 
+
+    pub fn rigid_body(&self) -> SyncRigidBodyHandle{
+        match self {
+            PlayerWeapon::Shotgun(shotgun) => shotgun.rigid_body(),
+            PlayerWeapon::Pistol(pistol) => pistol.rigid_body(),
+        }
+    }
+
+    pub fn set_facing(&mut self, facing: Facing) {
+        match self {
+            PlayerWeapon::Shotgun(shotgun) => shotgun.set_facing(facing),
+            PlayerWeapon::Pistol(pistol) => pistol.set_facing(facing),
+        }
+    }
+
+    pub async fn draw(&self, space: &Space, textures: &mut TextureLoader, flip_x: bool, flip_y: bool) {
+        match self {
+            PlayerWeapon::Shotgun(shotgun) => shotgun.draw(space, textures, flip_x, flip_y).await,
+            PlayerWeapon::Pistol(pistol) => pistol.draw(space, textures, flip_x, flip_y).await,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -64,7 +85,7 @@ pub struct Player {
     pub dragging: bool,
     pub drag_offset: Option<Vec2>,
     pub max_speed: Vec2,
-    weapon: Option<Weapon>,
+    weapon: Option<PlayerWeapon>,
     pub animation_handler: PlayerAnimationHandler,
     pub walk_frame_progess: f32,
     pub idle_frame_progress: f32,
@@ -136,7 +157,7 @@ impl Player {
         match self.weapon {
             Some(weapon) => {
                 space.sync_rigid_body_set.remove_sync(
-                    shotgun.rigid_body(), 
+                    weapon.rigid_body(), 
                     &mut space.island_manager, 
                     &mut space.sync_collider_set, 
                     &mut space.sync_impulse_joint_set, 
@@ -191,14 +212,14 @@ impl Player {
             true
         );
 
-        let shotgun = Shotgun::new(space, *position, owner.clone(), Some(cat_body.body_handle), textures);
+        let pistol = Pistol::new(space, *position, owner.clone(), Some(cat_body.body_handle), textures);
 
         // we dont want the shotgun to collide with anything
-        space.sync_collider_set.get_sync_mut(shotgun.collider()).unwrap().set_collision_groups(
+        space.sync_collider_set.get_sync_mut(pistol.collider()).unwrap().set_collision_groups(
             InteractionGroups::none()
         );
 
-        let shotgun_local_handle = space.sync_rigid_body_set.get_local_handle(shotgun.rigid_body());
+        let shotgun_local_handle = space.sync_rigid_body_set.get_local_handle(pistol.rigid_body());
 
         // attach the shotgun to the player
         let shotgun_joint_handle = space.sync_impulse_joint_set.insert_sync(
@@ -226,7 +247,7 @@ impl Player {
                 dragging: false,
                 drag_offset: None,
                 max_speed: vec2(350., 80.),
-                shotgun: Some(shotgun),
+                weapon: Some(pistol.into()),
                 animation_handler: PlayerAnimationHandler::new(PlayerAnimationState::Walking),
                 walk_frame_progess: 0.,
                 idle_frame_progress: 0.,
@@ -279,8 +300,8 @@ impl Player {
         
         self.detach_head_if_dead(space);
 
-        if let Some(shotgun) = &mut self.shotgun {
-            shotgun.tick(
+        if let Some(weapon) = &mut self.weapon {
+            weapon.tick(
                 players, 
                 space, 
                 hit_markers, 
@@ -477,8 +498,8 @@ impl Player {
 
             self.facing = Facing::Right;
 
-            if let Some(shotgun) = &mut self.shotgun {
-                shotgun.set_facing(self.facing.clone());
+            if let Some(weapon) = &mut self.weapon {
+                weapon.set_facing(self.facing.clone());
             };
 
         }
@@ -491,8 +512,8 @@ impl Player {
 
             self.facing = Facing::Left;
 
-            if let Some(shotgun) = &mut self.shotgun {
-                shotgun.set_facing(self.facing.clone());
+            if let Some(weapon) = &mut self.weapon {
+                weapon.set_facing(self.facing.clone());
             };
         }
     }
@@ -752,9 +773,9 @@ impl Player {
         self.body.draw(textures, space, flip_x).await;
         self.head.draw(textures, space, flip_x).await;
        
-        if let Some(shotgun) = &self.shotgun {
+        if let Some(weapon) = &self.weapon {
 
-            shotgun.draw(space, textures, flip_x, false).await
+            weapon.draw(space, textures, flip_x, false).await
         }
 
         let head_pos = {

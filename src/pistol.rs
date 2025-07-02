@@ -1,11 +1,11 @@
 use std::collections::HashSet;
 
 use diff::Diff;
-use gamelibrary::{space::{Space, SyncRigidBodyHandle}, sync_arena::SyncArena, texture_loader::TextureLoader};
+use gamelibrary::{space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::SyncArena, texture_loader::TextureLoader};
 use macroquad::math::Vec2;
 use serde::{Deserialize, Serialize};
 
-use crate::{bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, player::player::Player, weapon::Weapon, TickContext};
+use crate::{bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, player::{self, player::{Facing, Player}}, weapon::Weapon, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -32,6 +32,14 @@ impl Pistol {
         self.weapon.draw(space, textures, flip_x, flip_y).await
     }
 
+    pub fn collider(&self) -> SyncColliderHandle {
+        self.weapon.collider
+    }
+
+    pub fn rigid_body(&self) -> SyncRigidBodyHandle {
+        self.weapon.rigid_body
+    }
+
     pub fn tick(
         &mut self, 
         players: &mut SyncArena<Player>, 
@@ -45,4 +53,14 @@ impl Pistol {
         self.weapon.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails);
     }
 
+    pub fn set_facing(&mut self, facing: Facing) {
+        self.weapon.facing = facing
+    }
+
+}
+
+impl Into<player::player::PlayerWeapon> for Pistol {
+    fn into(self) -> player::player::PlayerWeapon {
+        player::player::PlayerWeapon::Pistol(self)
+    }
 }
