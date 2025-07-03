@@ -2,9 +2,10 @@ use std::{fs, path::Path, time::{Duration, Instant}};
 
 use console::Console;
 use diff::Diff;
+use futures::executor::block_on;
 use gamelibrary::{font_loader::FontLoader, rapier_mouse_world_pos, sound::soundmanager::SoundManager, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
-use macroquad::{input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}};
+use macroquad::{audio::{load_sound, play_sound_once}, input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}};
 use nalgebra::{coordinates::X, vector};
 use noise::Perlin;
 use rand::{rng, seq::IndexedRandom};
@@ -46,6 +47,81 @@ pub struct BodyCollider {
     body: RigidBodyHandle,
     collider: ColliderHandle
 }
+
+// #[derive(Serialize)]
+// // this is temporary for diff serialize reasons
+// pub struct Sound {
+//     #[serde(skip)]
+//     sound: macroquad::audio::Sound,
+//     path: String,
+//     playing: bool
+// }
+
+// impl<'de> Deserialize<'de> for Sound {
+//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+//     where
+//         D: serde::Deserializer<'de> {
+//         #[derive(Deserialize)]
+//         pub struct SoundHelper {
+//             path: String
+//         }
+
+//         let helper = SoundHelper::deserialize(deserializer)?;
+
+//         // this is an issue. we need to be able to use a cache
+//         let sound = block_on(load_sound(&helper.path)).unwrap();
+
+//         Ok(
+//             Self {
+//                 sound,
+//                 path: helper.path,
+//                 playing: false
+//             }
+//         )
+//     }
+// }
+
+// pub struct SoundDiff {
+//     play: bool,
+//     path: String
+// }
+
+
+// impl Diff for Sound {
+//     type Repr = SoundDiff;
+
+//     fn diff(&self, other: &Self) -> Self::Repr {
+//         if self.sound.
+//     }
+
+//     fn apply(&mut self, diff: &Self::Repr) {
+//         todo!()
+//     }
+
+//     fn identity() -> Self {
+//         todo!()
+//     }
+// }
+
+
+
+// impl Sound {
+//     pub fn new(path: &str) -> Self {
+
+//         let sound = block_on(
+//             load_sound(path)
+//         ).unwrap();
+
+//         Self {
+//             sound: sound,
+//             path: path.to_string()
+//         }
+//     }
+
+//     pub fn play(&mut self) {
+//         play_sound_once(&self.sound);
+//     }
+// }
 
 // used to identify an entity within an hashmap
 pub struct EntityKey {

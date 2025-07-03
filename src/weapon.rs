@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::player::{Facing, Player}, Grabbable, TickContext};
 
+
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
@@ -29,7 +30,12 @@ pub struct Weapon {
     pub facing: Facing,
     pub muzzle_flash: MuzzleFlash,
     pub scale: f32,
-    pub aim_angle_offset: f32
+    pub aim_angle_offset: f32,
+    pub fire_sound_path: String,
+    pub x_screen_shake_frequency: f64,
+    pub x_screen_shake_intensity: f64,
+    pub y_screen_shake_frequency: f64,
+    pub y_screen_shake_intensity: f64
 }
 
 impl Grabbable for Weapon {
@@ -48,8 +54,17 @@ impl Weapon {
         textures: &mut TextureLoader,
         sprite_path: String,
         scale: f32,
-        aim_angle_offset: Option<f32>
+        aim_angle_offset: Option<f32>,
+        mass: Option<f32>,
+        fire_sound_path: &str,
+        x_screen_shake_frequency: f64,
+        x_screen_shake_intensity: f64,
+        y_screen_shake_frequency: f64,
+        y_screen_shake_intensity: f64
+
     ) -> Self {
+
+        let mass = mass.unwrap_or(1.);
 
         let texture_size = textures.get_blocking(&sprite_path).size() 
             * scale ; // scale the size of the shotgun
@@ -63,7 +78,7 @@ impl Weapon {
 
         let collider = space.sync_collider_set.insert_with_parent_sync(
             collider_from_texture_size(texture_size)
-                .mass(1.)
+                .mass(mass)
                 .build(), 
             rigid_body, 
             &mut space.sync_rigid_body_set
@@ -89,7 +104,13 @@ impl Weapon {
             facing: Facing::Left,
             muzzle_flash: MuzzleFlash::new("assets/particles/shotgun_muzzle_flash.png".to_string(), Duration::from_millis(50)),
             scale,
-            aim_angle_offset
+            aim_angle_offset,
+            fire_sound_path: fire_sound_path.to_string(),
+            x_screen_shake_frequency,
+            x_screen_shake_intensity,
+            y_screen_shake_frequency,
+            y_screen_shake_intensity,
+            
         }
     }
 
@@ -113,7 +134,7 @@ impl Weapon {
     pub fn all_tick(&mut self, players: &mut SyncArena<Player>, space: &mut Space, ctx: &mut TickContext) {
         self.grab(players, space, ctx);
 
-        //self.sync_sound(ctx);
+        self.sync_sound(ctx);
     }
 
     pub fn tick(
@@ -173,15 +194,15 @@ impl Weapon {
     }
 
     pub fn shake_screen(&self, ctx: &mut TickContext) {
-        ctx.screen_shake.x_frequency += 20.;
-        ctx.screen_shake.x_intensity += 10.;
+        ctx.screen_shake.x_frequency += self.x_screen_shake_frequency;
+        ctx.screen_shake.x_intensity += self.x_screen_shake_intensity;
 
         ctx.screen_shake.x_frequency_decay = 10.;
         ctx.screen_shake.x_intensity_decay = 20.;
     }
 
     pub fn play_sound(&mut self) {
-        let mut fire_sound = SoundHandle::new("assets/sounds/shotgun/fire.wav", [0., 0., 0.]);
+        let mut fire_sound = SoundHandle::new(&self.fire_sound_path, [0., 0., 0.]);
 
         fire_sound.play();
 
@@ -248,7 +269,7 @@ impl Weapon {
             rapier_mouse_pos.y - shotgun_pos.y 
         ).normalize();
 
-        let mut angle_bullet_vector = Vec2 {
+        let mut macroquad_angle_bullet_vector = Vec2 {
             x:  shotgun_angle.cos(),
             y: shotgun_angle.sin() * -1.,
         };
@@ -256,13 +277,18 @@ impl Weapon {
         match self.facing {
             Facing::Right => {},
             Facing::Left => {
-                angle_bullet_vector.x *= -1.;
-                angle_bullet_vector.y *= -1.;
+                macroquad_angle_bullet_vector.x *= -1.;
+                macroquad_angle_bullet_vector.y *= -1.;
             }
         }
 
-        println!("epic: {:?}", bullet_vector);
-        println!("angle: {:?}", angle_bullet_vector);
+        let rapier_angle_bullet_vector = Vec2 {
+            x: macroquad_angle_bullet_vector.x,
+            y: macroquad_angle_bullet_vector.y * -1.
+        };
+
+
+        println!("bullet vector: {:?}", macroquad_angle_bullet_vector);
 
         self.knockback_player(space, bullet_vector);
 
@@ -276,16 +302,16 @@ impl Weapon {
                     shotgun_pos_macroquad.y - 10.
                 ), 
                 Vec2 {
-                    x: shotgun_pos_macroquad.x + (angle_bullet_vector.x * 10000.),
-                    y: shotgun_pos_macroquad.y + (angle_bullet_vector.y * 10000.),
+                    x: shotgun_pos_macroquad.x + (macroquad_angle_bullet_vector.x * 10000.),
+                    y: shotgun_pos_macroquad.y + (macroquad_angle_bullet_vector.y * 10000.),
                 },
                 None,
                 self.owner.clone()
             )
         );
         
-        let ray = Ray::new(point![shotgun_pos.x, shotgun_pos.y], vector![angle_bullet_vector.x, angle_bullet_vector.y]);
-        let max_toi = 1000.0;
+        let ray = Ray::new(point![shotgun_pos.x, shotgun_pos.y], vector![rapier_angle_bullet_vector.x, rapier_angle_bullet_vector.y]);
+        let max_toi = 5000.0;
         let solid = true;
         let filter = QueryFilter::default();
 
@@ -315,6 +341,10 @@ impl Weapon {
         for handle in intersections {
             let collider = space.sync_collider_set.get_local(handle).unwrap();
 
+            let rapier_pos = rapier_to_macroquad(&vec2(collider.translation().x, collider.translation().y));
+
+            //hit_markers.push(rapier_pos);
+
             let distance = collider.translation() - shotgun_position;
             
             hit_rigid_bodies.push(collider.parent().unwrap());
@@ -327,8 +357,6 @@ impl Weapon {
                 if enemy.health <= 0 {
                     continue;
                 }
-
-                // dont want to hit the enemy twice
 
                 let mut enemy_hit = false;
 

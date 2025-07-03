@@ -24,7 +24,21 @@ impl Pistol {
         textures: &mut TextureLoader,
     ) -> Self {
         Self {
-            weapon: Weapon::new(space, pos, owner, player_rigid_body_handle, textures, "assets/weapons/pistol.png".to_string(), 1.5, Some(0.25))
+            weapon: Weapon::new(
+                space, 
+                pos, 
+                owner, 
+                player_rigid_body_handle, 
+                textures, "assets/weapons/pistol.png".to_string(),
+                1.3, 
+                Some(0.),
+                Some(1.),
+                "assets/sounds/pistol.wav",
+                50.,
+                5.,
+                0.,
+                0.
+            )
         }
     }
 

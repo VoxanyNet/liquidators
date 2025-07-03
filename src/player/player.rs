@@ -388,7 +388,9 @@ impl Player {
 
         let body_body_pos = Vec2::new(body_body.translation().x, body_body.translation().y);
 
-        let angle_to_mouse = get_angle_to_mouse(body_body_pos, camera_rect);
+        let weapon_pos = space.sync_rigid_body_set.get_sync(self.weapon.as_ref().unwrap().rigid_body()).unwrap().translation();
+
+        let angle_to_mouse = get_angle_to_mouse(Vec2::new(weapon_pos.x, weapon_pos.y), camera_rect);
 
         let shotgun_joint = space.sync_impulse_joint_set.get_sync_mut(shotgun_joint_handle).unwrap();
 
@@ -417,7 +419,7 @@ impl Player {
             return;
         }
 
-        shotgun_joint_data.set_motor_position(target_angle, 300., 20.);
+        shotgun_joint_data.set_motor_position(target_angle, 3000., 50.);
 
         return;
     }
@@ -705,6 +707,16 @@ impl Player {
 
         let gamepad: Option<Gamepad<'_>> = None;
 
+        // sprinting but a little dumb
+        // let speed = match is_key_down(KeyCode::LeftShift) {
+        //     true => 100.,
+        //     false => 20.,
+        // };
+
+        let speed = 50.;
+        
+        dbg!(speed);
+
         self.jump(rigid_body, gamepad);
 
         if is_key_down(KeyCode::A) || gamepad.map_or(false, |gamepad| {gamepad.is_pressed(gilrs::Button::DPadLeft)}) {
@@ -713,15 +725,16 @@ impl Player {
                 return
             }
 
+            // cancel out x movement (but not all the way)
             if rigid_body.linvel().x.is_sign_positive() {
                 rigid_body.set_linvel(
-                    vector![0., rigid_body.linvel().y],
+                    vector![rigid_body.linvel().x * 0.5, rigid_body.linvel().y],
                     true
                 )
             }
 
             rigid_body.set_linvel(
-                vector![rigid_body.linvel().x - 50., rigid_body.linvel().y],
+                vector![rigid_body.linvel().x - speed, rigid_body.linvel().y],
                 true
             );
 
@@ -733,15 +746,16 @@ impl Player {
                 return
             }
 
+            // cancel out movement
             if rigid_body.linvel().x.is_sign_negative() {
                 rigid_body.set_linvel(
-                    vector![0., rigid_body.linvel().y],
+                    vector![rigid_body.linvel().x * 0.5, rigid_body.linvel().y],
                     true
                 )
             }
 
             rigid_body.set_linvel(
-                vector![rigid_body.linvel().x + 50., rigid_body.linvel().y],
+                vector![rigid_body.linvel().x + speed, rigid_body.linvel().y],
                 true
             )
         }

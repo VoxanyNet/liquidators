@@ -4,7 +4,7 @@ use futures::executor::block_on;
 use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, font_loader::FontLoader, log, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, game_state::GameState, level::Level, main_menu::MainMenu, player::player::Player, vec_remove_iter::IntoVecRemoveIter, ScreenShakeParameters, TickContext};
-use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::{camera::mouse, gl_use_default_material, gl_use_material, load_material, MaterialParams, PipelineParams, ShaderSource, UniformDesc, UniformType}, text::draw_text, time::get_fps, window::{request_new_screen_size, screen_height, screen_width}};
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::{camera::mouse, gl_use_default_material, gl_use_material, load_material, MaterialParams, PipelineParams, ShaderSource, UniformDesc, UniformType}, text::draw_text, time::get_fps, window::{next_frame, request_new_screen_size, screen_height, screen_width}};
 use noise::{NoiseFn, Perlin};
 use tungstenite::http::request;
 use uuid::Uuid;
@@ -77,6 +77,11 @@ impl<S: SoundManager> Client<S> {
             menu.tick(&mut tick_context);
 
             if menu.started {
+
+                // temporary workarond so that the menu click doesnt count in game
+                std::thread::sleep(Duration::from_secs_f32(0.2));
+                next_frame().await;
+
                 *self = Client::connect("ws://127.0.0.1:5556").await;
             }
 

@@ -26,10 +26,7 @@ impl BulletTrail {
 
     pub fn tick(&mut self, ctx: &TickContext) {
 
-        println!("{}", 1. * ctx.last_tick_duration.as_secs_f32());
         self.color.a -= 0.3 * ctx.last_tick_duration.as_secs_f32();
-
-        println!("{}", self.color.a);
     }
 
     pub fn new(
