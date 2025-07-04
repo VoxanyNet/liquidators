@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use diff::Diff;
-use gamelibrary::{space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::SyncArena, texture_loader::TextureLoader};
+use gamelibrary::{space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, sync_arena::SyncArena, texture_loader::TextureLoader};
 use macroquad::math::Vec2;
 use serde::{Deserialize, Serialize};
 
@@ -35,7 +35,7 @@ impl Pistol {
                 Some(1.),
                 "assets/sounds/pistol.wav",
                 50.,
-                5.,
+                8.,
                 0.,
                 0.,
                 Some("assets/weapons/pistol/casing.png".to_string())
@@ -53,6 +53,10 @@ impl Pistol {
 
     pub fn collider(&self) -> SyncColliderHandle {
         self.weapon.collider
+    }
+
+    pub fn player_joint_handle(&self) -> Option<SyncImpulseJointHandle> {
+        self.weapon.player_joint_handle
     }
 
     pub fn rigid_body(&self) -> SyncRigidBodyHandle {

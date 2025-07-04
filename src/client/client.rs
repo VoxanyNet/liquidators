@@ -92,7 +92,6 @@ impl<S: SoundManager> Client<S> {
 
                 *self = Client::connect("ws://127.0.0.1:5556").await;
 
-                server_thread.join().unwrap()
             }
 
             else if menu.connect {
@@ -100,23 +99,23 @@ impl<S: SoundManager> Client<S> {
                 std::thread::sleep(Duration::from_secs_f32(0.2));
                 next_frame().await;
 
-                *self = Client::connect("ws://127.0.0.1:5556").await;
+                *self = Client::connect("ws://voxany.net:5556").await;
             }
 
-            else if menu.launch_editor {
-                let mut editor_server = EditorServer::new(SocketAddr::new(std::net::IpAddr::from_str("0.0.0.0").expect("failed to parse ip"), 5557));
+            // else if menu.launch_editor {
+            //     let mut editor_server = EditorServer::new(SocketAddr::new(std::net::IpAddr::from_str("0.0.0.0").expect("failed to parse ip"), 5557));
                 
-                let editor_server_thread = std::thread::spawn(move ||
-                    editor_server.run()
-                );
+            //     let editor_server_thread = std::thread::spawn(move ||
+            //         editor_server.run()
+            //     );
 
-                let mut editor_client = EditorClient::connect("ws://127.0.0.1:5557").await;
+            //     let mut editor_client = EditorClient::connect("ws://127.0.0.1:5557").await;
 
-                editor_client.run().await;
+            //     editor_client.run().await;
 
-                editor_server_thread.join().unwrap();
+            //     editor_server_thread.join().unwrap();
             
-            }
+            // }
 
 
         }

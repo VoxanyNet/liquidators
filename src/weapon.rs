@@ -1,14 +1,14 @@
 use std::{collections::HashSet, time::{Duration, Instant}};
 
 use diff::Diff;
-use gamelibrary::{get_angle_to_mouse, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::SoundHandle, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, time::Time, traits::{draw_texture_onto_physics_body, HasPhysics}};
+use gamelibrary::{get_angle_to_mouse, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::SoundHandle, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, time::Time, traits::{draw_texture_onto_physics_body, HasPhysics}};
 use macroquad::{color::{RED, WHITE}, input::is_mouse_button_released, math::{vec2, Vec2}, miniquad::TextureParams, shapes::{draw_circle, draw_rectangle}, texture::{draw_texture_ex, DrawTextureParams}};
 use nalgebra::{point, vector, Const, OPoint};
 use parry2d::{query::Ray, shape::Shape};
-use rapier2d::prelude::{ColliderHandle, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{ColliderHandle, InteractionGroups, QueryFilter, RevoluteJointBuilder, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{bullet_casing::BulletCasing, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::player::{Facing, Player}, Grabbable, TickContext};
+use crate::{bullet_casing::BulletCasing, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::{self, player::{Facing, Player}}, Grabbable, TickContext};
 
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -37,7 +37,8 @@ pub struct Weapon {
     pub y_screen_shake_frequency: f64,
     pub y_screen_shake_intensity: f64,
     pub shell_sprite: Option<String>, // should this be generic i dont knowwwww
-    pub bullet_casings: HashSet<BulletCasing>
+    pub bullet_casings: HashSet<BulletCasing>,
+    pub player_joint_handle: Option<SyncImpulseJointHandle>
 }
 
 impl Grabbable for Weapon {
@@ -92,6 +93,35 @@ impl Weapon {
             None => 0.,
         };
 
+        // if we are attaching the weapon to the player we need to do some epic stuff!
+        let player_joint_handle: Option<SyncImpulseJointHandle> = if let Some(player_rigid_body_handle) = player_rigid_body_handle {
+
+            // make the shotgun not collide with anything
+            space.sync_collider_set.get_sync_mut(collider).unwrap().set_collision_groups(InteractionGroups::none());
+
+            let local_player_rigid_body_handle = space.sync_rigid_body_set.get_local_handle(player_rigid_body_handle);
+            let local_weapon_rigid_body_handle = space.sync_rigid_body_set.get_local_handle(rigid_body);
+
+            // joint the shotgun to the player
+            Some(space.sync_impulse_joint_set.insert_sync(
+                local_player_rigid_body_handle,
+                local_weapon_rigid_body_handle,
+                RevoluteJointBuilder::new()
+                    .local_anchor1(vector![0., 0.].into())
+                    .local_anchor2(vector![30., 0.].into())
+                    .limits([-0.8, 0.8])
+                    .contacts_enabled(false)
+                .build(),
+                true
+            ))
+            
+
+        } 
+
+        else {
+            None
+        };
+
         Self {
             player_rigid_body_handle,
             picked_up: false,
@@ -114,7 +144,8 @@ impl Weapon {
             y_screen_shake_frequency,
             y_screen_shake_intensity,
             shell_sprite: shell_sprite_path,
-            bullet_casings: HashSet::new()
+            bullet_casings: HashSet::new(),
+            player_joint_handle: player_joint_handle,
             
         }
     }
@@ -199,8 +230,8 @@ impl Weapon {
     }
 
     pub fn shake_screen(&self, ctx: &mut TickContext) {
-        ctx.screen_shake.x_frequency += self.x_screen_shake_frequency;
-        ctx.screen_shake.x_intensity += self.x_screen_shake_intensity;
+        ctx.screen_shake.x_frequency = self.x_screen_shake_frequency;
+        ctx.screen_shake.x_intensity = self.x_screen_shake_intensity;
 
         ctx.screen_shake.x_frequency_decay = 10.;
         ctx.screen_shake.x_intensity_decay = 20.;

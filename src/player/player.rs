@@ -9,7 +9,7 @@ use rapier2d::prelude::{ImpulseJointHandle, InteractionGroups, RevoluteJointBuil
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, level::Level, pistol::Pistol, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
+use crate::{brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, level::Level, pistol::Pistol, player, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
 
 use super::body_part::BodyPart;
 
@@ -47,6 +47,13 @@ impl PlayerWeapon {
             PlayerWeapon::Pistol(pistol) => pistol.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails),
         }
     } 
+
+    pub fn player_joint_handle(&self) -> Option<SyncImpulseJointHandle> {
+        match self {
+            PlayerWeapon::Shotgun(shotgun) => shotgun.player_joint_handle(),
+            PlayerWeapon::Pistol(pistol) => pistol.player_joint_handle(),
+        }
+    }
     pub fn aim_angle_offset(&self) -> f32 {
         match self {
             PlayerWeapon::Shotgun(shotgun) => shotgun.aim_angle_offset(),
@@ -97,7 +104,6 @@ pub struct Player {
     pub facing: Facing,
     pub sound: SoundHandle,
     pub head_joint_handle: Option<SyncImpulseJointHandle>,
-    pub shotgun_joint_handle: Option<SyncImpulseJointHandle>,
     pub teleporter_destination: Option<SyncRigidBodyHandle>,
 }
 
@@ -220,26 +226,6 @@ impl Player {
         let pistol = Pistol::new(space, *position, owner.clone(), Some(cat_body.body_handle), textures);
         //let pistol = Shotgun::new(space, *position, owner.clone(), Some(cat_body.body_handle), textures);
 
-        // we dont want the shotgun to collide with anything
-        space.sync_collider_set.get_sync_mut(pistol.collider()).unwrap().set_collision_groups(
-            InteractionGroups::none()
-        );
-
-        let shotgun_local_handle = space.sync_rigid_body_set.get_local_handle(pistol.rigid_body());
-
-        // attach the shotgun to the player
-        let shotgun_joint_handle = space.sync_impulse_joint_set.insert_sync(
-            local_cat_body_body,
-            shotgun_local_handle,
-            RevoluteJointBuilder::new()
-                .local_anchor1(vector![0., 0.].into())
-                .local_anchor2(vector![30., 0.].into())
-                .limits([-0.8, 0.8])
-                .contacts_enabled(false)
-            .build(),
-            true
-        );
-
         let sound = SoundHandle::new("assets/sounds/brick_land.wav", [0.,0.,0.]);
 
         players.insert(
@@ -260,7 +246,6 @@ impl Player {
                 facing: Facing::Right,
                 sound,
                 head_joint_handle: Some(head_joint_handle),
-                shotgun_joint_handle: Some(shotgun_joint_handle),
                 teleporter_destination: None,
                 health: 100
             }
@@ -270,6 +255,32 @@ impl Player {
 
     pub fn sync_sound(&mut self, sounds: &mut dyn SoundManager) {
         sounds.sync_sound(&mut self.sound);
+    }
+
+    pub fn change_weapon(
+        &mut self, 
+        space: &mut Space,
+        textures: &mut TextureLoader
+    ) {
+        if !is_key_released(KeyCode::Q) {
+            return;
+        }
+
+        let rigid_body_handle = self.rigid_body_handle().clone();
+        let owner = self.owner.clone();
+
+        if let Some(weapon) = &mut self.weapon {
+            let new_weapon = match weapon {
+                PlayerWeapon::Shotgun(_shotgun) => {
+                    Pistol::new(space, vec2(0., 0.), self.owner.clone(), Some(rigid_body_handle.clone()), textures).into()
+                },
+                PlayerWeapon::Pistol(_pistol) => {
+                    Shotgun::new(space, vec2(0., 0.), self.owner.clone(), Some(rigid_body_handle.clone()), textures).into()
+                },  
+            };
+
+            *weapon = new_weapon;
+        }
     }
 
 
@@ -287,13 +298,15 @@ impl Player {
         bullet_trails: &mut SyncArena<BulletTrail>
     ) {
         //self.launch_brick(level, ctx);
+        self.change_weapon(space, ctx.textures);
         self.control(space, ctx);
         self.move_camera(ctx.camera_rect, space);
         self.update_selected(space, &ctx.camera_rect);
         self.update_is_dragging(space, &ctx.camera_rect);
         self.update_drag(space, &ctx.camera_rect);
         // this needs to be fixed so moving structures dont change owners, it causes it to glitch because conflicting updates
-        //self.own_nearby_structures(space, structures, ctx);
+
+        //self.own_nearby_structures(space, structures, ctx, players);
         self.update_walk_animation(space);
         self.update_idle_animation(space);
         self.change_facing_direction(&space);
@@ -376,7 +389,7 @@ impl Player {
 
     pub fn angle_weapon_to_mouse(&mut self, space: &mut Space, camera_rect: &Rect) {
 
-        let shotgun_joint_handle = match self.shotgun_joint_handle {
+        let shotgun_joint_handle = match self.weapon.as_ref().unwrap().player_joint_handle() {
             Some(shotgun_joint_handle) => shotgun_joint_handle,
             None => return,
         };
@@ -599,41 +612,65 @@ impl Player {
         }
         
     }
-    pub fn own_nearby_structures(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext) {
+    pub fn own_nearby_structures(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext, other_players: &mut SyncArena<Player>) {
         // take ownership of nearby structures to avoid network physics delay
 
-        let our_body = space.sync_rigid_body_set.get_sync(self.body.body_handle).unwrap();
 
         for structure in structures {
 
-            if current_unix_millis() - structure.last_ownership_change < 2 {
-                continue;
-            }
-
             let structure_body = space.sync_rigid_body_set.get_sync(structure.rigid_body_handle).unwrap();
 
-            let body_distance = structure_body.position().translation.vector - our_body.position().translation.vector;
+            let structure_pos = structure_body.position().translation.vector;
+           
 
-            // if the other body is within 100 units, we take ownership of it
-            if body_distance.abs().magnitude() > 100. {
-                continue;
-            }
+            // need to calculate our distance seperately because other_players does not contain us
+            let our_pos = space.sync_rigid_body_set.get_sync(*self.rigid_body_handle()).unwrap().translation();
+            let our_distance_to_structure = structure_body.position().translation.vector - our_pos;
 
-            match &mut structure.owner {
-                Some(owner) => {
+            println!("our player distance to structure: {:?}", our_distance_to_structure);
 
-                    // take ownership if we dont already own it
-                    if owner == ctx.uuid {
-                        continue;    
-                    }
-                        
-                    *owner = ctx.uuid.clone();
+            let mut closest_owner = self.owner.clone();
+            let mut closest_distance = our_distance_to_structure.clone();
 
+            for (player_index, player) in other_players.iter() {
+                let player_pos = space.sync_rigid_body_set.get_sync(*player.rigid_body_handle()).unwrap().translation();
+
+                let body_distance = structure_pos - player_pos;
+
+                if body_distance.magnitude() > closest_distance.magnitude() {
+                    closest_owner = player.owner.clone();
+                    closest_distance = body_distance.clone();
                 }
-                None => {
-                    structure.owner = Some(ctx.uuid.clone())
-                },
+
+                
+
+                println!("player: {:?} distance to structure: {:?}", player_index, body_distance);
             }
+
+            structure.owner = Some(closest_owner);
+
+            
+
+            // // if the other body is within 100 units, we take ownership of it
+            // if body_distance.abs().magnitude() > 100. {
+            //     continue;
+            // }
+
+            // match &mut structure.owner {
+            //     Some(owner) => {
+
+            //         // take ownership if we dont already own it
+            //         if owner == ctx.uuid {
+            //             continue;    
+            //         }
+                        
+            //         *owner = ctx.uuid.clone();
+
+            //     }
+            //     None => {
+            //         structure.owner = Some(ctx.uuid.clone())
+            //     },
+            // }
 
         }
     }
@@ -714,8 +751,6 @@ impl Player {
         // };
 
         let speed = 50.;
-        
-        dbg!(speed);
 
         self.jump(rigid_body, gamepad);
 

@@ -96,7 +96,7 @@ impl Level {
             }
         };
 
-        self.spawn_fixed_structure(ctx.camera_rect, ctx.uuid);
+        //self.spawn_fixed_structure(ctx.camera_rect, ctx.uuid);
 
         self.spawn_damage_number(ctx.camera_rect);
         
@@ -197,7 +197,7 @@ impl Level {
                 players, 
                 &mut self.enemies,
                 &mut self.damage_numbers,
-                &mut self.bullet_trails
+                &mut self.bullet_trails,
             );
                 
 
