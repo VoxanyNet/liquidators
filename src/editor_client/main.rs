@@ -1,4 +1,4 @@
-use editor_client::EditorClient;
+use liquidators_lib::editor_client::EditorClient;
 use macroquad::{miniquad::conf::Platform, window::Conf};
 
 pub mod editor_client;

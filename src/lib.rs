@@ -38,6 +38,10 @@ pub mod bullet_trail;
 pub mod muzzle_flash;
 pub mod pistol;
 pub mod weapon;
+pub mod intake;
+pub mod server;
+pub mod editor_client;
+pub mod editor_server;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(

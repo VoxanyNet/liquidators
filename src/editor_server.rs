@@ -1,7 +1,8 @@
 use std::{net::SocketAddr, time::Duration};
 
 use gamelibrary::sync::server::SyncServer;
-use liquidators_lib::level::Level;
+
+use crate::level::Level;
 
 pub struct EditorServer {
     pub sync_server: SyncServer<Level>
