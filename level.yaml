@@ -1,8 +1,8 @@
 structures:
 - rigid_body_handle:
-    id: 10014911846432785414
+    id: 12735538616261299238
   collider_handle:
-    id: 8954126064676914352
+    id: 10810770228310461184
   color:
     r: 0.9
     g: 0.16
@@ -13,7 +13,7 @@ structures:
   dragging: false
   drag_offset: null
   owner: null
-  editor_owner: c6b547fe-1ed8-49bd-9561-10a0b117b871
+  editor_owner: 99a5143e-7b07-48e1-a90f-1527e0b30aef
   sprite_path: assets/structure/brick_block.png
   last_ownership_change: 0
   grabbing: false
@@ -47,15 +47,15 @@ space:
                 - 1.0
                 - 0.0
                 translation:
-                - 440.66666
-                - 64.00006
+                - 854.6666
+                - 192.66675
               next_position:
                 rotation:
                 - 1.0
                 - 0.0
                 translation:
-                - 440.66666
-                - 64.00006
+                - 854.6666
+                - 192.66675
             mprops:
               flags: ''
               local_mprops:
@@ -66,8 +66,8 @@ space:
                 inv_principal_inertia_sqrt: 0.019364918
               additional_local_mprops: null
               world_com:
-              - 440.66666
-              - 64.00006
+              - 854.6666
+              - 192.66675
               effective_inv_mass:
               - 0.1
               - 0.1
@@ -134,13 +134,13 @@ space:
       - index: 0
         generation: 0
     sync_map:
-      ? id: 10014911846432785414
+      ? id: 12735538616261299238
       : index: 0
         generation: 0
     reverse_sync_map:
       ? index: 0
         generation: 0
-      : id: 10014911846432785414
+      : id: 12735538616261299238
   sync_collider_set:
     collider_set:
       colliders:
@@ -151,7 +151,7 @@ space:
             coll_type: Solid
             shape: !Cuboid
               half_extents:
-              - 440.0
+              - 860.0
               - 20.0
             mprops: !Mass 10.0
             changes: MODIFIED | LOCAL_MASS_PROPERTIES | PARENT | POSITION | GROUPS | SHAPE | TYPE | PARENT_EFFECTIVE_DOMINANCE | ENABLED_OR_DISABLED
@@ -171,8 +171,8 @@ space:
               - 1.0
               - 0.0
               translation:
-              - 20.666656
-              - 64.00006
+              - 14.666626
+              - 192.66675
             material:
               friction: 0.5
               restitution: 0.0
@@ -208,13 +208,13 @@ space:
         generation: 0
       removed_colliders: []
     sync_map:
-      ? id: 8954126064676914352
+      ? id: 10810770228310461184
       : index: 0
         generation: 0
     reverse_sync_map:
       ? index: 0
         generation: 0
-      : id: 8954126064676914352
+      : id: 10810770228310461184
   gravity:
   - 0.0
   - -980.0
@@ -312,28 +312,28 @@ space:
     qbvh:
       root_aabb:
         mins:
-        - -428.13333
-        - 43.60006
+        - -862.5334
+        - 172.26675
         maxs:
-        - 469.46664
-        - 84.40006
+        - 891.86664
+        - 213.06674
       nodes:
       - simd_aabb:
           mins:
-          - - -428.13333
+          - - -862.5334
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 43.60006
+          - - 172.26675
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 469.46664
+          - - 891.86664
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 84.40006
+          - - 213.06674
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
@@ -348,20 +348,20 @@ space:
         flags: 0
       - simd_aabb:
           mins:
-          - - -428.13333
+          - - -862.5334
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 43.60006
+          - - 172.26675
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 469.46664
+          - - 891.86664
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 84.40006
+          - - 213.06674
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38

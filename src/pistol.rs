@@ -37,7 +37,8 @@ impl Pistol {
                 50.,
                 5.,
                 0.,
-                0.
+                0.,
+                Some("assets/weapons/pistol/casing.png".to_string())
             )
         }
     }

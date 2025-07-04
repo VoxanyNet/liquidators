@@ -16,9 +16,9 @@ rapier2d = { git = "https://github.com/VoxanyNet/rapier", rev = "d2945de2055e115
 serde = { version = "1.0.205", features = ["serde_derive"] }
 lz4_flex = { version = "0.11", default-features = false }
 # ewebsock = "0.7.0"
-#gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "25ac1501b72880276361935147581f355aba4972"}
+gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "781eb0ab06c166421be6231c68127f4ebce354ed"}
 parry2d = {git = "https://github.com/VoxanyNet/parry", rev = "10a5155cb735ca3d2e912473b22bad2f2ad5889e"}
-gamelibrary ={ path = "../gamelibrary"}
+#gamelibrary ={ path = "../gamelibrary"}
 bitcode = { version = "0.6.0", features = ["serde"] }
 tungstenite = "0.23.0"
 fxhash = "0.2.1"
@@ -41,6 +41,18 @@ noise = "0.9.0"
 [[bin]]
 name = "client"
 path = "src/client/main.rs"
+
+[[bin]]
+name = "server"
+path = "src/server/main.rs"
+
+[[bin]]
+name = "editor-client"
+path = "src/editor_client/main.rs"
+
+[[bin]]
+name = "editor-server"
+path = "src/editor_server/main.rs"
 
 [lib]
 name = "liquidators_lib"

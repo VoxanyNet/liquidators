@@ -8,7 +8,7 @@ use parry2d::{query::Ray, shape::Shape};
 use rapier2d::prelude::{ColliderHandle, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::player::{Facing, Player}, Grabbable, TickContext};
+use crate::{bullet_casing::BulletCasing, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::player::{Facing, Player}, Grabbable, TickContext};
 
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -35,7 +35,9 @@ pub struct Weapon {
     pub x_screen_shake_frequency: f64,
     pub x_screen_shake_intensity: f64,
     pub y_screen_shake_frequency: f64,
-    pub y_screen_shake_intensity: f64
+    pub y_screen_shake_intensity: f64,
+    pub shell_sprite: Option<String>, // should this be generic i dont knowwwww
+    pub bullet_casings: HashSet<BulletCasing>
 }
 
 impl Grabbable for Weapon {
@@ -60,7 +62,8 @@ impl Weapon {
         x_screen_shake_frequency: f64,
         x_screen_shake_intensity: f64,
         y_screen_shake_frequency: f64,
-        y_screen_shake_intensity: f64
+        y_screen_shake_intensity: f64,
+        shell_sprite_path: Option<String>
 
     ) -> Self {
 
@@ -110,6 +113,8 @@ impl Weapon {
             x_screen_shake_intensity,
             y_screen_shake_frequency,
             y_screen_shake_intensity,
+            shell_sprite: shell_sprite_path,
+            bullet_casings: HashSet::new()
             
         }
     }
@@ -309,6 +314,20 @@ impl Weapon {
                 self.owner.clone()
             )
         );
+        
+        match &self.shell_sprite {
+            Some(shell_sprite) => {
+                self.bullet_casings.insert(
+                    BulletCasing::new(
+                        Vec2::new(shotgun_pos.x, shotgun_pos.y), 
+                        Vec2::new(5., 5.),
+                        shell_sprite.clone(), 
+                        space   
+                    )
+                );
+            },
+            None => {},
+        }
         
         let ray = Ray::new(point![shotgun_pos.x, shotgun_pos.y], vector![rapier_angle_bullet_vector.x, rapier_angle_bullet_vector.y]);
         let max_toi = 5000.0;
@@ -525,6 +544,10 @@ impl Weapon {
         let shotgun_end_point_macroquad = rapier_to_macroquad(&Vec2::new(shotgun_end_point.x, shotgun_end_point.y));
 
         self.muzzle_flash.draw(shotgun_end_point_macroquad, textures).await;
+
+        for casing in &self.bullet_casings {
+            casing.draw(space, textures).await
+        }
 
     }
 }

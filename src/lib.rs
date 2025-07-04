@@ -42,6 +42,7 @@ pub mod intake;
 pub mod server;
 pub mod editor_client;
 pub mod editor_server;
+pub mod bullet_casing;
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
