@@ -99,7 +99,7 @@ impl<S: SoundManager> Client<S> {
                 std::thread::sleep(Duration::from_secs_f32(0.2));
                 next_frame().await;
 
-                *self = Client::connect("ws://voxany.net:5556").await;
+                *self = Client::connect("ws://127.0.0.1:5556").await;
             }
 
             // else if menu.launch_editor {

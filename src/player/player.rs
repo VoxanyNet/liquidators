@@ -306,7 +306,7 @@ impl Player {
         self.update_drag(space, &ctx.camera_rect);
         // this needs to be fixed so moving structures dont change owners, it causes it to glitch because conflicting updates
 
-        //self.own_nearby_structures(space, structures, ctx, players);
+        self.own_nearby_structures(space, structures, ctx, players);
         self.update_walk_animation(space);
         self.update_idle_animation(space);
         self.change_facing_direction(&space);
