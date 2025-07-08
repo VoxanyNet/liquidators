@@ -5,7 +5,7 @@ use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
 
-use crate::{level::Level, player::player::Player, Grabbable, TickContext};
+use crate::{level::Level, player::{self, player::Player}, Grabbable, TickContext};
 
 #[derive(Serialize, serde::Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -118,6 +118,8 @@ impl Structure {
         // let body_transform = space.rigid_body_set.get(self.rigid_body_handle).unwrap().position();
 
         // let body = space.rigid_body_set.get(self.rigid_body_handle).unwrap();
+
+        self.click_to_own(ctx, space);
         
         self.update_selected(space, ctx.camera_rect);
         self.update_is_dragging(space, ctx.camera_rect);
@@ -158,6 +160,27 @@ impl Structure {
             None => {},
         }
         
+    }
+
+    pub fn click_to_own(&mut self, ctx: &mut TickContext, space: &mut Space) {
+        if !is_mouse_button_released(input::MouseButton::Left) {
+            return;
+        }
+
+        if !self.contains_point(space, rapier_mouse_world_pos(ctx.camera_rect)) {
+            return;
+        }
+
+        self.owner = Some(ctx.uuid.clone());
+
+    }
+
+
+    pub fn update_owner(&mut self, ctx: &mut TickContext, space: &mut Space, players: &SyncArena<Player>) {
+
+        for (_, player) in players {
+            
+        }
     }
 
     pub fn update_editor_owner(&mut self, editor_uuid: &String, space: &mut Space, camera_rect: &Rect) {

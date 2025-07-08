@@ -305,8 +305,11 @@ impl Player {
         self.update_is_dragging(space, &ctx.camera_rect);
         self.update_drag(space, &ctx.camera_rect);
         // this needs to be fixed so moving structures dont change owners, it causes it to glitch because conflicting updates
-
+        
+        let then = Instant::now();
         self.own_nearby_structures(space, structures, ctx, players);
+
+        println!("{:?}", then.elapsed());
         self.update_walk_animation(space);
         self.update_idle_animation(space);
         self.change_facing_direction(&space);
@@ -620,6 +623,10 @@ impl Player {
 
             let structure_body = space.sync_rigid_body_set.get_sync(structure.rigid_body_handle).unwrap();
 
+            if structure_body.linvel().magnitude() > 1. {
+                continue;
+            }
+
             let structure_pos = structure_body.position().translation.vector;
            
 
@@ -627,7 +634,7 @@ impl Player {
             let our_pos = space.sync_rigid_body_set.get_sync(*self.rigid_body_handle()).unwrap().translation();
             let our_distance_to_structure = structure_body.position().translation.vector - our_pos;
 
-            println!("our player distance to structure: {:?}", our_distance_to_structure);
+            //println!("our player distance to structure: {:?}", our_distance_to_structure);
 
             let mut closest_owner = self.owner.clone();
             let mut closest_distance = our_distance_to_structure.clone();
@@ -637,17 +644,27 @@ impl Player {
 
                 let body_distance = structure_pos - player_pos;
 
-                if body_distance.magnitude() > closest_distance.magnitude() {
+                if body_distance.magnitude() < closest_distance.magnitude() {
                     closest_owner = player.owner.clone();
                     closest_distance = body_distance.clone();
                 }
 
                 
 
-                println!("player: {:?} distance to structure: {:?}", player_index, body_distance);
+                //println!("player: {:?} distance to structure: {:?}", player_index, body_distance);
             }
 
-            structure.owner = Some(closest_owner);
+            
+
+            if structure.owner.clone().unwrap() != closest_owner {
+                
+                println!("updating owner!");
+
+                structure.owner = Some(closest_owner);
+
+            }
+
+            
 
             
 

@@ -261,21 +261,25 @@ impl<S: SoundManager> Client<S> {
             
             // only sync 30 tps
             // this could probably be optimized but this is more readable
-            if self.last_sync.elapsed().as_secs_f32() > 1./120. {
 
-                if let Some(sync_client) = &mut self.sync_client {
+            if !is_key_down(KeyCode::M) {
+                if self.last_sync.elapsed().as_secs_f32() > 1./120. {
 
-                    let then = Instant::now();
-                    
-                    sync_client.sync(&mut self.game_state);
+                    if let Some(sync_client) = &mut self.sync_client {
 
-                    //println!("sync: {:?}", then.elapsed());
-                }
+                        let then = Instant::now();
+                        
+                        sync_client.sync(&mut self.game_state);
 
-                self.last_sync = Instant::now();
+                        //println!("sync: {:?}", then.elapsed());
+                    }
 
-            }   
+                    self.last_sync = Instant::now();
 
+                }   
+
+            }
+            
             //println!("FPS: {}", 1. / then.elapsed().as_secs_f64());
             
             if is_key_released(KeyCode::H) {
