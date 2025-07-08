@@ -38,7 +38,8 @@ impl Pistol {
                 8.,
                 0.,
                 0.,
-                Some("assets/weapons/pistol/casing.png".to_string())
+                Some("assets/weapons/pistol/casing.png".to_string()),
+                Vec2::new(32., 22.)
             )
         }
     }

@@ -37,7 +37,8 @@ impl Enemy {
             position, 
             space, 
             textures, 
-            owner.clone()
+            owner.clone(),
+            Vec2::new(30., 28.)
         );
 
         let body = BodyPart::new(
@@ -47,7 +48,8 @@ impl Enemy {
             position, 
             space, 
             textures, 
-            owner.clone()
+            owner.clone(),
+            Vec2::new(22., 19.)
         );
 
         let head_body_joint = space.sync_impulse_joint_set.insert_sync(

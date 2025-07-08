@@ -6,7 +6,7 @@ fn main() {
         Ok(program_files_directory) => program_files_directory,
         Err(error) => {
             println!("Failed to find app data directory: {}", error.to_string());
-            std::thread::sleep(Duration::from_secs(5));
+            //std::thread::sleep(web_time::Duration::from_secs(5));
             panic!();
         }
     };
@@ -20,7 +20,7 @@ fn main() {
         Ok(_) => {},
         Err(error) => {
             println!("Failed to create application directory: {}", error.to_string());
-            std::thread::sleep(Duration::from_secs(5));
+            //std::thread::sleep(Duration::from_secs(5));
             panic!();
         },
     }

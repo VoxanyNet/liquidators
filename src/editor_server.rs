@@ -26,7 +26,7 @@ impl EditorServer {
             self.sync_server.receive_updates();
 
             // slow the loop down a bit so that it doesnt use so much cpu
-            std::thread::sleep(Duration::from_micros(1));
+            std::thread::sleep(web_time::Duration::from_micros(1));
         }
     }
 }

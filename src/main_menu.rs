@@ -5,7 +5,6 @@ use gamelibrary::{get_angle_to_mouse, macroquad_to_rapier, menu::Button, space::
 use macroquad::{color::{Color, BLACK, DARKGRAY}, math::{Rect, Vec2}, miniquad::window::request_quit, text::{draw_text_ex, load_ttf_font, Font, TextParams}};
 use nalgebra::vector;
 use rapier2d::prelude::{RevoluteJointBuilder, RigidBodyBuilder};
-use uuid::Uuid;
 
 use crate::{player::body_part::BodyPart, TickContext};
 
@@ -28,21 +27,21 @@ pub struct MainMenu {
 
 impl MainMenu {
 
-    pub fn new(textures: &mut TextureLoader) -> Self {
+    pub async fn new(textures: &mut TextureLoader) -> Self {
 
         let mut clear_color = Color::default();
 
         clear_color.a = 0.;
 
-        let new_game_button = Button::new("New Game".to_string(), Rect::new(50., 180., 150., 60.), clear_color, Some(clear_color), Some(clear_color), 50, "assets/fonts/CutePixel.ttf".to_string());
+        let new_game_button = Button::new("New Game".to_string(), Rect::new(50., 180., 150., 60.), clear_color, Some(clear_color), Some(clear_color), 50, "assets/fonts/CutePixel.ttf".to_string()).await;
 
-        let connect_game_button = Button::new("Connect".to_string(), Rect::new(50., 300., 150., 60.), clear_color, Some(clear_color), Some(clear_color), 50, "assets/fonts/CutePixel.ttf".to_string());
+        let connect_game_button = Button::new("Connect".to_string(), Rect::new(50., 300., 150., 60.), clear_color, Some(clear_color), Some(clear_color), 50, "assets/fonts/CutePixel.ttf".to_string()).await;
 
-        let quit_button = Button::new("Quit".to_string(), Rect::new(50., 420., 150., 60.), clear_color, Some(clear_color), Some(clear_color), 50, "assets/fonts/CutePixel.ttf".to_string());
+        let quit_button = Button::new("Quit".to_string(), Rect::new(50., 420., 150., 60.), clear_color, Some(clear_color), Some(clear_color), 50, "assets/fonts/CutePixel.ttf".to_string()).await;
 
-        let editor_button = Button::new("Editor".to_string(), Rect::new(50., 540., 150., 60.), clear_color, Some(clear_color), Some(clear_color), 50, "assets/fonts/CutePixel.ttf".to_string());
+        let editor_button = Button::new("Editor".to_string(), Rect::new(50., 540., 150., 60.), clear_color, Some(clear_color), Some(clear_color), 50, "assets/fonts/CutePixel.ttf".to_string()).await;
 
-        let font = block_on(load_ttf_font("assets/fonts/CutePixel.ttf")).unwrap();
+        let font = load_ttf_font("assets/fonts/CutePixel.ttf").await.unwrap();
         
         let mut space = Space::new();
 
@@ -60,7 +59,8 @@ impl MainMenu {
             Vec2::ZERO, // this position doesnt matter   
             &mut space, 
             textures, 
-            String::new()
+            String::new(),
+            Vec2::new(30., 28.)
         );
 
         let head_joint_base = space.sync_rigid_body_set.insert_sync(

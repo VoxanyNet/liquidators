@@ -1,38 +1,43 @@
 use std::{fs, net::SocketAddr, str::FromStr, sync::{mpsc, Arc, Mutex}, thread::Thread, time::{Duration, Instant}};
 
 use futures::executor::block_on;
-use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, font_loader::FontLoader, log, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics};
+use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, font_loader::FontLoader, log, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics, uuid_string};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, editor_client::EditorClient, editor_server::EditorServer, game_state::GameState, level::Level, main_menu::MainMenu, player::player::Player, server::Server, vec_remove_iter::IntoVecRemoveIter, ScreenShakeParameters, TickContext};
 use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::{camera::mouse, gl_use_default_material, gl_use_material, load_material, MaterialParams, PipelineParams, ShaderSource, UniformDesc, UniformType}, text::draw_text, time::get_fps, window::{next_frame, request_new_screen_size, screen_height, screen_width}};
 use noise::{NoiseFn, Perlin};
 use tungstenite::http::request;
-use uuid::Uuid;
 
-pub struct Client<S: SoundManager> {
+#[cfg(feature = "3d-audio")]
+use gamelibrary::sound::backends::ears::EarsSoundManager as SelectedSoundManager; // this alias needs a better name
+
+#[cfg(not(feature = "3d-audio"))]
+use gamelibrary::sound::backends::macroquad::MacroquadSoundManager as SelectedSoundManager;
+
+pub struct Client {
     pub game_state: GameState,
     pub is_host: bool,
     pub textures: TextureLoader,
     pub animations: AnimationLoader,
-    pub last_tick: Instant,
+    pub last_tick: web_time::Instant,
     pub uuid: String,
     pub camera_offset: Vec2,
     pub update_count: i32,
     pub sync_client: Option<SyncClient<GameState>>,
-    pub last_sync: Instant,
+    pub last_sync: web_time::Instant,
     pub camera_rect: Rect,
     pub active_gamepad: Option<GamepadId>,
     pub console: Console,
-    pub sounds: S,
+    pub sounds: SelectedSoundManager,
     pub last_tick_mouse_world_pos: Vec2,
     pub main_menu: Option<MainMenu>,
     pub font_loader: FontLoader,
-    pub start: Instant,
+    pub start: web_time::Instant,
     pub screen_shake: ScreenShakeParameters,
     pub last_tick_duration: Duration
 }
 
-impl<S: SoundManager> Client<S> {
+impl Client {
     
     pub async fn tick(&mut self) {
 
@@ -87,7 +92,7 @@ impl<S: SoundManager> Client<S> {
 
 
                 // temporary workarond so that the menu click doesnt count in game
-                std::thread::sleep(Duration::from_secs_f32(0.2));
+                //std::thread::sleep(web_time::Duration::from_secs_f32(0.2));
                 next_frame().await;
 
                 *self = Client::connect("ws://127.0.0.1:5556").await;
@@ -96,10 +101,10 @@ impl<S: SoundManager> Client<S> {
 
             else if menu.connect {
                 // temporary workarond so that the menu click doesnt count in game
-                std::thread::sleep(Duration::from_secs_f32(0.2));
+                //std::thread::sleep(web_time::Duration::from_secs_f32(0.2));
                 next_frame().await;
 
-                *self = Client::connect("ws://127.0.0.1:5556").await;
+                *self = Client::connect("ws://gretchenwhitmer.net:5556").await;
             }
 
             // else if menu.launch_editor {
@@ -133,7 +138,7 @@ impl<S: SoundManager> Client<S> {
         self.save_state();
 
         self.last_tick_duration = self.last_tick.elapsed();
-        self.last_tick = Instant::now();
+        self.last_tick = web_time::Instant::now();
 
     }
 
@@ -239,14 +244,14 @@ impl<S: SoundManager> Client<S> {
             }
 
             
-            //let then = Instant::now();
+            //let then =web_time::Instant::now();
 
             // only tick maximum 120 times per second to avoid glitchyness
             if self.last_tick.elapsed().as_millis() >= 8 {
 
                 //println!("{}", self.last_tick.elapsed().as_millis() - 8);
 
-                let then = Instant::now();
+                let then = web_time::Instant::now();
                 self.tick().await;
 
                 //println!("tick: {:?}", then.elapsed());
@@ -267,14 +272,14 @@ impl<S: SoundManager> Client<S> {
 
                     if let Some(sync_client) = &mut self.sync_client {
 
-                        let then = Instant::now();
+                        let then = web_time::Instant::now();
                         
                         sync_client.sync(&mut self.game_state);
 
                         //println!("sync: {:?}", then.elapsed());
                     }
 
-                    self.last_sync = Instant::now();
+                    self.last_sync =web_time::Instant::now();
 
                 }   
 
@@ -300,7 +305,7 @@ impl<S: SoundManager> Client<S> {
  
     pub async fn draw(&mut self) {
         
-        let then = Instant::now();
+        let then =web_time::Instant::now();
         draw_text(format!("fps: {}", get_fps()).as_str(), screen_width() - 120., 25., 30., WHITE);
         //draw_text(format!("uuid: {}", self.uuid).as_str(), screen_width() - 120., 25., 30., WHITE);
         
@@ -378,32 +383,32 @@ impl<S: SoundManager> Client<S> {
         macroquad::window::next_frame().await;
     }
 
-    pub fn new_unconnected() -> Self {
+    pub async fn new_unconnected() -> Self {
         
         let mut textures = TextureLoader::new();
 
-        let main_menu = MainMenu::new(&mut textures);
+        let main_menu = MainMenu::new(&mut textures).await;
         Self {
             game_state: GameState::empty(),
             is_host: true,
             textures: TextureLoader::new(),
             animations: AnimationLoader::new(),
-            last_tick: Instant::now(),
-            uuid: Uuid::new_v4().to_string(),
+            last_tick:web_time::Instant::now(),
+            uuid: uuid_string(),
             camera_offset: Vec2::ZERO,
             update_count: 0,
             sync_client: None,
-            last_sync: Instant::now(),
+            last_sync:web_time::Instant::now(),
             camera_rect: Rect::new(0., 200., 1280., 720.),
             active_gamepad: None,
             console: Console::new(),
-            sounds: S::new(),
+            sounds: SelectedSoundManager::new(),
             last_tick_mouse_world_pos: rapier_mouse_world_pos(&Rect::new(0., 200., 1280., 720.)),
             main_menu: Some(main_menu),
             font_loader: FontLoader::new(),
-            start: Instant::now(),
+            start:web_time::Instant::now(),
             screen_shake: ScreenShakeParameters::default(None, None),
-            last_tick_duration: Duration::new(0, 500)
+            last_tick_duration: web_time::Duration::new(0, 500)
 
         }
     }
@@ -414,7 +419,7 @@ impl<S: SoundManager> Client<S> {
 
         let camera_rect = Rect::new(0., 200., 1280., 720.);
         
-        let uuid = Uuid::new_v4().to_string();
+        let uuid = uuid_string();
 
         log(format!("{}", uuid).as_str());
         
@@ -448,22 +453,22 @@ impl<S: SoundManager> Client<S> {
             is_host: true,
             textures, 
             animations: AnimationLoader::new(),
-            last_tick: Instant::now(),
+            last_tick:web_time::Instant::now(),
             uuid,
             camera_offset: Vec2::new(0., 0.),
             update_count: 0,
-            last_sync: Instant::now(),
+            last_sync:web_time::Instant::now(),
             camera_rect,
             active_gamepad,
             sync_client: Some(sync_client),
             console: Console::new(),
-            sounds: S::new(),
+            sounds: SelectedSoundManager::new(),
             last_tick_mouse_world_pos: rapier_mouse_world_pos(&camera_rect),
             main_menu: None,
             font_loader: FontLoader::new(),
-            start: Instant::now(),
+            start:web_time::Instant::now(),
             screen_shake: ScreenShakeParameters::default(None, None),
-            last_tick_duration: Duration::new(0, 500)
+            last_tick_duration: web_time::Duration::new(0, 500)
         }
     }
 

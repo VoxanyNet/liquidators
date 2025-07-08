@@ -8,10 +8,15 @@ use gilrs::GamepadId;
 use macroquad::{audio::{load_sound, play_sound_once}, input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}};
 use nalgebra::{coordinates::X, vector};
 use noise::Perlin;
-use rand::{rng, seq::IndexedRandom};
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, QueryFilter, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 use nalgebra::point;
+
+#[cfg(feature = "3d-audio")]
+use gamelibrary::sound::backends::ears::EarsSoundManager as SelectedSoundManager; // this alias needs a better name
+
+#[cfg(not(feature = "3d-audio"))]
+use gamelibrary::sound::backends::macroquad::MacroquadSoundManager as SelectedSoundManager;
 
 pub mod game_state;
 pub mod physics_square;
@@ -157,22 +162,22 @@ pub fn collider_contains_point(collider_handle: ColliderHandle, space: &mut Spac
     contains_point
 } 
 
-pub fn get_random_file_from_dir(dir: &str) -> Option<String> {
-    let path = Path::new(dir);
+// pub fn get_random_file_from_dir(dir: &str) -> Option<String> {
+//     let path = Path::new(dir);
 
-    if let Ok(entries) = fs::read_dir(path) {
-        let files: Vec<String> = entries
-            .filter_map(|entry| entry.ok()) // Filter out errors
-            .filter(|entry| entry.path().is_file()) // Only keep files
-            .filter_map(|entry| entry.path().to_str().map(String::from)) // Convert paths to strings
-            .collect();
+//     if let Ok(entries) = fs::read_dir(path) {
+//         let files: Vec<String> = entries
+//             .filter_map(|entry| entry.ok()) // Filter out errors
+//             .filter(|entry| entry.path().is_file()) // Only keep files
+//             .filter_map(|entry| entry.path().to_str().map(String::from)) // Convert paths to strings
+//             .collect();
 
-        let mut rng = rng();
-        files.choose(&mut rng).cloned() // Pick a random file
-    } else {
-        None
-    }
-}
+//         let mut rng = rng();
+//         files.choose(&mut rng).cloned() // Pick a random file
+//     } else {
+//         None
+//     }
+// }
 
 pub trait Grabbable: HasPhysics {
 
@@ -245,7 +250,7 @@ pub trait Grabbable: HasPhysics {
 pub struct TickContext<'a> {
     pub is_host: &'a mut bool,
     pub textures: &'a mut TextureLoader,
-    pub last_tick: &'a Instant,
+    pub last_tick: &'a web_time::Instant,
     pub uuid: &'a String,
     pub camera_rect: &'a mut Rect,
     pub camera_offset: &'a mut Vec2,
@@ -254,7 +259,7 @@ pub struct TickContext<'a> {
     pub owned_rigid_bodies: &'a mut Vec<SyncRigidBodyHandle>,
     pub owned_colliders: &'a mut Vec<SyncColliderHandle>,
     pub owned_impulse_joints: &'a mut Vec<SyncImpulseJointHandle>,
-    pub sounds: &'a mut dyn SoundManager,
+    pub sounds: &'a mut SelectedSoundManager,
     pub last_tick_mouse_world_pos: &'a mut Vec2,
     pub font_loader: &'a mut FontLoader,
     pub screen_shake: &'a mut ScreenShakeParameters,

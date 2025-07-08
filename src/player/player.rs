@@ -1,13 +1,18 @@
 use std::{collections::HashSet, f32::consts::PI, time::Instant};
 
 use diff::Diff;
-use gamelibrary::{animation::TrackedFrames, collider_top_left_pos, current_unix_millis, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::{SoundHandle, SoundManager}, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{animation::TrackedFrames, collider_top_left_pos, current_unix_millis, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::{SoundHandle, SoundManager}, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics, uuid_u32};
 use gilrs::Gamepad;
 use macroquad::{color::{GREEN, WHITE}, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, shapes::draw_rectangle, time::get_frame_time};
 use nalgebra::vector;
 use rapier2d::prelude::{ImpulseJointHandle, InteractionGroups, RevoluteJointBuilder, RigidBody};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+
+#[cfg(feature = "3d-audio")]
+use gamelibrary::sound::backends::ears::EarsSoundManager as SelectedSoundManager; // this alias needs a better name
+
+#[cfg(not(feature = "3d-audio"))]
+use gamelibrary::sound::backends::macroquad::MacroquadSoundManager as SelectedSoundManager;
 
 use crate::{brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, level::Level, pistol::Pistol, player, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
 
@@ -98,7 +103,7 @@ pub struct Player {
     pub drag_offset: Option<Vec2>,
     pub max_speed: Vec2,
     weapon: Option<PlayerWeapon>,
-    pub animation_handler: PlayerAnimationHandler,
+    //pub animation_handler: PlayerAnimationHandler,
     pub walk_frame_progess: f32,
     pub idle_frame_progress: f32,
     pub facing: Facing,
@@ -191,7 +196,8 @@ impl Player {
             *position, 
             space, 
             textures, 
-            owner.clone()
+            owner.clone(),
+            Vec2::new(39., 28.)
         );
 
         let cat_body = BodyPart::new(
@@ -201,7 +207,8 @@ impl Player {
             *position, 
             space, 
             textures, 
-            owner.clone()
+            owner.clone(),
+            Vec2::new(22., 19.)
         );
 
         // lock the rotation of the cat body
@@ -230,7 +237,7 @@ impl Player {
 
         players.insert(
             Player {
-                id: Uuid::new_v4().as_u128() as u64,
+                id: uuid_u32() as u64,
                 head: cat_head,
                 body: cat_body,
                 sprite_path: "assets/player/idle.png".to_string(),
@@ -240,7 +247,7 @@ impl Player {
                 drag_offset: None,
                 max_speed: vec2(350., 80.),
                 weapon: Some(pistol.into()),
-                animation_handler: PlayerAnimationHandler::new(PlayerAnimationState::Walking),
+                //animation_handler: PlayerAnimationHandler::new(PlayerAnimationState::Walking),
                 walk_frame_progess: 0.,
                 idle_frame_progress: 0.,
                 facing: Facing::Right,
@@ -253,7 +260,7 @@ impl Player {
     }
 
 
-    pub fn sync_sound(&mut self, sounds: &mut dyn SoundManager) {
+    pub fn sync_sound(&mut self, sounds: &mut SelectedSoundManager) {
         sounds.sync_sound(&mut self.sound);
     }
 
@@ -306,12 +313,12 @@ impl Player {
         self.update_drag(space, &ctx.camera_rect);
         // this needs to be fixed so moving structures dont change owners, it causes it to glitch because conflicting updates
         
-        let then = Instant::now();
+        let then =web_time::Instant::now();
         self.own_nearby_structures(space, structures, ctx, players);
 
         println!("{:?}", then.elapsed());
-        self.update_walk_animation(space);
-        self.update_idle_animation(space);
+        //self.update_walk_animation(space);
+        //self.update_idle_animation(space);
         self.change_facing_direction(&space);
         self.delete_structure(structures, space, ctx);
         self.angle_head_to_mouse(space, ctx.camera_rect);
@@ -375,7 +382,7 @@ impl Player {
 
         let mut structures_iter = SwapIter::new(structures);
 
-        let then = Instant::now();
+        let then =web_time::Instant::now();
         while structures_iter.not_done() {
             let (_structures, mut structure) = structures_iter.next();
 
@@ -543,24 +550,24 @@ impl Player {
             };
         }
     }
-    pub fn update_idle_animation(&mut self, space: &mut Space) {
+    // pub fn update_idle_animation(&mut self, space: &mut Space) {
 
-        let velocity = space.sync_rigid_body_set.get_sync(*self.rigid_body_handle()).unwrap().linvel();
+    //     let velocity = space.sync_rigid_body_set.get_sync(*self.rigid_body_handle()).unwrap().linvel();
 
-        if velocity.x == 0. {
+    //     if velocity.x == 0. {
 
-            self.idle_frame_progress += 5. * get_frame_time(); 
+    //         self.idle_frame_progress += 5. * get_frame_time(); 
             
-            //self.animation_handler.set_animation_state(PlayerAnimationState::Idle);
+    //         //self.animation_handler.set_animation_state(PlayerAnimationState::Idle);
 
-            if self.idle_frame_progress > 1. {
-                self.animation_handler.next_frame(PlayerAnimationState::Idle);
-                self.idle_frame_progress = 0.;
-            }
+    //         if self.idle_frame_progress > 1. {
+    //             self.animation_handler.next_frame(PlayerAnimationState::Idle);
+    //             self.idle_frame_progress = 0.;
+    //         }
             
-        }
+    //     }
 
-    }
+    // }
     /// Update arm anchor pos depending on facing direction
     // pub fn update_arm_anchor_pos(&mut self, space: &mut Space) {
     //     let arm_anchor_pos = match self.facing {
@@ -589,32 +596,32 @@ impl Player {
     //     right_arm_joint.set_local_anchor1(arm_anchor_pos);
         
     // }
-    pub fn update_walk_animation(&mut self, space: &mut Space) {
-        let velocity = space.sync_rigid_body_set.get_sync(*self.rigid_body_handle()).unwrap().linvel();
+    // pub fn update_walk_animation(&mut self, space: &mut Space) {
+    //     let velocity = space.sync_rigid_body_set.get_sync(*self.rigid_body_handle()).unwrap().linvel();
 
-        if velocity.x.abs() > 0. {
-            self.walk_frame_progess += (velocity.x.abs() * get_frame_time()) / 20.;
+    //     if velocity.x.abs() > 0. {
+    //         self.walk_frame_progess += (velocity.x.abs() * get_frame_time()) / 20.;
 
-            self.animation_handler.set_animation_state(PlayerAnimationState::GunRun);
-        }
+    //         self.animation_handler.set_animation_state(PlayerAnimationState::GunRun);
+    //     }
 
-        if self.walk_frame_progess > 1. {
+    //     if self.walk_frame_progess > 1. {
 
-            // this all seems pretty stupid
-            let animation_state = self.animation_handler.get_animation_state();
+    //         // this all seems pretty stupid
+    //         let animation_state = self.animation_handler.get_animation_state();
 
-            match animation_state {
-                PlayerAnimationState::Walking => {},
-                PlayerAnimationState::GunRun => {},
-                _ => return
-            }
+    //         match animation_state {
+    //             PlayerAnimationState::Walking => {},
+    //             PlayerAnimationState::GunRun => {},
+    //             _ => return
+    //         }
 
-            self.animation_handler.next_frame(animation_state);
+    //         self.animation_handler.next_frame(animation_state);
 
-            self.walk_frame_progess = 0.;
-        }
+    //         self.walk_frame_progess = 0.;
+    //     }
         
-    }
+    // }
     pub fn own_nearby_structures(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext, other_players: &mut SyncArena<Player>) {
         // take ownership of nearby structures to avoid network physics delay
 

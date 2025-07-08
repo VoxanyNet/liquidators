@@ -71,7 +71,7 @@ impl DamageNumber {
         
     }
 
-    pub fn draw(&self, space: &Space, fonts: &mut FontLoader) {
+    pub async fn draw(&self, space: &Space, fonts: &mut FontLoader) {
 
     
         let body = space.sync_rigid_body_set.get_sync(self.rigid_body_handle).unwrap();
@@ -87,7 +87,7 @@ impl DamageNumber {
             draw_pos.x - 5., // we need to draw the text with an offset to line up with the rigid body
             draw_pos.y + 5., 
             TextParams {
-                font: Some(fonts.get(&"assets/fonts/CutePixel.ttf".to_string())),
+                font: Some(fonts.get(&"assets/fonts/CutePixel.ttf".to_string()).await),
                 font_size: 24,
                 font_scale: 1.,
                 font_scale_aspect: 1.,

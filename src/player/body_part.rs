@@ -28,11 +28,11 @@ impl BodyPart {
         pos: Vec2,
         space: &mut Space,
         textures: &mut TextureLoader,
-        owner: String
+        owner: String,
+        texture_size: Vec2
     ) -> Self {
 
-        // use the dimensions of the texture to create the collider
-        let texture_size = futures::executor::block_on(textures.get(&sprite_path)).size();
+
 
         let rigid_body_handle = space.sync_rigid_body_set.insert_sync(
             RigidBodyBuilder::dynamic()

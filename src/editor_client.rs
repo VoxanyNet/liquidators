@@ -1,10 +1,9 @@
 use std::{fs, time::{Duration, Instant}};
 
-use gamelibrary::{log, menu::Button, sync::client::SyncClient, texture_loader::TextureLoader};
+use gamelibrary::{log, menu::Button, sync::client::SyncClient, texture_loader::TextureLoader, uuid_string};
 use crate::level::Level;
 use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, WHITE}, input::{self, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel}, math::Rect, text::draw_text, time::get_fps, window::{screen_height, screen_width}};
 use gamelibrary::traits::HasPhysics;
-use uuid::Uuid;
 
 pub struct EditorClient {
     pub uuid: String,
@@ -14,7 +13,7 @@ pub struct EditorClient {
     pub camera_rect: Rect,
     pub sync_client: SyncClient<Level>,
     pub textures: TextureLoader,
-    pub last_tick: Instant,
+    pub last_tick: web_time::Instant,
     pub enable_physics: bool,
     pub last_tick_duration: Duration
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
@@ -23,7 +22,7 @@ impl EditorClient {
 
     pub async fn connect(url: &str) -> Self {
 
-        let uuid = Uuid::new_v4().to_string();
+        let uuid = uuid_string();
 
         let (sync_client, level): (SyncClient<Level>, Level) = SyncClient::connect(url).await;
         
@@ -35,7 +34,7 @@ impl EditorClient {
             None,
             20,
             "assets/fonts/CutePixel.ttf".to_string()
-        );
+        ).await;
     
         let load_button = Button::new(
             "Load".into(),
@@ -45,7 +44,7 @@ impl EditorClient {
             None,
             20,
             "assets/fonts/CutePixel.ttf".to_string()
-        );
+        ).await;
 
         let camera_rect = Rect::new(0., 200., screen_width() / 1.50, screen_height() / 1.5);
 
@@ -57,9 +56,9 @@ impl EditorClient {
             camera_rect,
             sync_client,
             textures: TextureLoader::new(),
-            last_tick: Instant::now(),
+            last_tick: web_time::Instant::now(),
             enable_physics: false,
-            last_tick_duration: Duration::from_nanos(500)
+            last_tick_duration: web_time::Duration::from_nanos(500)
 
         }
     }
@@ -147,7 +146,7 @@ impl EditorClient {
 
         self.step_space();   
 
-        self.last_tick = Instant::now();         
+        self.last_tick = web_time::Instant::now();         
 
     }
 

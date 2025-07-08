@@ -7,6 +7,7 @@ use nalgebra::{point, vector, Const, OPoint};
 use parry2d::{query::Ray, shape::Shape};
 use rapier2d::prelude::{ColliderHandle, InteractionGroups, QueryFilter, RevoluteJointBuilder, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
+use gamelibrary::sound::soundmanager::SoundManager;
 
 use crate::{bullet_casing::BulletCasing, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::{self, player::{Facing, Player}}, Grabbable, TickContext};
 
@@ -64,14 +65,14 @@ impl Weapon {
         x_screen_shake_intensity: f64,
         y_screen_shake_frequency: f64,
         y_screen_shake_intensity: f64,
-        shell_sprite_path: Option<String>
+        shell_sprite_path: Option<String>,
+        texture_size: Vec2
 
     ) -> Self {
 
         let mass = mass.unwrap_or(1.);
 
-        let texture_size = textures.get_blocking(&sprite_path).size() 
-            * scale ; // scale the size of the shotgun
+        let texture_size = texture_size * scale ; // scale the size of the shotgun
         
         let rigid_body = space.sync_rigid_body_set.insert_sync(
             RigidBodyBuilder::dynamic()
@@ -135,7 +136,7 @@ impl Weapon {
             owner,
             sounds: vec![],
             facing: Facing::Left,
-            muzzle_flash: MuzzleFlash::new("assets/particles/shotgun_muzzle_flash.png".to_string(), Duration::from_millis(50)),
+            muzzle_flash: MuzzleFlash::new("assets/particles/shotgun_muzzle_flash.png".to_string(), web_time::Duration::from_millis(50)),
             scale,
             aim_angle_offset,
             fire_sound_path: fire_sound_path.to_string(),

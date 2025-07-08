@@ -65,7 +65,8 @@ impl Shotgun {
                 10.,
                 0.,
                 0.,
-                None
+                None,
+                Vec2::new(50., 11.)
             ),
         }
         

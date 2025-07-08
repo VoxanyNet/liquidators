@@ -18,12 +18,12 @@ fn window_conf() -> Conf {
         window_title: "Game".to_owned(),
         window_width: 1280,
         window_height: 720,
-        window_resizable: true,
+        window_resizable: false,
         platform: Platform::default(),
         fullscreen: false,
         ..Default::default()
     };
-    conf.platform.swap_interval = Some(0); // disable vsync
+    //conf.platform.swap_interval = Some(0); // disable vsync
 
     conf
 }
@@ -31,7 +31,7 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    let mut unconnected_client: Client<SelectedSoundManager> = Client::new_unconnected();
+    let mut unconnected_client: Client = Client::new_unconnected().await;
 
     unconnected_client.run().await;
 

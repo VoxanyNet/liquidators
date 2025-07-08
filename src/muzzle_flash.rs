@@ -97,7 +97,7 @@ impl Diff for MuzzleFlash {
         Self { 
             last_flash: Time::new(0),
             sprite: String::identity(),
-            duration: Duration::ZERO,
+            duration: web_time::Duration::ZERO,
         }
     }
 }

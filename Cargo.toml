@@ -9,14 +9,14 @@ edition = "2021"
 [dependencies]
 chrono = { version = "0.4.35", features = ["serde"] }
 diff-struct = "0.5.3"
-macroquad = {git = "https://github.com/VoxanyNet/macroquad", rev = "73db4a93f90f41942995ef757499ed61f3ff6085"}
+macroquad = {git = "https://github.com/VoxanyNet/macroquad", rev = "499690e415414f86679c924a7db447115d645ab3"}
 nalgebra = {git = "https://github.com/VoxanyNet/nalgebra", rev = "c57d898ac19a01ac5ad2d6da5f98dea91257ac9e"}
 rapier2d = { git = "https://github.com/VoxanyNet/rapier", rev = "d2945de2055e11538e437246d5084463a9335a2e", features = ["serde-serialize"] }
 #rapier2d = {path = "../rapier/crates/rapier2d", features = ["serde-serialize"]}
 serde = { version = "1.0.205", features = ["serde_derive"] }
 lz4_flex = { version = "0.11", default-features = false }
 # ewebsock = "0.7.0"
-gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "1e91ef74f105e2cec8470c0352813dbe9374456a"}
+gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "386fbf7af2aa248c34b922223edd59ee6493cfdf"}
 parry2d = {git = "https://github.com/VoxanyNet/parry", rev = "10a5155cb735ca3d2e912473b22bad2f2ad5889e"}
 #gamelibrary ={ path = "../gamelibrary"}
 bitcode = { version = "0.6.0", features = ["serde"] }
@@ -28,9 +28,13 @@ web-sys = { version = "0.3.72", features = ["console"] }
 serde_yaml = "0.9.34"
 futures = { version = "0.3.31", features = ["futures-executor"] }
 serde_json = "1.0.140"
-rand = {version = "0.9.0"}
-uuid = { version = "1.16.0", features = ["v4"] }
+#rand = {version = "0.9.0"}
+#uuid = { version = "1.16.0", features = ["v4", "js"] }
+#getrandom ={ version = "0.3.3", features = ["wasm_js"]}
 noise = "0.9.0"
+getrandom ={ version = "*", features = ["js"]}
+web-time = "1.1.0"
+
 # [[bin]]
 # name = "updater"
 # path = "src/updater/main.rs"
