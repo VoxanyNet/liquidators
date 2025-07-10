@@ -9,7 +9,7 @@ use rapier2d::prelude::{ColliderHandle, InteractionGroups, QueryFilter, Revolute
 use serde::{Deserialize, Serialize};
 use gamelibrary::sound::soundmanager::SoundManager;
 
-use crate::{bullet_casing::BulletCasing, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::{self, player::{Facing, Player}}, Grabbable, TickContext};
+use crate::{blood::Blood, bullet_casing::BulletCasing, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::{self, player::{Facing, Player}}, Grabbable, TickContext};
 
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
@@ -160,19 +160,18 @@ impl Weapon {
         ctx: &mut TickContext,
         enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
-        bullet_trails: &mut SyncArena<BulletTrail>
+        bullet_trails: &mut SyncArena<BulletTrail>,
+        blood: &mut HashSet<Blood>
     ) {
         ctx.owned_rigid_bodies.push(self.rigid_body);
         ctx.owned_colliders.push(self.collider);
 
-        self.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, ctx);
+        self.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx);
         
     }
 
     pub fn all_tick(&mut self, players: &mut SyncArena<Player>, space: &mut Space, ctx: &mut TickContext) {
         self.grab(players, space, ctx);
-
-        self.sync_sound(ctx);
     }
 
     pub fn tick(
@@ -183,11 +182,12 @@ impl Weapon {
         ctx: &mut TickContext,
         enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
-        bullet_trails: &mut SyncArena<BulletTrail>
+        bullet_trails: &mut SyncArena<BulletTrail>,
+        blood: &mut HashSet<Blood>
     ) {
 
         if *ctx.uuid == self.owner {
-            self.owner_tick(players, hit_markers, space, ctx, enemies, damage_numbers, bullet_trails);
+            self.owner_tick(players, hit_markers, space, ctx, enemies, damage_numbers, bullet_trails, blood);
         }
 
         self.all_tick(players, space, ctx);
@@ -197,9 +197,9 @@ impl Weapon {
         
     }   
 
-    pub fn sync_sound(&mut self, ctx: &mut TickContext) {
+    pub async fn sync_sound(&mut self, ctx: &mut TickContext<'_>) {
         for sound_handle in &mut self.sounds {
-            ctx.sounds.sync_sound(sound_handle);
+            ctx.sounds.sync_sound(sound_handle).await;
         }
     }
 
@@ -278,6 +278,7 @@ impl Weapon {
         hit_markers: &mut Vec<Vec2>, 
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
+        blood: &mut HashSet<Blood>,
         ctx: &mut TickContext
     ) {
         
@@ -291,9 +292,13 @@ impl Weapon {
 
         self.play_sound();
 
-        let shotgun_angle = space.sync_rigid_body_set.get_sync(self.rigid_body).unwrap().rotation().angle().clone();
+        let shotgun_body = space.sync_rigid_body_set.get_sync(self.rigid_body).unwrap().clone();
 
-        let shotgun_pos = space.sync_rigid_body_set.get_sync(self.rigid_body).unwrap().position().translation.clone();
+        let shotgun_angle = shotgun_body.rotation().angle();
+
+        let shotgun_pos = shotgun_body.position().translation;
+
+        let shotgun_velocity = shotgun_body.linvel();
 
         let shotgun_pos_macroquad = rapier_to_macroquad(&vec2(shotgun_pos.x , shotgun_pos.y));
         
@@ -355,7 +360,8 @@ impl Weapon {
                         Vec2::new(shotgun_pos.x, shotgun_pos.y), 
                         Vec2::new(5., 5.),
                         shell_sprite.clone(), 
-                        space   
+                        space,
+                        *shotgun_velocity
                     )
                 );
             },
@@ -412,10 +418,13 @@ impl Weapon {
 
                 let mut enemy_hit = false;
 
-                let enemy_position = space.sync_rigid_body_set.get_sync(enemy.head.body_handle).unwrap().translation();
+                let enemy_velocity = space.sync_rigid_body_set.get_sync(enemy.head.body_handle).unwrap().linvel().clone_owned();
 
-                let enemy_position_macroquad = rapier_to_macroquad(&vec2(enemy_position.x, enemy_position.y));
+                let enemy_position = space.sync_rigid_body_set.get_sync(enemy.head.body_handle).unwrap().position().clone();
 
+                let enemy_position_macroquad = rapier_to_macroquad(&vec2(enemy_position.translation.x, enemy_position.translation.y));
+
+                
                 let damage_number_position = Vec2 {
                     x: enemy_position_macroquad.x,
                     y: enemy_position_macroquad.y - 120.,
@@ -427,6 +436,9 @@ impl Weapon {
 
                     enemy.health -= damage;
 
+                    for _ in 0..20 {
+                        blood.insert(Blood::new(enemy_position, space, Some(enemy_velocity), self.owner.clone()));
+                    }   
                     let damage_number = DamageNumber::new(space, damage, damage_number_position, Some(40), Some(RED));
                     
                     // temporary workaround to make damage number move with player when shot
@@ -448,6 +460,11 @@ impl Weapon {
 
                     enemy.health -= damage;
 
+                    for _ in 0..20 {
+                        blood.insert(Blood::new(enemy_position, space, Some(enemy_velocity), self.owner.clone()));
+                    }   
+                    
+
                     let damage_number = DamageNumber::new(space, damage, damage_number_position, Some(45), Some(RED));
                     
                     // temporary workaround to make damage number move with player when shot
@@ -466,6 +483,11 @@ impl Weapon {
 
                 if local_player_head_collider_handle == handle {
 
+                    let body = space.sync_rigid_body_set.get_sync(*player.rigid_body_handle()).unwrap();
+                    let pos = body.position();
+                    let velocity = body.linvel();
+
+                    
             
                     if player.health <= 10 {
                         player.health = 0;
@@ -475,10 +497,17 @@ impl Weapon {
 
                     player.health -= 10;
 
+                    blood.insert(Blood::new(*pos, space, Some(*velocity), self.owner.clone()));
+
                     continue;
                 }
 
                 if space.sync_collider_set.get_local_handle(player.body.collider_handle) == handle {
+
+                    let body = space.sync_rigid_body_set.get_sync(player.body.body_handle).unwrap();
+                    let pos = body.position();
+                    let velocity = body.linvel();
+
 
 
                     if player.health <= 5 {
@@ -488,6 +517,8 @@ impl Weapon {
                     }
                     
                     player.health -= 5;
+
+                    blood.insert(Blood::new(*pos, space, Some(*velocity), self.owner.clone()));
 
                     
                 }

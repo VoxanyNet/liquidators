@@ -5,7 +5,7 @@ use gamelibrary::{space::{Space, SyncColliderHandle, SyncImpulseJointHandle, Syn
 use macroquad::math::Vec2;
 use serde::{Deserialize, Serialize};
 
-use crate::{bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, player::{self, player::{Facing, Player}}, weapon::Weapon, TickContext};
+use crate::{blood::Blood, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, player::{self, player::{Facing, Player}}, weapon::Weapon, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -46,6 +46,10 @@ impl Pistol {
         }
     }
 
+    pub async fn sync_sound(&mut self, ctx: &mut TickContext<'_>) {
+        self.weapon.sync_sound(ctx).await
+    }
+
     pub fn aim_angle_offset(&self) -> f32 {
         self.weapon.aim_angle_offset
     }
@@ -74,9 +78,11 @@ impl Pistol {
         ctx: &mut TickContext, 
         enemies: &mut SyncArena<Enemy>, 
         damage_numbers: &mut HashSet<DamageNumber>, 
-        bullet_trails: &mut SyncArena<BulletTrail>) 
+        bullet_trails: &mut SyncArena<BulletTrail>,
+        blood: &mut HashSet<Blood>
+    ) 
     {
-        self.weapon.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails);
+        self.weapon.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood);
     }
 
     pub fn set_facing(&mut self, facing: Facing) {

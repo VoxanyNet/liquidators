@@ -8,7 +8,7 @@ use gilrs::GamepadId;
 use macroquad::{audio::{load_sound, play_sound_once}, input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}};
 use nalgebra::{coordinates::X, vector};
 use noise::Perlin;
-use rapier2d::prelude::{ColliderBuilder, ColliderHandle, QueryFilter, RigidBodyHandle};
+use rapier2d::prelude::{ColliderBuilder, ColliderHandle, Group, InteractionGroups, QueryFilter, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 use nalgebra::point;
 
@@ -48,6 +48,9 @@ pub mod server;
 pub mod editor_client;
 pub mod editor_server;
 pub mod bullet_casing;
+pub mod collider_groups;
+pub mod blood;
+
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -57,6 +60,7 @@ pub struct BodyCollider {
     body: RigidBodyHandle,
     collider: ColliderHandle
 }
+
 
 // #[derive(Serialize)]
 // // this is temporary for diff serialize reasons

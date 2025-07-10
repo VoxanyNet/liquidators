@@ -2,10 +2,10 @@ use diff::Diff;
 use gamelibrary::{space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, texture_loader::TextureLoader, traits::draw_texture_onto_physics_body};
 use macroquad::math::Vec2;
 use nalgebra::vector;
-use rapier2d::prelude::{ColliderBuilder, ColliderHandle, RigidBodyBuilder, RigidBodyHandle};
+use rapier2d::prelude::{ColliderBuilder, ColliderHandle, Group, InteractionGroups, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::TickContext;
+use crate::{collider_groups::{BODY_PART_GROUP, PARTICLES_GROUP}, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -43,12 +43,21 @@ impl BodyPart {
                 .build()
         );
 
+        let interaction_groups = InteractionGroups::none()
+            .with_filter(
+                Group::ALL
+                    .difference(PARTICLES_GROUP)
+                )
+            .with_memberships(BODY_PART_GROUP);
+
         let collider_handle = space.sync_collider_set.insert_with_parent_sync(
             ColliderBuilder::cuboid(
                 // these are HALF extents!!!!!!!!!!
                 (texture_size.x / 2.) * scale as f32, 
                 (texture_size.y / 2.) * scale as f32
-            ).mass(mass), 
+            )
+                .mass(mass)
+                .collision_groups(interaction_groups), 
             rigid_body_handle, 
             &mut space.sync_rigid_body_set
         );

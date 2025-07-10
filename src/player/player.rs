@@ -14,7 +14,7 @@ use gamelibrary::sound::backends::ears::EarsSoundManager as SelectedSoundManager
 #[cfg(not(feature = "3d-audio"))]
 use gamelibrary::sound::backends::macroquad::MacroquadSoundManager as SelectedSoundManager;
 
-use crate::{brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, level::Level, pistol::Pistol, player, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
+use crate::{blood::Blood, brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, level::Level, pistol::Pistol, player, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
 
 use super::body_part::BodyPart;
 
@@ -45,13 +45,22 @@ impl PlayerWeapon {
         ctx: &mut TickContext,
         enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
-        bullet_trails: &mut SyncArena<BulletTrail>
+        bullet_trails: &mut SyncArena<BulletTrail>,
+        blood: &mut HashSet<Blood>
     ) {
         match self {
-            PlayerWeapon::Shotgun(shotgun) => shotgun.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails),
-            PlayerWeapon::Pistol(pistol) => pistol.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails),
+            PlayerWeapon::Shotgun(shotgun) => shotgun.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood),
+            PlayerWeapon::Pistol(pistol) => pistol.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood),
         }
     } 
+
+    pub async fn sync_sound(&mut self, ctx: &mut TickContext<'_>) {
+        match self {
+            PlayerWeapon::Shotgun(shotgun) => shotgun.sync_sound(ctx).await,
+            PlayerWeapon::Pistol(pistol) => pistol.sync_sound(ctx).await,
+        }
+
+    }
 
     pub fn player_joint_handle(&self) -> Option<SyncImpulseJointHandle> {
         match self {
@@ -110,6 +119,7 @@ pub struct Player {
     pub sound: SoundHandle,
     pub head_joint_handle: Option<SyncImpulseJointHandle>,
     pub teleporter_destination: Option<SyncRigidBodyHandle>,
+    pub money: u32
 }
 
 impl Player {
@@ -254,14 +264,17 @@ impl Player {
                 sound,
                 head_joint_handle: Some(head_joint_handle),
                 teleporter_destination: None,
-                health: 100
+                health: 100,
+                money: 0
             }
         );
     }
 
 
-    pub fn sync_sound(&mut self, sounds: &mut SelectedSoundManager) {
-        sounds.sync_sound(&mut self.sound);
+    pub async fn sync_sound(&mut self, ctx: &mut TickContext<'_>) {
+        if let Some(weapon) = &mut self.weapon {
+            weapon.sync_sound(ctx).await
+        }
     }
 
     pub fn change_weapon(
@@ -302,7 +315,8 @@ impl Player {
         players: &mut SyncArena<Player>,
         enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
-        bullet_trails: &mut SyncArena<BulletTrail>
+        bullet_trails: &mut SyncArena<BulletTrail>,
+        blood: &mut HashSet<Blood>
     ) {
         //self.launch_brick(level, ctx);
         self.change_weapon(space, ctx.textures);
@@ -322,7 +336,6 @@ impl Player {
         self.change_facing_direction(&space);
         self.delete_structure(structures, space, ctx);
         self.angle_head_to_mouse(space, ctx.camera_rect);
-        self.sync_sound(ctx.sounds);
         self.place_teleporter(ctx, teleporters, space);
         self.angle_weapon_to_mouse(space, ctx.camera_rect);
         //self.launch_brick(bricks, space, ctx);
@@ -337,7 +350,8 @@ impl Player {
                 ctx,
                 enemies,
                 damage_numbers,
-                bullet_trails
+                bullet_trails,
+                blood
             );
         }  
 

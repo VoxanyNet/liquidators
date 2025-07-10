@@ -2,12 +2,12 @@ use std::{collections::{HashMap, HashSet}, fs};
 
 use diff::Diff;
 use gamelibrary::{arenaiter::SyncArenaIterator, font_loader::FontLoader, log, macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::{RED, WHITE}, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}, shapes::{draw_rectangle, draw_rectangle_ex, DrawRectangleParams}};
+use macroquad::{color::{RED, WHITE}, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}, shapes::{draw_rectangle, draw_rectangle_ex, DrawRectangleParams}, text::draw_text_ex, texture::{draw_texture_ex, DrawTextureParams}};
 use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::{brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, grenade::Grenade, pixel::Pixel, player::{body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::Shotgun, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
+use crate::{blood::Blood, brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, grenade::Grenade, pixel::Pixel, player::{self, body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::{self, Shotgun}, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -31,7 +31,9 @@ pub struct Level {
     pub pixels: HashSet<Pixel>,
     pub damage_numbers: HashSet<DamageNumber>,
     #[serde(default)]
-    pub bullet_trails: SyncArena<BulletTrail>
+    pub bullet_trails: SyncArena<BulletTrail>,
+    #[serde(default)]
+    pub blood: HashSet<Blood>
 }
 
 impl Level {
@@ -53,7 +55,8 @@ impl Level {
             enemies: SyncArena::new(),
             pixels: HashSet::new(),
             damage_numbers: HashSet::new(),
-            bullet_trails: SyncArena::new()
+            bullet_trails: SyncArena::new(),
+            blood: HashSet::new()
         };
     
         level.space.gravity.y = -980.;
@@ -61,6 +64,11 @@ impl Level {
         level
     }
 
+    pub async fn sync_sounds(&mut self, ctx: &mut TickContext<'_>) {
+        for (_, player) in &mut self.players {
+            player.sync_sound(ctx).await;
+        }
+    }
     pub fn spawn_pixel(&mut self, pos: Vec2, ctx: &mut TickContext) {
         self.pixels.insert(
             Pixel::new(
@@ -125,7 +133,7 @@ impl Level {
             }
         }
 
-        if is_key_released(KeyCode::J) {
+        if is_key_down(KeyCode::J) {
             self.spawn_pixel(rapier_mouse_world_pos(ctx.camera_rect), ctx);
 
             println!("{:?}", self.pixels.len());
@@ -174,7 +182,7 @@ impl Level {
         }
         for shotgun in &mut self.shotguns {
 
-            shotgun.tick(&mut self.players, &mut self.space, &mut self.hit_markers, ctx, &mut self.enemies, &mut self.damage_numbers, &mut self.bullet_trails);
+            shotgun.tick(&mut self.players, &mut self.space, &mut self.hit_markers, ctx, &mut self.enemies, &mut self.damage_numbers, &mut self.bullet_trails, &mut self.blood);
 
         }
 
@@ -199,6 +207,7 @@ impl Level {
                 &mut self.enemies,
                 &mut self.damage_numbers,
                 &mut self.bullet_trails,
+                &mut self.blood
             );
                 
 
@@ -443,6 +452,19 @@ impl Level {
         fonts: &mut FontLoader
     ) {
 
+        let background_texture = textures.get(&"assets/background_tile.png".to_string()).await;
+
+        let tile_width = background_texture.width() * 8.;
+        let tile_height = background_texture.height() * 8.;
+
+        let mut params = DrawTextureParams::default();
+
+        params.dest_size = Some(Vec2::new(tile_height, tile_width));
+        for x in 0..25 {
+            for y in 0..25 {
+                draw_texture_ex(background_texture, x as f32 * tile_width, y as f32 * tile_height, WHITE, params.clone());
+            }
+        }
         //self.sky.draw();
 
         for damage_number in &self.damage_numbers {
@@ -499,6 +521,10 @@ impl Level {
                 rotation: 0.,
                 color: WHITE,
             });
+        }
+
+        for blood in &self.blood {
+            blood.draw(&self.space).await
         }
     }
 }

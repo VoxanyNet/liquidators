@@ -41,6 +41,10 @@ pub struct Client {
 
 impl Client {
     
+    pub async fn sync_sounds(&mut self, ctx: &mut TickContext<'_>) {
+        self.game_state.sync_sounds(ctx).await
+    }
+
     pub async fn tick(&mut self) {
 
         self.resize_camera();
@@ -80,6 +84,8 @@ impl Client {
             &mut tick_context
         );
 
+        self.game_state.sync_sounds(&mut tick_context).await;
+
         
 
         if let Some(menu) = &mut self.main_menu {
@@ -108,7 +114,10 @@ impl Client {
                 //std::thread::sleep(web_time::Duration::from_secs_f32(0.2));
                 next_frame().await;
 
-                *self = Client::connect("wss://liquidators.voxany.net/ws/").await;
+                let ip = "wss://liquidators.voxany.net/ws/";
+                let ip = "ws://127.0.0.1:5556";
+
+                *self = Client::connect(ip).await;
             }
 
             // else if menu.launch_editor {
@@ -269,6 +278,7 @@ impl Client {
                 //println!("tick: {:?}", then.elapsed());
             
 
+                
                 self.draw().await;
 
                 

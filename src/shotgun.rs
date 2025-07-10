@@ -8,7 +8,7 @@ use parry2d::{query::Ray, shape::Shape};
 use rapier2d::prelude::{ColliderHandle, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::player::{Facing, Player, PlayerWeapon}, weapon::Weapon, Grabbable, TickContext};
+use crate::{blood::Blood, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::player::{Facing, Player, PlayerWeapon}, weapon::Weapon, Grabbable, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -81,9 +81,10 @@ impl Shotgun {
         ctx: &mut TickContext,
         enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
-        bullet_trails: &mut SyncArena<BulletTrail>
+        bullet_trails: &mut SyncArena<BulletTrail>,
+        blood: &mut HashSet<Blood>
     ) {
-        self.weapon.owner_tick(players, hit_markers, space, ctx, enemies, damage_numbers, bullet_trails);
+        self.weapon.owner_tick(players, hit_markers, space, ctx, enemies, damage_numbers, bullet_trails, blood);
         
     }
 
@@ -99,18 +100,19 @@ impl Shotgun {
         ctx: &mut TickContext,
         enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
-        bullet_trails: &mut SyncArena<BulletTrail>
+        bullet_trails: &mut SyncArena<BulletTrail>,
+        blood: &mut HashSet<Blood>
     ) {
 
-        self.weapon.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails);
+        self.weapon.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood);
         
         
 
         
     }   
 
-    pub fn sync_sound(&mut self, ctx: &mut TickContext) {
-        self.weapon.sync_sound(ctx);
+    pub async fn sync_sound(&mut self, ctx: &mut TickContext<'_>) {
+        self.weapon.sync_sound(ctx).await;
     }
 
     pub fn get_weapon_tip(&self, space: &Space) -> OPoint<f32, Const<2>>{
@@ -145,10 +147,11 @@ impl Shotgun {
         hit_markers: &mut Vec<Vec2>, 
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
-        ctx: &mut TickContext
+        ctx: &mut TickContext,
+        blood: &mut HashSet<Blood>
     ) {
         
-        self.weapon.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, ctx);
+        self.weapon.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx);
 
     }
 
