@@ -114,8 +114,11 @@ impl Client {
                 //std::thread::sleep(web_time::Duration::from_secs_f32(0.2));
                 next_frame().await;
 
-                let ip = "wss://liquidators.voxany.net/ws/";
+                // connect locally if running natively
                 let ip = "ws://127.0.0.1:5556";
+
+                #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+                let ip = "wss://liquidators.voxany.net/ws/";
 
                 *self = Client::connect(ip).await;
             }
