@@ -2,6 +2,7 @@
 name = "liquidators"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -16,7 +17,7 @@ rapier2d = { git = "https://github.com/VoxanyNet/rapier", rev = "d2945de2055e115
 serde = { version = "1.0.205", features = ["serde_derive"] }
 lz4_flex = { version = "0.11", default-features = false }
 # ewebsock = "0.7.0"
-gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "386fbf7af2aa248c34b922223edd59ee6493cfdf"}
+gamelibrary = {git = "https://github.com/VoxanyNet/gamelibrary", rev = "123287234723e2d3d0a5c1df146cee2e52be1a51"}
 parry2d = {git = "https://github.com/VoxanyNet/parry", rev = "10a5155cb735ca3d2e912473b22bad2f2ad5889e"}
 #gamelibrary ={ path = "../gamelibrary"}
 bitcode = { version = "0.6.0", features = ["serde"] }

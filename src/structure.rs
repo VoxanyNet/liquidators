@@ -283,11 +283,11 @@ impl Structure {
             draw_circle(particle.x, particle.y, 20., WHITE);
         }
 
-        let pos = space.sync_rigid_body_set.get_sync(self.rigid_body_handle).unwrap().position().translation;
+        //let pos = space.sync_rigid_body_set.get_sync(self.rigid_body_handle).unwrap().position().translation;
 
-        let pos = rapier_to_macroquad(&Vec2::new(pos.x, pos.y));
+        //let pos = rapier_to_macroquad(&Vec2::new(pos.x, pos.y));
 
-        draw_text(self.owner.clone().unwrap().as_str(), pos.x, pos.y, 20., WHITE);
+        //draw_text(self.owner.clone().unwrap().as_str(), pos.x, pos.y, 20., WHITE);
 
 
     }

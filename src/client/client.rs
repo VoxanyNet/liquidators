@@ -8,6 +8,8 @@ use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE
 use noise::{NoiseFn, Perlin};
 use tungstenite::http::request;
 
+include!(concat!(env!("OUT_DIR"), "/assets.rs"));
+
 #[cfg(feature = "3d-audio")]
 use gamelibrary::sound::backends::ears::EarsSoundManager as SelectedSoundManager; // this alias needs a better name
 
@@ -40,6 +42,8 @@ pub struct Client {
 impl Client {
     
     pub async fn tick(&mut self) {
+
+        self.resize_camera();
 
         self.console.tick();
 
@@ -104,7 +108,7 @@ impl Client {
                 //std::thread::sleep(web_time::Duration::from_secs_f32(0.2));
                 next_frame().await;
 
-                *self = Client::connect("ws://gretchenwhitmer.net:5556").await;
+                *self = Client::connect("wss://liquidators.voxany.net/ws/").await;
             }
 
             // else if menu.launch_editor {
@@ -140,6 +144,14 @@ impl Client {
         self.last_tick_duration = self.last_tick.elapsed();
         self.last_tick = web_time::Instant::now();
 
+    }
+
+    pub fn resize_camera(&mut self) {
+        //self.game_state.chat.add_message("debug".to_string(), format!("{}, {}", screen_width(), screen_height()));
+
+        
+        self.camera_rect.w = screen_width();
+        self.camera_rect.h = screen_height();
     }
 
     pub fn update_camera(&mut self) {
@@ -384,8 +396,15 @@ impl Client {
     }
 
     pub async fn new_unconnected() -> Self {
+
+        println!("{:?}", ASSET_PATHS);
         
         let mut textures = TextureLoader::new();
+
+        // preload assets
+        for asset_path in ASSET_PATHS {
+            textures.get(&asset_path.to_string()).await;
+        }
 
         let main_menu = MainMenu::new(&mut textures).await;
         Self {

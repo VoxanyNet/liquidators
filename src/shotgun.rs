@@ -48,7 +48,7 @@ impl Shotgun {
         self.weapon.owner = owner
     }
     
-    pub fn new(space: &mut Space, pos: Vec2, owner: String, player_rigid_body_handle: Option<SyncRigidBodyHandle>, textures: &mut TextureLoader) -> Self {
+    pub fn new(space: &mut Space, pos: Vec2, owner: String, player_rigid_body_handle: Option<SyncRigidBodyHandle>, textures: &mut TextureLoader, facing: Facing) -> Self {
 
         Self {
             weapon: Weapon::new(
@@ -66,7 +66,8 @@ impl Shotgun {
                 0.,
                 0.,
                 None,
-                Vec2::new(50., 11.)
+                Vec2::new(50., 11.),
+                facing
             ),
         }
         

@@ -15,7 +15,7 @@ pub struct MainMenu {
     space: Space,
     head_joint_base: SyncRigidBodyHandle,
     head_joint_base_joint: SyncImpulseJointHandle,
-    new_game_button: Button,
+    // new_game_button: Button,
     connect_game_button: Button,
     quit_button: Button,
     editor_button: Button,
@@ -33,7 +33,7 @@ impl MainMenu {
 
         clear_color.a = 0.;
 
-        let new_game_button = Button::new("New Game".to_string(), Rect::new(50., 180., 150., 60.), clear_color, Some(clear_color), Some(clear_color), 50, "assets/fonts/CutePixel.ttf".to_string()).await;
+        //let new_game_button = Button::new("New Game".to_string(), Rect::new(50., 180., 150., 60.), clear_color, Some(clear_color), Some(clear_color), 50, "assets/fonts/CutePixel.ttf".to_string()).await;
 
         let connect_game_button = Button::new("Connect".to_string(), Rect::new(50., 300., 150., 60.), clear_color, Some(clear_color), Some(clear_color), 50, "assets/fonts/CutePixel.ttf".to_string()).await;
 
@@ -88,7 +88,7 @@ impl MainMenu {
             head,
             head_joint_base,
             head_joint_base_joint,
-            new_game_button: new_game_button,
+            // new_game_button: new_game_button,
             connect_game_button: connect_game_button,
             connect: false,
             quit_button,
@@ -139,7 +139,7 @@ impl MainMenu {
 
         //self.head.draw(textures, &self.space, false).await;
         
-        self.new_game_button.draw().await;
+        //self.new_game_button.draw().await;
         self.connect_game_button.draw().await;
         self.quit_button.draw().await;
         self.editor_button.draw().await;
@@ -153,15 +153,15 @@ impl MainMenu {
 
         self.space.step(&ctx.owned_rigid_bodies, &ctx.owned_colliders, &Vec::new(), ctx.last_tick_duration);
 
-        self.new_game_button.update(Some(ctx.camera_rect));
+        //self.new_game_button.update(Some(ctx.camera_rect));
         self.connect_game_button.update(Some(ctx.camera_rect));
         self.quit_button.update(Some(ctx.camera_rect));
         self.editor_button.update(Some(ctx.camera_rect));
 
-        // this is a little dumb
-        if self.new_game_button.clicked {
-            self.new_game = true;
-        }
+        // // this is a little dumb
+        // if self.new_game_button.clicked {
+        //     self.new_game = true;
+        // }
 
         if self.connect_game_button.clicked {
             self.connect = true;

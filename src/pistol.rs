@@ -22,6 +22,7 @@ impl Pistol {
         owner: String, 
         player_rigid_body_handle: Option<SyncRigidBodyHandle>, 
         textures: &mut TextureLoader,
+        facing: Facing
     ) -> Self {
         Self {
             weapon: Weapon::new(
@@ -39,7 +40,8 @@ impl Pistol {
                 0.,
                 0.,
                 Some("assets/weapons/pistol/casing.png".to_string()),
-                Vec2::new(32., 22.)
+                Vec2::new(32., 22.),
+                facing
             )
         }
     }

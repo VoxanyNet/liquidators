@@ -197,7 +197,7 @@ impl Player {
             space, 
             textures, 
             owner.clone(),
-            Vec2::new(39., 28.)
+            Vec2::new(30., 28.)
         );
 
         let cat_body = BodyPart::new(
@@ -230,7 +230,7 @@ impl Player {
             true
         );
 
-        let pistol = Pistol::new(space, *position, owner.clone(), Some(cat_body.body_handle), textures);
+        let pistol = Pistol::new(space, *position, owner.clone(), Some(cat_body.body_handle), textures, Facing::Right);
         //let pistol = Shotgun::new(space, *position, owner.clone(), Some(cat_body.body_handle), textures);
 
         let sound = SoundHandle::new("assets/sounds/brick_land.wav", [0.,0.,0.]);
@@ -279,10 +279,10 @@ impl Player {
         if let Some(weapon) = &mut self.weapon {
             let new_weapon = match weapon {
                 PlayerWeapon::Shotgun(_shotgun) => {
-                    Pistol::new(space, vec2(0., 0.), self.owner.clone(), Some(rigid_body_handle.clone()), textures).into()
+                    Pistol::new(space, vec2(0., 0.), self.owner.clone(), Some(rigid_body_handle.clone()), textures, self.facing.clone()).into()
                 },
                 PlayerWeapon::Pistol(_pistol) => {
-                    Shotgun::new(space, vec2(0., 0.), self.owner.clone(), Some(rigid_body_handle.clone()), textures).into()
+                    Shotgun::new(space, vec2(0., 0.), self.owner.clone(), Some(rigid_body_handle.clone()), textures, self.facing.clone()).into()
                 },  
             };
 

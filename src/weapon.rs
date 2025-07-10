@@ -66,7 +66,8 @@ impl Weapon {
         y_screen_shake_frequency: f64,
         y_screen_shake_intensity: f64,
         shell_sprite_path: Option<String>,
-        texture_size: Vec2
+        texture_size: Vec2,
+        facing: Facing
 
     ) -> Self {
 
@@ -135,7 +136,7 @@ impl Weapon {
             grabbing: false,
             owner,
             sounds: vec![],
-            facing: Facing::Left,
+            facing,
             muzzle_flash: MuzzleFlash::new("assets/particles/shotgun_muzzle_flash.png".to_string(), web_time::Duration::from_millis(50)),
             scale,
             aim_angle_offset,
