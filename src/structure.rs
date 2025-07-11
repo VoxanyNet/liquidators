@@ -1,7 +1,7 @@
 use diff::Diff;
 use futures::executor::block_on;
 use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::{DARKGRAY, RED, WHITE}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, miniquad::gl::GL_SCISSOR_TEST, shapes::draw_circle, text::draw_text, texture::{draw_texture_ex, DrawTextureParams}, window::get_internal_gl};
+use macroquad::{color::{DARKGRAY, RED, WHITE}, input::{self, is_key_down, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, miniquad::gl::GL_SCISSOR_TEST, shapes::{draw_circle, draw_rectangle}, text::draw_text, texture::{draw_texture_ex, DrawTextureParams}, window::get_internal_gl};
 use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
@@ -276,32 +276,39 @@ impl Structure {
     pub async fn draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
 
         
-        //self.draw_texture(space, texture_path, textures, false, false, 0.).await;
+        self.draw_texture(space, texture_path, textures, false, false, 0.).await;
+
+        // let rapier_position = space.sync_rigid_body_set.get_sync(self.rigid_body_handle).unwrap().translation();
+
+        // let macroquad_position = rapier_to_macroquad(&Vec2::new(rapier_position.x, rapier_position.y));
+
+        // let half_extents = space.sync_collider_set.get_sync(self.collider_handle).unwrap().shape().as_cuboid().unwrap().half_extents;
         
-        let quad_gl = unsafe { &mut get_internal_gl() };
-        quad_gl.quad_gl.scissor(Some(
-            (
-                50,
-                50,
-                100,
-                100
-            )
-        ));
+        // let quad_gl = unsafe { &mut get_internal_gl() };
+
+        // quad_gl.quad_gl.scissor(Some(
+        //     (
+        //         50,
+        //         50,
+        //         500,
+        //         500
+        //     )
+        // ));
         
-        let texture = textures.get(&"assets/background_tile.png".to_string()).await;
+        // let texture = textures.get(&"assets/structure_tile.png".to_string()).await;
 
-        let mut params = DrawTextureParams::default();
-        params.dest_size = Some(Vec2::new(500., 500.));
+        // let mut params = DrawTextureParams::default();
+        // params.dest_size = Some(Vec2::new(500., 500.));
 
-        draw_texture_ex(texture, 0., 0., WHITE, params);
+        // draw_texture_ex(texture, 0., 0. , WHITE, params);
 
-        quad_gl.quad_gl.scissor(None);
-        match &*self.joint_test {
-            Some(joint_test) => {
-                joint_test.draw_texture(space, texture_path, textures, false, false, 0.).await;
-            },
-            None => {},
-        }
+        // quad_gl.quad_gl.scissor(None);
+
+        // if is_key_down(input::KeyCode::Down) {
+        //     draw_rectangle(0., 0., 500., 500., RED);
+        // }
+        
+
 
         for particle in &self.particles {
             draw_circle(particle.x, particle.y, 20., WHITE);

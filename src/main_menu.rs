@@ -2,7 +2,7 @@ use std::{f32::consts::PI, time::Instant};
 
 use futures::executor::block_on;
 use gamelibrary::{get_angle_to_mouse, macroquad_to_rapier, menu::Button, space::{Space, SyncImpulseJointHandle, SyncRigidBodyHandle}, texture_loader::TextureLoader};
-use macroquad::{color::{Color, BLACK, DARKGRAY}, math::{Rect, Vec2}, miniquad::window::request_quit, text::{draw_text_ex, load_ttf_font, Font, TextParams}};
+use macroquad::{color::{Color, BLACK, DARKGRAY}, math::{Rect, Vec2}, miniquad::window::request_quit, text::{draw_text_ex, load_ttf_font, Font, TextParams}, window::clear_background};
 use nalgebra::vector;
 use rapier2d::prelude::{RevoluteJointBuilder, RigidBodyBuilder};
 
@@ -125,6 +125,8 @@ impl MainMenu {
     }
     pub async fn draw(&self, textures: &mut TextureLoader) {
 
+        clear_background(BLACK);
+        
         let mut text_params = TextParams::default();
 
         text_params.font = Some(&self.font);

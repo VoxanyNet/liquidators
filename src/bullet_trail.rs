@@ -1,5 +1,5 @@
 use diff::Diff;
-use gamelibrary::time::Time;
+use gamelibrary::{rapier_to_macroquad, time::Time};
 use macroquad::{color::{self, Color, RED, WHITE}, math::Vec2, shapes::draw_line};
 use serde::{Deserialize, Serialize};
 
@@ -20,6 +20,8 @@ impl BulletTrail {
     
     pub fn draw(&self) {
 
+        let start_pos = rapier_to_macroquad(&self.start);
+        let end_pos = rapier_to_macroquad(&self.end);
 
         draw_line(self.start.x, self.start.y, self.end.x, self.end.y, 5., self.color);
     }

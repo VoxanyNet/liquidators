@@ -459,9 +459,9 @@ impl Level {
         let mut params = DrawTextureParams::default();
 
         params.dest_size = Some(Vec2::new(tile_height, tile_width));
-        for x in 0..25 {
-            for y in 0..25 {
-                draw_texture_ex(background_texture, x as f32 * tile_width, y as f32 * tile_height, WHITE, params.clone());
+        for x in 0..40 {
+            for y in 0..40 {
+                draw_texture_ex(background_texture, (x as f32 * tile_width) - 1000., (y as f32 * tile_height) - 1000., WHITE, params.clone());
             }
         }
         //self.sky.draw();

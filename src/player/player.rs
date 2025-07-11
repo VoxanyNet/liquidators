@@ -134,13 +134,13 @@ impl Player {
         //     camera_rect.x = (self.rect.right() - camera_rect.w) + 100.;
         // }
         
-        if macroquad_position.x > camera_rect.right() - 100. {
-            camera_rect.x = (macroquad_position.x - camera_rect.w) + 100.;
+        if macroquad_position.x > camera_rect.right() - 200. {
+            camera_rect.x = (macroquad_position.x - camera_rect.w) + 200.;
         }
 
-        if macroquad_position.x < camera_rect.left() + 100. {
+        if macroquad_position.x < camera_rect.left() + 200. {
             
-            camera_rect.x = macroquad_position.x - 100.
+            camera_rect.x = macroquad_position.x - 200.
         }
 
         if macroquad_position.y > camera_rect.bottom() - 100. {
