@@ -331,8 +331,6 @@ impl Weapon {
         };
 
 
-        println!("bullet vector: {:?}", macroquad_angle_bullet_vector);
-
         self.knockback_player(space, bullet_vector);
 
         let shotgun_tip = self.get_weapon_tip(space);

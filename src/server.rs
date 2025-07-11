@@ -28,8 +28,6 @@ impl Server {
     pub fn reset_level_if_no_players(&mut self) {
         if self.sync_server.client_count() == 0 && self.previous_tick_player_count != 0 {
 
-            println!("resetting level!");
-
             self.sync_server.state_mut().level = Level::from_save("level.yaml".to_string());
         }
     }

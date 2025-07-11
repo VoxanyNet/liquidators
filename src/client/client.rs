@@ -86,8 +86,6 @@ impl Client {
 
         self.game_state.sync_sounds(&mut tick_context).await;
 
-        
-
         if let Some(menu) = &mut self.main_menu {
             menu.tick(&mut tick_context);
 
@@ -409,8 +407,6 @@ impl Client {
     }
 
     pub async fn new_unconnected() -> Self {
-
-        println!("{:?}", ASSET_PATHS);
         
         let mut textures = TextureLoader::new();
 
@@ -453,7 +449,6 @@ impl Client {
         
         let uuid = uuid_string();
 
-        log(format!("{}", uuid).as_str());
         
         let (sync_client, mut game_state): (SyncClient<GameState>, GameState) = SyncClient::connect(url).await;
 

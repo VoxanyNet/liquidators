@@ -330,7 +330,6 @@ impl Player {
         let then =web_time::Instant::now();
         self.own_nearby_structures(space, structures, ctx, players);
 
-        println!("{:?}", then.elapsed());
         //self.update_walk_animation(space);
         //self.update_idle_animation(space);
         self.change_facing_direction(&space);

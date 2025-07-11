@@ -1,6 +1,7 @@
 use diff::Diff;
+use futures::executor::block_on;
 use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::{DARKGRAY, RED, WHITE}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, shapes::draw_circle, text::draw_text};
+use macroquad::{color::{DARKGRAY, RED, WHITE}, input::{self, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, miniquad::gl::GL_SCISSOR_TEST, shapes::draw_circle, text::draw_text, texture::{draw_texture_ex, DrawTextureParams}, window::get_internal_gl};
 use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
@@ -91,6 +92,8 @@ impl Structure {
             return;
         }
 
+        println!("yes");
+
         let mouse_pos = mouse_world_pos(camera_rect);
         let mouse_rapier_coords = rapier_mouse_world_pos(camera_rect);
 
@@ -106,8 +109,10 @@ impl Structure {
             None
         );
 
-        menu.add_button("Delete".to_string());
-        menu.add_button("Zero Velocity".to_string());
+        
+        // we can block here because we arent going to run this on wasm
+        block_on(menu.add_button("Delete".to_string()));
+        block_on(menu.add_button("Zero Velocity".to_string()));
 
         self.menu = Some(menu);
     }
@@ -269,9 +274,28 @@ impl Structure {
     }
 
     pub async fn draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
+
         
-        self.draw_texture(space, texture_path, textures, false, false, 0.).await;
+        //self.draw_texture(space, texture_path, textures, false, false, 0.).await;
         
+        let quad_gl = unsafe { &mut get_internal_gl() };
+        quad_gl.quad_gl.scissor(Some(
+            (
+                50,
+                50,
+                100,
+                100
+            )
+        ));
+        
+        let texture = textures.get(&"assets/background_tile.png".to_string()).await;
+
+        let mut params = DrawTextureParams::default();
+        params.dest_size = Some(Vec2::new(500., 500.));
+
+        draw_texture_ex(texture, 0., 0., WHITE, params);
+
+        quad_gl.quad_gl.scissor(None);
         match &*self.joint_test {
             Some(joint_test) => {
                 joint_test.draw_texture(space, texture_path, textures, false, false, 0.).await;

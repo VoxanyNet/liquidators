@@ -136,7 +136,6 @@ impl Level {
         if is_key_down(KeyCode::J) {
             self.spawn_pixel(rapier_mouse_world_pos(ctx.camera_rect), ctx);
 
-            println!("{:?}", self.pixels.len());
         }
 
         if is_key_released(KeyCode::G) {

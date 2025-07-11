@@ -2,7 +2,7 @@ use std::{fs, time::{Duration, Instant}};
 
 use gamelibrary::{log, menu::Button, sync::client::SyncClient, texture_loader::TextureLoader, uuid_string};
 use crate::level::Level;
-use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, WHITE}, input::{self, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel}, math::Rect, text::draw_text, time::get_fps, window::{screen_height, screen_width}};
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, WHITE}, input::{self, is_key_down, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel}, math::Rect, text::draw_text, time::get_fps, window::{screen_height, screen_width}};
 use gamelibrary::traits::HasPhysics;
 
 pub struct EditorClient {
@@ -109,6 +109,25 @@ impl EditorClient {
             self.camera_rect.h /= 1.1;
         }
 
+        let camera_speed = match is_key_down(input::KeyCode::LeftShift) {
+            true => 10.,
+            false => 5.,
+        };
+        if is_key_down(input::KeyCode::W) {
+            self.camera_rect.y -= camera_speed;
+        }
+
+        if is_key_down(input::KeyCode::S) {
+            self.camera_rect.y += camera_speed;
+        }
+        
+        if is_key_down(input::KeyCode::A) {
+            self.camera_rect.x -= camera_speed;
+        }
+
+        if is_key_down(input::KeyCode::D) {
+            self.camera_rect.x += camera_speed;
+        }
         if is_mouse_button_down(input::MouseButton::Middle) {
             self.camera_rect.x += mouse_delta_position().x * 200.;
             self.camera_rect.y += mouse_delta_position().y * 200.;
@@ -220,8 +239,6 @@ impl EditorClient {
         //macroquad::window::set_fullscreen(true);
 
         loop { 
-
-            log(format!("{}", self.level.structures.len()).as_str());
 
             self.tick();
 

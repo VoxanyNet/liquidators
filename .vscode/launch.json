@@ -62,6 +62,24 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug executable 'editor-server'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=editor-server",
+                    "--package=liquidators"
+                ],
+                "filter": {
+                    "name": "editor-server",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug executable 'editor'",
             "cargo": {
                 "args": [
