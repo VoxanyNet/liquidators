@@ -13,7 +13,7 @@ structures:
   dragging: false
   drag_offset: null
   owner: null
-  editor_owner: 99a5143e-7b07-48e1-a90f-1527e0b30aef
+  editor_owner: '3643181772'
   sprite_path: assets/structure/brick_block.png
   last_ownership_change: 0
   grabbing: false
@@ -47,15 +47,15 @@ space:
                 - 1.0
                 - 0.0
                 translation:
-                - 854.6666
-                - 192.66675
+                - 3797.1387
+                - 186.95047
               next_position:
                 rotation:
                 - 1.0
                 - 0.0
                 translation:
-                - 854.6666
-                - 192.66675
+                - 3797.1387
+                - 186.95047
             mprops:
               flags: ''
               local_mprops:
@@ -66,8 +66,8 @@ space:
                 inv_principal_inertia_sqrt: 0.019364918
               additional_local_mprops: null
               world_com:
-              - 854.6666
-              - 192.66675
+              - 3797.1387
+              - 186.95047
               effective_inv_mass:
               - 0.1
               - 0.1
@@ -151,7 +151,7 @@ space:
             coll_type: Solid
             shape: !Cuboid
               half_extents:
-              - 860.0
+              - 4930.0
               - 20.0
             mprops: !Mass 10.0
             changes: MODIFIED | LOCAL_MASS_PROPERTIES | PARENT | POSITION | GROUPS | SHAPE | TYPE | PARENT_EFFECTIVE_DOMINANCE | ENABLED_OR_DISABLED
@@ -171,8 +171,8 @@ space:
               - 1.0
               - 0.0
               translation:
-              - 14.666626
-              - 192.66675
+              - -272.8612
+              - 186.95047
             material:
               friction: 0.5
               restitution: 0.0
@@ -312,28 +312,28 @@ space:
     qbvh:
       root_aabb:
         mins:
-        - -862.5334
-        - 172.26675
+        - -5301.4614
+        - 166.55048
         maxs:
-        - 891.86664
-        - 213.06674
+        - 4755.739
+        - 207.35046
       nodes:
       - simd_aabb:
           mins:
-          - - -862.5334
+          - - -5301.4614
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 172.26675
+          - - 166.55048
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 891.86664
+          - - 4755.739
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 213.06674
+          - - 207.35046
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
@@ -348,20 +348,20 @@ space:
         flags: 0
       - simd_aabb:
           mins:
-          - - -862.5334
+          - - -5301.4614
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
-          - - 172.26675
+          - - 166.55048
             - 3.4028235e38
             - 3.4028235e38
             - 3.4028235e38
           maxs:
-          - - 891.86664
+          - - 4755.739
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
-          - - 213.06674
+          - - 207.35046
             - -3.4028235e38
             - -3.4028235e38
             - -3.4028235e38
@@ -425,3 +425,4 @@ bullet_trails:
   free_list_head: 0
   len: 0
   sync_index_map: {}
+blood: []

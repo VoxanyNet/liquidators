@@ -139,9 +139,9 @@ impl Client {
 
         }
 
-        if is_key_released(KeyCode::R) {
-            self.reset_level();
-        }
+        // if is_key_released(KeyCode::R) {
+        //     self.reset_level();
+        // }
         
         self.update_camera();
 

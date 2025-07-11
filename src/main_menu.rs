@@ -143,8 +143,8 @@ impl MainMenu {
         
         //self.new_game_button.draw().await;
         self.connect_game_button.draw().await;
-        self.quit_button.draw().await;
-        self.editor_button.draw().await;
+        //self.quit_button.draw().await;
+        //self.editor_button.draw().await;
     
     }
 
@@ -157,8 +157,8 @@ impl MainMenu {
 
         //self.new_game_button.update(Some(ctx.camera_rect));
         self.connect_game_button.update(Some(ctx.camera_rect));
-        self.quit_button.update(Some(ctx.camera_rect));
-        self.editor_button.update(Some(ctx.camera_rect));
+        //self.quit_button.update(Some(ctx.camera_rect));
+        //self.editor_button.update(Some(ctx.camera_rect));
 
         // // this is a little dumb
         // if self.new_game_button.clicked {
