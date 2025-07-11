@@ -137,7 +137,7 @@ sed -i "s/const imports = __wbg_get_imports();/return __wbg_get_imports();/" dis
 # Create index from the HTML variable
 echo "$HTML" >dist/index.html
 
-cp -r assets dist/assets
+rsync --archive assets/ dist/assets/
 cd dist
 
 python -m http.server 8001
