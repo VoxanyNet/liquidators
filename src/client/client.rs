@@ -4,7 +4,7 @@ use futures::executor::block_on;
 use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, font_loader::FontLoader, log, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics, uuid_string};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, editor_client::EditorClient, editor_server::EditorServer, game_state::GameState, level::Level, main_menu::MainMenu, player::player::Player, server::Server, vec_remove_iter::IntoVecRemoveIter, ScreenShakeParameters, TickContext};
-use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::{camera::mouse, gl_use_default_material, gl_use_material, load_material, MaterialParams, PipelineParams, ShaderSource, UniformDesc, UniformType}, text::draw_text, time::get_fps, window::{next_frame, request_new_screen_size, screen_height, screen_width}};
+use macroquad::{audio::set_sound_volume, camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::{camera::mouse, gl_use_default_material, gl_use_material, load_material, MaterialParams, PipelineParams, ShaderSource, UniformDesc, UniformType}, text::draw_text, time::get_fps, window::{next_frame, request_new_screen_size, screen_height, screen_width}};
 use noise::{NoiseFn, Perlin};
 use tungstenite::http::request;
 
@@ -154,6 +154,12 @@ impl Client {
         self.last_tick_duration = self.last_tick.elapsed();
         self.last_tick = web_time::Instant::now();
 
+        // THIS IS MEGA STUPID like actually so dumb
+        if self.start.elapsed() > Duration::from_secs_f32(0.1) {
+            self.sounds.set_stupid_connection_fix(false);
+        }
+        
+
     }
 
     pub fn resize_camera(&mut self) {
@@ -229,11 +235,6 @@ impl Client {
 
         Player::spawn(&mut self.game_state.level.players, &mut self.game_state.level.space, self.uuid.clone(), &vec2(100., 300.), &mut self.textures);
 
-    }
-
-    pub fn tick_loop(client: Arc<Mutex<Self>>) {
-
-        Self::tick(&mut *client.lock().unwrap());
     }
 
     pub async fn run(&mut self) {
@@ -388,7 +389,7 @@ impl Client {
         self.screen_shake.y_intensity = (self.screen_shake.y_intensity - y_intensity_decay).max(0.0);
 
     
-        self.game_state.draw(&mut self.textures, &self.camera_rect, &mut self.font_loader).await;
+        self.game_state.draw(&mut self.textures, &self.camera_rect, &mut self.font_loader, &camera).await;
 
         set_default_camera();
 
@@ -413,6 +414,7 @@ impl Client {
         // preload assets
         for asset_path in ASSET_PATHS {
             textures.get(&asset_path.to_string()).await;
+            
         }
 
         let main_menu = MainMenu::new(&mut textures).await;
@@ -449,6 +451,8 @@ impl Client {
         
         let uuid = uuid_string();
 
+
+
         
         let (sync_client, mut game_state): (SyncClient<GameState>, GameState) = SyncClient::connect(url).await;
 
@@ -474,6 +478,10 @@ impl Client {
         let active_gamepad: Option<GamepadId> = None; 
 
         // active_gamepad = gilrs.gamepads().next().map_or(None, |gamepad|{Some(gamepad.0)});
+
+        let mut sounds = SelectedSoundManager::new();
+
+        sounds.set_stupid_connection_fix(true);
         
         Self {
             game_state,
@@ -489,7 +497,7 @@ impl Client {
             active_gamepad,
             sync_client: Some(sync_client),
             console: Console::new(),
-            sounds: SelectedSoundManager::new(),
+            sounds: sounds,
             last_tick_mouse_world_pos: rapier_mouse_world_pos(&camera_rect),
             main_menu: None,
             font_loader: FontLoader::new(),

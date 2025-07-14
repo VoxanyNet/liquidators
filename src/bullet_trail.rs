@@ -23,7 +23,7 @@ impl BulletTrail {
         let start_pos = rapier_to_macroquad(&self.start);
         let end_pos = rapier_to_macroquad(&self.end);
 
-        draw_line(self.start.x, self.start.y, self.end.x, self.end.y, 5., self.color);
+        draw_line(start_pos.x, start_pos.y, end_pos.x, end_pos.y, 5., self.color);
     }
 
     pub fn tick(&mut self, ctx: &TickContext) {

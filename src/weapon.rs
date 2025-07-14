@@ -82,6 +82,8 @@ impl Weapon {
                 .build()
         );
 
+    
+
         let collider = space.sync_collider_set.insert_with_parent_sync(
             collider_from_texture_size(texture_size)
                 .mass(mass)
@@ -339,12 +341,12 @@ impl Weapon {
         bullet_trails.insert(
             BulletTrail::new(
                 Vec2::new(
-                    shotgun_pos_macroquad.x, 
-                    shotgun_pos_macroquad.y - 10.
+                    shotgun_pos.x, 
+                    shotgun_pos.y + 10.
                 ), 
                 Vec2 {
-                    x: shotgun_pos_macroquad.x + (macroquad_angle_bullet_vector.x * 10000.),
-                    y: shotgun_pos_macroquad.y + (macroquad_angle_bullet_vector.y * 10000.),
+                    x: shotgun_pos.x + (macroquad_angle_bullet_vector.x * 10000.),
+                    y: shotgun_pos.y - (macroquad_angle_bullet_vector.y * 10000.),
                 },
                 None,
                 self.owner.clone()

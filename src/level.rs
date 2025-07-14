@@ -2,7 +2,7 @@ use std::{collections::{HashMap, HashSet}, fs};
 
 use diff::Diff;
 use gamelibrary::{arenaiter::SyncArenaIterator, font_loader::FontLoader, log, macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::{RED, WHITE}, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}, shapes::{draw_rectangle, draw_rectangle_ex, DrawRectangleParams}, text::draw_text_ex, texture::{draw_texture_ex, DrawTextureParams}};
+use macroquad::{camera::Camera2D, color::{RED, WHITE}, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}, prelude::camera::mouse::Camera, shapes::{draw_rectangle, draw_rectangle_ex, DrawRectangleParams}, text::draw_text_ex, texture::{draw_texture_ex, DrawTextureParams}};
 use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
 use serde::{Deserialize, Serialize};
@@ -189,11 +189,6 @@ impl Level {
 
         while let Some((mut player, players)) = players_iter.next() {
 
-            if player.owner != *ctx.uuid {
-                players_iter.restore(player);
-                
-                continue;
-            }
 
             player.tick(
                 &mut self.space, 
@@ -360,7 +355,8 @@ impl Level {
                 sprite_path: "assets/structure/brick_block.png".to_string(),
                 last_ownership_change: 0,
                 particles: vec![],
-                joint_test: None.into()
+                joint_test: None.into(),
+                stupid: Rect::new(0., 0., 50., 50.)
             };
             
             self.structures.push(new_structure);
@@ -417,7 +413,8 @@ impl Level {
                 sprite_path: "assets/structure/brick_block.png".to_string(),
                 last_ownership_change: 0,
                 particles: vec![],
-                joint_test: None.into()
+                joint_test: None.into(),
+                stupid: Rect::new(0., 0., 50., 50.)
             };
             
             self.structures.push(new_structure);
@@ -448,7 +445,8 @@ impl Level {
         &self, 
         textures: &mut TextureLoader, 
         camera_rect: &Rect,
-        fonts: &mut FontLoader
+        fonts: &mut FontLoader,
+        camera: &Camera2D
     ) {
 
         let background_texture = textures.get(&"assets/background_tile.png".to_string()).await;
@@ -495,7 +493,7 @@ impl Level {
 
             let texture_path = structure.sprite_path.clone();
 
-            structure.draw(&self.space, &texture_path, textures).await;
+            structure.draw(&self.space, &texture_path, textures, camera).await;
         }
 
         for (index, player) in &self.players {

@@ -1,7 +1,7 @@
 use std::{collections::HashSet, f32::consts::PI, time::Instant};
 
 use diff::Diff;
-use gamelibrary::{animation::TrackedFrames, collider_top_left_pos, current_unix_millis, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::{SoundHandle, SoundManager}, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics, uuid_u32};
+use gamelibrary::{animation::TrackedFrames, collider_top_left_pos, current_unix_millis, get_angle_between_rapier_points, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::{SoundHandle, SoundManager}, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics, uuid_u32};
 use gilrs::Gamepad;
 use macroquad::{color::{GREEN, WHITE}, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, shapes::draw_rectangle, time::get_frame_time};
 use nalgebra::vector;
@@ -119,7 +119,9 @@ pub struct Player {
     pub sound: SoundHandle,
     pub head_joint_handle: Option<SyncImpulseJointHandle>,
     pub teleporter_destination: Option<SyncRigidBodyHandle>,
-    pub money: u32
+    pub money: u32,
+    #[serde(default)]
+    pub mouse_pos: Vec2
 }
 
 impl Player {
@@ -265,7 +267,8 @@ impl Player {
                 head_joint_handle: Some(head_joint_handle),
                 teleporter_destination: None,
                 health: 100,
-                money: 0
+                money: 0,
+                mouse_pos: Vec2::ZERO
             }
         );
     }
@@ -304,7 +307,10 @@ impl Player {
     }
 
 
-    pub fn tick(
+    pub fn update_mouse_pos(&mut self, camera_rect: &Rect) {
+        self.mouse_pos = rapier_mouse_world_pos(camera_rect);
+    }
+    pub fn owner_tick(
         &mut self, 
         space: &mut Space, 
         structures: &mut Vec<Structure>, 
@@ -325,6 +331,7 @@ impl Player {
         self.update_selected(space, &ctx.camera_rect);
         self.update_is_dragging(space, &ctx.camera_rect);
         self.update_drag(space, &ctx.camera_rect);
+        self.update_mouse_pos(ctx.camera_rect);
         // this needs to be fixed so moving structures dont change owners, it causes it to glitch because conflicting updates
         
         let then =web_time::Instant::now();
@@ -333,10 +340,9 @@ impl Player {
         //self.update_walk_animation(space);
         //self.update_idle_animation(space);
         self.change_facing_direction(&space);
-        self.delete_structure(structures, space, ctx);
+        //self.delete_structure(structures, space, ctx);
         self.angle_head_to_mouse(space, ctx.camera_rect);
         self.place_teleporter(ctx, teleporters, space);
-        self.angle_weapon_to_mouse(space, ctx.camera_rect);
         //self.launch_brick(bricks, space, ctx);
         
         self.detach_head_if_dead(space);
@@ -366,7 +372,33 @@ impl Player {
 
         self.head.tick(space, ctx);
         self.body.tick(space, ctx);
+    }
+
+    pub fn tick(
+        &mut self, 
+        space: &mut Space, 
+        structures: &mut Vec<Structure>, 
+        bricks: &mut Vec<Brick>, 
+        teleporters: &mut Vec<Teleporter>, 
+        hit_markers: &mut Vec<Vec2>, 
+        ctx: &mut TickContext, 
+        players: &mut SyncArena<Player>,
+        enemies: &mut SyncArena<Enemy>,
+        damage_numbers: &mut HashSet<DamageNumber>,
+        bullet_trails: &mut SyncArena<BulletTrail>,
+        blood: &mut HashSet<Blood>
+    ) {
         
+        if self.owner == *ctx.uuid {
+            self.owner_tick(space, structures, bricks, teleporters, hit_markers, ctx, players, enemies, damage_numbers, bullet_trails, blood);
+        }
+
+        self.all_tick(space, ctx);
+        
+    }
+
+    pub fn all_tick(&mut self, space: &mut Space, ctx: &TickContext) {
+        self.angle_weapon_to_mouse(space, ctx.camera_rect);
     }
 
     pub fn place_teleporter(&mut self, ctx: &TickContext, teleporters: &mut Vec<Teleporter>, space: &mut Space) {
@@ -426,7 +458,7 @@ impl Player {
 
         let weapon_pos = space.sync_rigid_body_set.get_sync(self.weapon.as_ref().unwrap().rigid_body()).unwrap().translation();
 
-        let angle_to_mouse = get_angle_to_mouse(Vec2::new(weapon_pos.x, weapon_pos.y), camera_rect);
+        let angle_to_mouse = get_angle_between_rapier_points(Vec2::new(weapon_pos.x, weapon_pos.y), self.mouse_pos);
 
         let shotgun_joint = space.sync_impulse_joint_set.get_sync_mut(shotgun_joint_handle).unwrap();
 

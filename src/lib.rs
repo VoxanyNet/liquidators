@@ -5,7 +5,7 @@ use diff::Diff;
 use futures::executor::block_on;
 use gamelibrary::{font_loader::FontLoader, rapier_mouse_world_pos, sound::soundmanager::SoundManager, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, texture_loader::TextureLoader, traits::HasPhysics};
 use gilrs::GamepadId;
-use macroquad::{audio::{load_sound, play_sound_once}, input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}};
+use macroquad::{audio::{load_sound, play_sound_once}, camera::Camera2D, input::{is_mouse_button_down, mouse_delta_position}, math::{Rect, Vec2}, prelude::camera::mouse::Camera};
 use nalgebra::{coordinates::X, vector};
 use noise::Perlin;
 use rapier2d::prelude::{ColliderBuilder, ColliderHandle, Group, InteractionGroups, QueryFilter, RigidBodyHandle};
@@ -267,7 +267,7 @@ pub struct TickContext<'a> {
     pub last_tick_mouse_world_pos: &'a mut Vec2,
     pub font_loader: &'a mut FontLoader,
     pub screen_shake: &'a mut ScreenShakeParameters,
-    pub last_tick_duration: Duration
+    pub last_tick_duration: Duration,
 }
 
 pub struct ScreenShakeParameters {

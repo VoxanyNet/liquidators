@@ -1,7 +1,7 @@
 use diff::Diff;
 use futures::executor::block_on;
-use gamelibrary::{menu::Menu, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{color::{DARKGRAY, RED, WHITE}, input::{self, is_key_down, is_mouse_button_pressed, is_mouse_button_released}, math::{Rect, Vec2}, miniquad::gl::GL_SCISSOR_TEST, shapes::{draw_circle, draw_rectangle}, text::draw_text, texture::{draw_texture_ex, DrawTextureParams}, window::get_internal_gl};
+use gamelibrary::{log, menu::Menu, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
+use macroquad::{camera::Camera2D, color::{Color, DARKGRAY, RED, WHITE}, input::{self, is_key_down, is_mouse_button_pressed, is_mouse_button_released, KeyCode}, math::{Rect, Vec2}, miniquad::gl::GL_SCISSOR_TEST, shapes::{draw_circle, draw_rectangle, draw_rectangle_ex}, text::draw_text, texture::{draw_texture_ex, DrawTextureParams}, window::get_internal_gl};
 use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
@@ -26,7 +26,9 @@ pub struct Structure {
     pub last_ownership_change: u64,
     pub grabbing: bool,
     pub particles: Vec<Vec2>,
-    pub joint_test: Box<Option<Structure>>
+    pub joint_test: Box<Option<Structure>>,
+    #[serde(default)]
+    pub stupid: Rect
 }
 
 impl Grabbable for Structure {
@@ -81,7 +83,8 @@ impl Structure {
             last_ownership_change: 0,
             grabbing: false,
             particles: vec![],
-            joint_test: None.into()
+            joint_test: None.into(),
+            stupid: Rect::new(0., 0., 50., 50.)
         }
     }
 
@@ -124,11 +127,51 @@ impl Structure {
 
         // let body = space.rigid_body_set.get(self.rigid_body_handle).unwrap();
 
+        if is_key_down(KeyCode::Down) {
+
+            if is_key_down(KeyCode::LeftShift) {
+                self.stupid.h += 1.;
+            }
+
+            self.stupid.y += 1.;
+
+        }
+
+        if is_key_down(KeyCode::Up) {
+
+            if is_key_down(KeyCode::LeftShift) {
+                self.stupid.h -= 1.;
+            }
+
+            self.stupid.y -= 1.;
+
+        }
+
+        if is_key_down(KeyCode::Left) {
+
+            if is_key_down(KeyCode::LeftShift) {
+                self.stupid.w -= 1.;
+            }
+
+            self.stupid.x -= 1.;
+
+        }
+
+        if is_key_down(KeyCode::Right) {
+
+            if is_key_down(KeyCode::LeftShift) {
+                self.stupid.w += 1.;
+            }
+
+            self.stupid.x += 1.;
+
+        }
+
         self.click_to_own(ctx, space);
         
-        self.update_selected(space, ctx.camera_rect);
-        self.update_is_dragging(space, ctx.camera_rect);
-        self.update_drag(space, ctx.camera_rect);
+        //self.update_selected(space, ctx.camera_rect);
+        //self.update_is_dragging(space, ctx.camera_rect);
+        //self.update_drag(space, ctx.camera_rect);
 
         match &mut *self.joint_test {
             Some(joint_test) => joint_test.tick(ctx, space, players),
@@ -273,7 +316,7 @@ impl Structure {
         }
     }
 
-    pub async fn draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
+    pub async fn draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader, camera: &Camera2D) {
 
         
         self.draw_texture(space, texture_path, textures, false, false, 0.).await;
@@ -286,24 +329,32 @@ impl Structure {
         
         // let quad_gl = unsafe { &mut get_internal_gl() };
 
+        // let camera_macroquad_position = camera.world_to_screen(macroquad_position);
+
+        // log(&camera_macroquad_position.to_string());
+        // log(&format!("macroquad pos: {}", macroquad_position));
+
+        // log(&format!("{:?}", self.stupid));
+
+        // let stupid_camera_pos = camera.world_to_screen(Vec2::new(self.stupid.x, self.stupid.y));
+
         // quad_gl.quad_gl.scissor(Some(
         //     (
-        //         50,
-        //         50,
-        //         500,
-        //         500
+        //         (camera_macroquad_position.x - half_extents.x) as i32,
+        //         (camera_macroquad_position.y - half_extents.y) as i32,
+        //         (half_extents.x * 2.) as i32,
+        //         (half_extents.y * 2.) as i32
         //     )
         // ));
         
         // let texture = textures.get(&"assets/structure_tile.png".to_string()).await;
 
         // let mut params = DrawTextureParams::default();
-        // params.dest_size = Some(Vec2::new(500., 500.));
+        // params.dest_size = Some(Vec2::new(half_extents.x * 5., half_extents.y * 5.));
 
-        // draw_texture_ex(texture, 0., 0. , WHITE, params);
+        // draw_texture_ex(texture, macroquad_position.x, macroquad_position.y , WHITE, params);
 
         // quad_gl.quad_gl.scissor(None);
-
         // if is_key_down(input::KeyCode::Down) {
         //     draw_rectangle(0., 0., 500., 500., RED);
         // }

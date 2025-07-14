@@ -1,7 +1,7 @@
 
 use diff::Diff;
 use gamelibrary::{font_loader::FontLoader, rapier_mouse_world_pos, texture_loader::TextureLoader};
-use macroquad::{input::is_key_released, math::Rect};
+use macroquad::{camera::Camera2D, input::is_key_released, math::Rect};
 use serde::{Deserialize, Serialize};
 
 use crate::{chat::Chat, level::Level, structure::Structure, TickContext};
@@ -56,9 +56,9 @@ impl GameState {
 
     }
 
-    pub async fn draw(&self, textures: &mut TextureLoader, camera_rect: &Rect, fonts: &mut FontLoader) {
+    pub async fn draw(&self, textures: &mut TextureLoader, camera_rect: &Rect, fonts: &mut FontLoader, camera: &Camera2D) {
 
-        self.level.draw(textures, camera_rect, fonts).await;
+        self.level.draw(textures, camera_rect, fonts, camera).await;
     }
 
 }
