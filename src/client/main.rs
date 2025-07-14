@@ -3,12 +3,6 @@ use client::Client;
 
 pub mod client;
 
-#[cfg(feature = "3d-audio")]
-use gamelibrary::sound::backends::ears::EarsSoundManager as SelectedSoundManager; // this alias needs a better name
-
-#[cfg(not(feature = "3d-audio"))]
-use gamelibrary::sound::backends::macroquad::MacroquadSoundManager as SelectedSoundManager;
-
 
 fn window_conf() -> Conf {
 

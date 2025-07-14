@@ -26,10 +26,6 @@ impl GameState {
         }
     }
 
-    pub async fn sync_sounds(&mut self, ctx: &mut TickContext<'_>) {
-        self.level.sync_sounds(ctx).await
-    }
-
     pub fn spawn_brick(&mut self, ctx: &mut TickContext) {
         if is_key_released(macroquad::input::KeyCode::E) {
 

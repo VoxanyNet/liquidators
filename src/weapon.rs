@@ -1,13 +1,12 @@
 use std::{collections::HashSet, time::{Duration, Instant}};
 
 use diff::Diff;
-use gamelibrary::{get_angle_to_mouse, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::SoundHandle, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, time::Time, traits::{draw_texture_onto_physics_body, HasPhysics}};
+use gamelibrary::{get_angle_to_mouse, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, time::Time, traits::{draw_texture_onto_physics_body, HasPhysics}};
 use macroquad::{color::{RED, WHITE}, input::is_mouse_button_released, math::{vec2, Vec2}, miniquad::TextureParams, shapes::{draw_circle, draw_rectangle}, texture::{draw_texture_ex, DrawTextureParams}};
 use nalgebra::{point, vector, Const, OPoint};
 use parry2d::{query::Ray, shape::Shape};
 use rapier2d::prelude::{ColliderHandle, InteractionGroups, QueryFilter, RevoluteJointBuilder, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
-use gamelibrary::sound::soundmanager::SoundManager;
 
 use crate::{blood::Blood, bullet_casing::BulletCasing, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::{self, player::{Facing, Player}}, Grabbable, TickContext};
 
@@ -27,7 +26,6 @@ pub struct Weapon {
     pub grabbing: bool,
     pub owner: String,
     pub picked_up: bool,
-    pub sounds: Vec<SoundHandle>, // is this the best way to do this?
     pub facing: Facing,
     pub muzzle_flash: MuzzleFlash,
     pub scale: f32,
@@ -137,7 +135,6 @@ impl Weapon {
             drag_offset: None,
             grabbing: false,
             owner,
-            sounds: vec![],
             facing,
             muzzle_flash: MuzzleFlash::new("assets/particles/shotgun_muzzle_flash.png".to_string(), web_time::Duration::from_millis(50)),
             scale,
@@ -199,12 +196,6 @@ impl Weapon {
         
     }   
 
-    pub async fn sync_sound(&mut self, ctx: &mut TickContext<'_>) {
-        for sound_handle in &mut self.sounds {
-            ctx.sounds.sync_sound(sound_handle).await;
-        }
-    }
-
     pub fn get_weapon_tip(&self, space: &Space) -> OPoint<f32, Const<2>>{
         let shotgun_collider = space.sync_collider_set.get_sync(self.collider).unwrap();
 
@@ -242,11 +233,7 @@ impl Weapon {
     }
 
     pub fn play_sound(&mut self) {
-        let mut fire_sound = SoundHandle::new(&self.fire_sound_path, [0., 0., 0.]);
-
-        fire_sound.play();
-
-        self.sounds.push(fire_sound);
+        
     }
 
     pub fn knockback_player(&mut self, space: &mut Space, bullet_vector: Vec2) {

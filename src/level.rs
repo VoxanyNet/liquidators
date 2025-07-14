@@ -63,12 +63,6 @@ impl Level {
         
         level
     }
-
-    pub async fn sync_sounds(&mut self, ctx: &mut TickContext<'_>) {
-        for (_, player) in &mut self.players {
-            player.sync_sound(ctx).await;
-        }
-    }
     pub fn spawn_pixel(&mut self, pos: Vec2, ctx: &mut TickContext) {
         self.pixels.insert(
             Pixel::new(

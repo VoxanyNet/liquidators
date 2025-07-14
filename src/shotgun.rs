@@ -1,7 +1,7 @@
 use std::{collections::HashSet, time::{Duration, Instant}};
 
 use diff::Diff;
-use gamelibrary::{get_angle_to_mouse, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::SoundHandle, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, time::Time, traits::{draw_texture_onto_physics_body, HasPhysics}};
+use gamelibrary::{get_angle_to_mouse, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, time::Time, traits::{draw_texture_onto_physics_body, HasPhysics}};
 use macroquad::{color::{RED, WHITE}, input::is_mouse_button_released, math::{vec2, Vec2}, miniquad::TextureParams, shapes::{draw_circle, draw_rectangle}, texture::{draw_texture_ex, DrawTextureParams}};
 use nalgebra::{point, vector, Const, OPoint};
 use parry2d::{query::Ray, shape::Shape};
@@ -110,10 +110,6 @@ impl Shotgun {
 
         
     }   
-
-    pub async fn sync_sound(&mut self, ctx: &mut TickContext<'_>) {
-        self.weapon.sync_sound(ctx).await;
-    }
 
     pub fn get_weapon_tip(&self, space: &Space) -> OPoint<f32, Const<2>>{
         self.weapon.get_weapon_tip(space)
