@@ -1,7 +1,7 @@
 use std::{fs, net::SocketAddr, str::FromStr, sync::{mpsc, Arc, Mutex}, thread::Thread, time::{Duration, Instant}};
 
 use futures::executor::block_on;
-use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, font_loader::FontLoader, log, rapier_mouse_world_pos, sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics, uuid_string};
+use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, font_loader::FontLoader, log, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics, uuid_string};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, editor_client::EditorClient, editor_server::EditorServer, game_state::GameState, level::Level, main_menu::MainMenu, player::player::Player, server::Server, vec_remove_iter::IntoVecRemoveIter, ScreenShakeParameters, TickContext};
 use macroquad::{audio::set_sound_volume, camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::{camera::mouse, gl_use_default_material, gl_use_material, load_material, MaterialParams, PipelineParams, ShaderSource, UniformDesc, UniformType}, text::draw_text, time::get_fps, window::{next_frame, request_new_screen_size, screen_height, screen_width}};
@@ -9,6 +9,12 @@ use noise::{NoiseFn, Perlin};
 use tungstenite::http::request;
 
 include!(concat!(env!("OUT_DIR"), "/assets.rs"));
+
+#[cfg(feature = "3d-audio")]
+use gamelibrary::sound::backends::ears::EarsSoundManager as SelectedSoundManager; // this alias needs a better name
+
+#[cfg(not(feature = "3d-audio"))]
+use gamelibrary::sound::backends::macroquad::MacroquadSoundManager as SelectedSoundManager;
 
 pub struct Client {
     pub game_state: GameState,
@@ -24,6 +30,7 @@ pub struct Client {
     pub camera_rect: Rect,
     pub active_gamepad: Option<GamepadId>,
     pub console: Console,
+    pub sounds: SelectedSoundManager,
     pub last_tick_mouse_world_pos: Vec2,
     pub main_menu: Option<MainMenu>,
     pub font_loader: FontLoader,
@@ -33,6 +40,10 @@ pub struct Client {
 }
 
 impl Client {
+    
+    pub async fn sync_sounds(&mut self, ctx: &mut TickContext<'_>) {
+        self.game_state.sync_sounds(ctx).await
+    }
 
     pub async fn tick(&mut self) {
 
@@ -62,6 +73,7 @@ impl Client {
             owned_rigid_bodies: &mut vec![],
             owned_colliders: &mut vec![],
             owned_impulse_joints: &mut vec![],
+            sounds: &mut self.sounds,
             last_tick_mouse_world_pos: &mut self.last_tick_mouse_world_pos,
             font_loader: &mut self.font_loader,
             screen_shake: &mut self.screen_shake,
@@ -71,6 +83,8 @@ impl Client {
         self.game_state.tick(
             &mut tick_context
         );
+
+        self.game_state.sync_sounds(&mut tick_context).await;
 
         if let Some(menu) = &mut self.main_menu {
             menu.tick(&mut tick_context);
@@ -140,6 +154,10 @@ impl Client {
         self.last_tick_duration = self.last_tick.elapsed();
         self.last_tick = web_time::Instant::now();
 
+        // THIS IS MEGA STUPID like actually so dumb
+        if self.start.elapsed() > Duration::from_secs_f32(0.1) {
+            self.sounds.set_stupid_connection_fix(false);
+        }
         
 
     }
@@ -414,6 +432,7 @@ impl Client {
             camera_rect: Rect::new(0., 200., 1280., 720.),
             active_gamepad: None,
             console: Console::new(),
+            sounds: SelectedSoundManager::new(),
             last_tick_mouse_world_pos: rapier_mouse_world_pos(&Rect::new(0., 200., 1280., 720.)),
             main_menu: Some(main_menu),
             font_loader: FontLoader::new(),
@@ -459,6 +478,10 @@ impl Client {
         let active_gamepad: Option<GamepadId> = None; 
 
         // active_gamepad = gilrs.gamepads().next().map_or(None, |gamepad|{Some(gamepad.0)});
+
+        let mut sounds = SelectedSoundManager::new();
+
+        sounds.set_stupid_connection_fix(true);
         
         Self {
             game_state,
@@ -474,6 +497,7 @@ impl Client {
             active_gamepad,
             sync_client: Some(sync_client),
             console: Console::new(),
+            sounds: sounds,
             last_tick_mouse_world_pos: rapier_mouse_world_pos(&camera_rect),
             main_menu: None,
             font_loader: FontLoader::new(),

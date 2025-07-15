@@ -1,13 +1,18 @@
 use std::{collections::HashSet, f32::consts::PI, time::Instant};
 
 use diff::Diff;
-use gamelibrary::{animation::TrackedFrames, collider_top_left_pos, current_unix_millis, get_angle_between_rapier_points, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics, uuid_u32};
+use gamelibrary::{animation::TrackedFrames, collider_top_left_pos, current_unix_millis, get_angle_between_rapier_points, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::{SoundHandle, SoundManager}, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics, uuid_u32};
 use gilrs::Gamepad;
 use macroquad::{color::{GREEN, WHITE}, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, shapes::draw_rectangle, time::get_frame_time};
 use nalgebra::vector;
 use rapier2d::prelude::{ImpulseJointHandle, InteractionGroups, RevoluteJointBuilder, RigidBody};
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "3d-audio")]
+use gamelibrary::sound::backends::ears::EarsSoundManager as SelectedSoundManager; // this alias needs a better name
+
+#[cfg(not(feature = "3d-audio"))]
+use gamelibrary::sound::backends::macroquad::MacroquadSoundManager as SelectedSoundManager;
 
 use crate::{blood::Blood, brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, level::Level, pistol::Pistol, player, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
 
@@ -48,6 +53,14 @@ impl PlayerWeapon {
             PlayerWeapon::Pistol(pistol) => pistol.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood),
         }
     } 
+
+    pub async fn sync_sound(&mut self, ctx: &mut TickContext<'_>) {
+        match self {
+            PlayerWeapon::Shotgun(shotgun) => shotgun.sync_sound(ctx).await,
+            PlayerWeapon::Pistol(pistol) => pistol.sync_sound(ctx).await,
+        }
+
+    }
 
     pub fn player_joint_handle(&self) -> Option<SyncImpulseJointHandle> {
         match self {
@@ -103,6 +116,7 @@ pub struct Player {
     pub walk_frame_progess: f32,
     pub idle_frame_progress: f32,
     pub facing: Facing,
+    pub sound: SoundHandle,
     pub head_joint_handle: Option<SyncImpulseJointHandle>,
     pub teleporter_destination: Option<SyncRigidBodyHandle>,
     pub money: u32,
@@ -231,6 +245,8 @@ impl Player {
         let pistol = Pistol::new(space, *position, owner.clone(), Some(cat_body.body_handle), textures, Facing::Right);
         //let pistol = Shotgun::new(space, *position, owner.clone(), Some(cat_body.body_handle), textures);
 
+        let sound = SoundHandle::new("assets/sounds/brick_land.wav", [0.,0.,0.]);
+
         players.insert(
             Player {
                 id: uuid_u32() as u64,
@@ -247,6 +263,7 @@ impl Player {
                 walk_frame_progess: 0.,
                 idle_frame_progress: 0.,
                 facing: Facing::Right,
+                sound,
                 head_joint_handle: Some(head_joint_handle),
                 teleporter_destination: None,
                 health: 100,
@@ -254,6 +271,13 @@ impl Player {
                 mouse_pos: Vec2::ZERO
             }
         );
+    }
+
+
+    pub async fn sync_sound(&mut self, ctx: &mut TickContext<'_>) {
+        if let Some(weapon) = &mut self.weapon {
+            weapon.sync_sound(ctx).await
+        }
     }
 
     pub fn change_weapon(
@@ -336,7 +360,14 @@ impl Player {
             );
         }  
 
-    
+        
+
+        if is_key_released(KeyCode::N) {
+
+            self.sound = SoundHandle::new("assets/sounds/brick_land.wav", [0., 0., 0.]);
+            
+            self.sound.play();
+        }
         //self.update_hitbox_size(space, ctx);
 
         self.head.tick(space, ctx);

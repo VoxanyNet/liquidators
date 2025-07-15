@@ -46,6 +46,10 @@ impl Pistol {
         }
     }
 
+    pub async fn sync_sound(&mut self, ctx: &mut TickContext<'_>) {
+        self.weapon.sync_sound(ctx).await
+    }
+
     pub fn aim_angle_offset(&self) -> f32 {
         self.weapon.aim_angle_offset
     }
