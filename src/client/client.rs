@@ -1,6 +1,6 @@
 use std::{fs, net::SocketAddr, str::FromStr, sync::{mpsc, Arc, Mutex}, thread::Thread, time::{Duration, Instant}};
 
-use futures::executor::block_on;
+use futures::{executor::block_on, future::Select};
 use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, font_loader::FontLoader, log, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics, uuid_string};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, editor_client::EditorClient, editor_server::EditorServer, game_state::GameState, level::Level, main_menu::MainMenu, player::player::Player, server::Server, vec_remove_iter::IntoVecRemoveIter, ScreenShakeParameters, TickContext};
@@ -91,6 +91,7 @@ impl Client {
 
             if menu.new_game {
 
+                let i = 0;
                 
                 let mut server = Server::new(SocketAddr::new(std::net::IpAddr::from_str("0.0.0.0").expect("failed to parse ip"), 5556));
 
@@ -103,7 +104,13 @@ impl Client {
                 //std::thread::sleep(web_time::Duration::from_secs_f32(0.2));
                 next_frame().await;
 
-                *self = Client::connect("ws://127.0.0.1:5556").await;
+                let mut client = Client::connect("ws://127.0.0.1:5556").await;
+
+                std::mem::swap(&mut client.textures, &mut self.textures);
+                std::mem::swap(&mut client.sounds, &mut self.sounds);
+
+                *self = client;
+
 
             }
 
@@ -118,7 +125,13 @@ impl Client {
                 #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
                 let ip = "wss://liquidators.voxany.net/ws/";
 
-                *self = Client::connect(ip).await;
+                let mut client = Client::connect(ip).await;
+
+                // sneaky sneaky. need to transfer the existing preloaded assests to the new client but borrow checker doesnt like that
+                std::mem::swap(&mut client.textures, &mut self.textures);
+                std::mem::swap(&mut client.sounds, &mut self.sounds);
+
+                *self = client;
             }
 
             // else if menu.launch_editor {
@@ -155,7 +168,7 @@ impl Client {
         self.last_tick = web_time::Instant::now();
 
         // THIS IS MEGA STUPID like actually so dumb
-        if self.start.elapsed() > Duration::from_secs_f32(0.1) {
+        if self.start.elapsed() > Duration::from_secs_f32(1.) {
             self.sounds.set_stupid_connection_fix(false);
         }
         
@@ -330,7 +343,7 @@ impl Client {
     pub async fn draw(&mut self) {
         
         let then =web_time::Instant::now();
-        draw_text(format!("fps: {}", get_fps()).as_str(), screen_width() - 120., 25., 30., WHITE);
+        
         //draw_text(format!("uuid: {}", self.uuid).as_str(), screen_width() - 120., 25., 30., WHITE);
         
         let elapsed = self.start.elapsed().as_secs_f64();
@@ -403,25 +416,41 @@ impl Client {
 
         //println!("draw: {:?}", then.elapsed());
         
-
+        draw_text(format!("fps: {}", get_fps()).as_str(), screen_width() - 120., 25., 30., WHITE);
+        
         macroquad::window::next_frame().await;
     }
 
     pub async fn new_unconnected() -> Self {
         
         let mut textures = TextureLoader::new();
+        let mut sound_manager = SelectedSoundManager::new();
 
         // preload assets
         for asset_path in ASSET_PATHS {
-            textures.get(&asset_path.to_string()).await;
+
+            draw_text(asset_path, 0., 50., 20., WHITE);
+
+            if asset_path.ends_with(".png") {
+                textures.get(&asset_path.to_string()).await;
+            }
+            
+            if asset_path.ends_with(".wav") {
+                sound_manager.load_sound(asset_path).await;
+            }
+
+            next_frame().await
             
         }
+
+    
+        
 
         let main_menu = MainMenu::new(&mut textures).await;
         Self {
             game_state: GameState::empty(),
             is_host: true,
-            textures: TextureLoader::new(),
+            textures: textures,
             animations: AnimationLoader::new(),
             last_tick:web_time::Instant::now(),
             uuid: uuid_string(),
@@ -432,7 +461,7 @@ impl Client {
             camera_rect: Rect::new(0., 200., 1280., 720.),
             active_gamepad: None,
             console: Console::new(),
-            sounds: SelectedSoundManager::new(),
+            sounds: sound_manager,
             last_tick_mouse_world_pos: rapier_mouse_world_pos(&Rect::new(0., 200., 1280., 720.)),
             main_menu: Some(main_menu),
             font_loader: FontLoader::new(),

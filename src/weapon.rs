@@ -39,7 +39,8 @@ pub struct Weapon {
     pub y_screen_shake_intensity: f64,
     pub shell_sprite: Option<String>, // should this be generic i dont knowwwww
     pub bullet_casings: HashSet<BulletCasing>,
-    pub player_joint_handle: Option<SyncImpulseJointHandle>
+    pub player_joint_handle: Option<SyncImpulseJointHandle>,
+
 }
 
 impl Grabbable for Weapon {
@@ -67,7 +68,8 @@ impl Weapon {
         y_screen_shake_intensity: f64,
         shell_sprite_path: Option<String>,
         texture_size: Vec2,
-        facing: Facing
+        facing: Facing,
+        
 
     ) -> Self {
 
@@ -149,7 +151,8 @@ impl Weapon {
             y_screen_shake_intensity,
             shell_sprite: shell_sprite_path,
             bullet_casings: HashSet::new(),
-            player_joint_handle: player_joint_handle,
+            player_joint_handle: player_joint_handle
+            
             
         }
     }
@@ -167,8 +170,6 @@ impl Weapon {
     ) {
         ctx.owned_rigid_bodies.push(self.rigid_body);
         ctx.owned_colliders.push(self.collider);
-
-        self.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx);
         
     }
 
@@ -283,10 +284,6 @@ impl Weapon {
         blood: &mut HashSet<Blood>,
         ctx: &mut TickContext
     ) {
-        
-        if !is_mouse_button_released(macroquad::input::MouseButton::Left) {
-            return;
-        }
 
         self.muzzle_flash.flash();
         
@@ -296,27 +293,16 @@ impl Weapon {
 
         let shotgun_body = space.sync_rigid_body_set.get_sync(self.rigid_body).unwrap().clone();
 
-        let shotgun_angle = shotgun_body.rotation().angle();
+        let weapon_angle = shotgun_body.rotation().angle();
 
         let shotgun_pos = shotgun_body.position().translation;
 
         let shotgun_velocity = shotgun_body.linvel();
 
-        let shotgun_pos_macroquad = rapier_to_macroquad(&vec2(shotgun_pos.x , shotgun_pos.y));
-        
-        let rapier_mouse_pos = rapier_mouse_world_pos(ctx.camera_rect);
-
-        let macroquad_mouse_pos = mouse_world_pos(&ctx.camera_rect);
-
-        // the direction of the bullet
-        let bullet_vector = Vec2::new(
-            rapier_mouse_pos.x - shotgun_pos.x,
-            rapier_mouse_pos.y - shotgun_pos.y 
-        ).normalize();
-
+        // we use the angle of the gun to get the direction of the bullet
         let mut macroquad_angle_bullet_vector = Vec2 {
-            x:  shotgun_angle.cos(),
-            y: shotgun_angle.sin() * -1.,
+            x:  weapon_angle.cos(),
+            y: weapon_angle.sin() * -1.,
         };
         
         match self.facing {
@@ -333,10 +319,7 @@ impl Weapon {
         };
 
 
-        self.knockback_player(space, bullet_vector);
-
-        let shotgun_tip = self.get_weapon_tip(space);
-        let shotgun_tip_macroquad = rapier_to_macroquad(&vec2(shotgun_tip.x, shotgun_tip.y));
+        self.knockback_player(space, rapier_angle_bullet_vector);
 
         bullet_trails.insert(
             BulletTrail::new(
@@ -368,24 +351,26 @@ impl Weapon {
             None => {},
         }
         
+        // from here on out needs to be cleaned up and put into seperate functions
         let ray = Ray::new(point![shotgun_pos.x, shotgun_pos.y], vector![rapier_angle_bullet_vector.x, rapier_angle_bullet_vector.y]);
         let max_toi = 5000.0;
         let solid = true;
         let filter = QueryFilter::default();
 
-        let mut hit_rigid_bodies: Vec<RigidBodyHandle> = Vec::new();
+        
 
-        let shotgun_position = space.sync_rigid_body_set.get_sync(self.rigid_body).unwrap().translation().clone();
+        let weapon_position = space.sync_rigid_body_set.get_sync(self.rigid_body).unwrap().translation().clone();
 
         let local_collider = space.sync_collider_set.get_local_handle(self.collider);
 
+        let mut hit_rigid_bodies: Vec<RigidBodyHandle> = Vec::new();
         let mut intersections: Vec<ColliderHandle> = Vec::new();
         
         // get a vector with all the intersections
         space.query_pipeline.intersections_with_ray(&space.sync_rigid_body_set.rigid_body_set, &space.sync_collider_set.collider_set, &ray, max_toi, solid, filter, 
         |handle, _intersection| {
 
-            // dont want to intersect with shotgun
+            // dont want to intersect with the weapon itself
             if local_collider == handle {
                 return true;
             };
@@ -399,11 +384,7 @@ impl Weapon {
         for handle in intersections {
             let collider = space.sync_collider_set.get_local(handle).unwrap();
 
-            let rapier_pos = rapier_to_macroquad(&vec2(collider.translation().x, collider.translation().y));
-
-            //hit_markers.push(rapier_pos);
-
-            let distance = collider.translation() - shotgun_position;
+            let distance = collider.translation() - weapon_position;
             
             hit_rigid_bodies.push(collider.parent().unwrap());
 
@@ -419,9 +400,7 @@ impl Weapon {
                 let mut enemy_hit = false;
 
                 let enemy_velocity = space.sync_rigid_body_set.get_sync(enemy.head.body_handle).unwrap().linvel().clone_owned();
-
                 let enemy_position = space.sync_rigid_body_set.get_sync(enemy.head.body_handle).unwrap().position().clone();
-
                 let enemy_position_macroquad = rapier_to_macroquad(&vec2(enemy_position.translation.x, enemy_position.translation.y));
 
                 
@@ -525,14 +504,14 @@ impl Weapon {
             }
 
         }
-
-        self.knockback_intersections(hit_rigid_bodies, space, ctx, bullet_vector);
+        // apply knockback to any rigid body hit
+        self.knockback_generic_rigid_bodies(hit_rigid_bodies, space, ctx, rapier_angle_bullet_vector);
 
 
 
     }
 
-    pub fn knockback_intersections(
+    pub fn knockback_generic_rigid_bodies(
         &self, 
         hit_rigid_bodies: Vec<RigidBodyHandle>, 
         space: &mut Space, 

@@ -12,7 +12,7 @@ fn main() {
             if path.is_file() {
 
                 if let Some(extension) = path.extension() {
-                    if extension.eq_ignore_ascii_case("png") {
+                    if extension.eq_ignore_ascii_case("png") || extension.eq_ignore_ascii_case("wav") {
                         let string_path = path.to_string_lossy();
                         paths.push(string_path.into_owned());
                     }

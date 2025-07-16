@@ -67,7 +67,7 @@ impl Shotgun {
                 0.,
                 None,
                 Vec2::new(50., 11.),
-                facing
+                facing,
             ),
         }
         
@@ -105,11 +105,29 @@ impl Shotgun {
     ) {
 
         self.weapon.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood);
-        
-        
 
+        self.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx);
+    
         
     }   
+
+    pub fn fire(
+        &mut self, 
+        space: &mut Space, 
+        players: &mut SyncArena<Player>,
+        enemies: &mut SyncArena<Enemy>, 
+        hit_markers: &mut Vec<Vec2>, 
+        damage_numbers: &mut HashSet<DamageNumber>,
+        bullet_trails: &mut SyncArena<BulletTrail>,
+        blood: &mut HashSet<Blood>,
+        ctx: &mut TickContext
+    ) {
+        if !is_mouse_button_released(macroquad::input::MouseButton::Left) {
+            return;
+        }
+        
+        self.weapon.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx);
+    }
 
     pub async fn sync_sound(&mut self, ctx: &mut TickContext<'_>) {
         self.weapon.sync_sound(ctx).await;
@@ -137,22 +155,6 @@ impl Shotgun {
 
     pub fn knockback_player(&mut self, space: &mut Space, bullet_vector: Vec2) {
         self.weapon.knockback_player(space, bullet_vector);
-    }
-
-    pub fn fire(
-        &mut self, 
-        space: &mut Space, 
-        players: &mut SyncArena<Player>,
-        enemies: &mut SyncArena<Enemy>, 
-        hit_markers: &mut Vec<Vec2>, 
-        damage_numbers: &mut HashSet<DamageNumber>,
-        bullet_trails: &mut SyncArena<BulletTrail>,
-        ctx: &mut TickContext,
-        blood: &mut HashSet<Blood>
-    ) {
-        
-        self.weapon.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx);
-
     }
 
     pub async fn draw(&self, space: &Space, textures: &mut TextureLoader, flip_x: bool, flip_y: bool) {

@@ -69,7 +69,7 @@ HTML=$(
 		<html lang="en">
 		<head>
 		    <meta charset="utf-8">
-		    <title>${PROJECT_NAME}</title>
+		    <title>Liquidators</title>
 		    <style>
 		        html,
 		        body,
@@ -137,6 +137,7 @@ sed -i "s/const imports = __wbg_get_imports();/return __wbg_get_imports();/" dis
 # Create index from the HTML variable
 echo "$HTML" >dist/index.html
 
+cp favicon.ico dist/
 rsync --archive assets/ dist/assets/
 cd dist
 
