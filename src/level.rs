@@ -441,6 +441,12 @@ impl Level {
             brick.editor_draw(&self.space, textures).await
         }
     }
+
+    pub async fn draw_hud(&self, ctx: &mut TickContext<'_>) {
+        for (_, player) in &self.players {
+            player.draw_hud(ctx).await
+        }
+    }
     pub async fn draw(
         &self, 
         textures: &mut TextureLoader, 

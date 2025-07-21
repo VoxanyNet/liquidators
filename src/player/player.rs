@@ -1,11 +1,13 @@
 use std::{collections::HashSet, f32::consts::PI, time::Instant};
 
+use chrono::TimeDelta;
 use diff::Diff;
-use gamelibrary::{animation::TrackedFrames, collider_top_left_pos, current_unix_millis, get_angle_between_rapier_points, get_angle_to_mouse, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::{SoundHandle, SoundManager}, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics, uuid_u32};
+use gamelibrary::{animation::TrackedFrames, collider_top_left_pos, current_unix_millis, get_angle_between_rapier_points, get_angle_to_mouse, log, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::{SoundHandle, SoundManager}, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics, uuid_u32};
 use gilrs::Gamepad;
 use macroquad::{color::{GREEN, WHITE}, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, shapes::draw_rectangle, time::get_frame_time};
 use nalgebra::vector;
-use rapier2d::prelude::{ImpulseJointHandle, InteractionGroups, RevoluteJointBuilder, RigidBody};
+use parry2d::math::Rotation;
+use rapier2d::{crossbeam::epoch::Pointable, prelude::{Group, ImpulseJointHandle, InteractionGroups, RevoluteJointBuilder, RigidBody}};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "3d-audio")]
@@ -14,7 +16,7 @@ use gamelibrary::sound::backends::ears::EarsSoundManager as SelectedSoundManager
 #[cfg(not(feature = "3d-audio"))]
 use gamelibrary::sound::backends::macroquad::MacroquadSoundManager as SelectedSoundManager;
 
-use crate::{blood::Blood, brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, level::Level, pistol::Pistol, player, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
+use crate::{blood::Blood, brick::Brick, bullet_trail::BulletTrail, collider_groups::{BODY_PART_GROUP, DETACHED_BODY_PART_GROUP}, damage_number::DamageNumber, enemy::Enemy, level::Level, pistol::Pistol, player, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
 
 use super::body_part::BodyPart;
 
@@ -92,6 +94,13 @@ impl PlayerWeapon {
         match self {
             PlayerWeapon::Shotgun(shotgun) => shotgun.draw(space, textures, flip_x, flip_y).await,
             PlayerWeapon::Pistol(pistol) => pistol.draw(space, textures, flip_x, flip_y).await,
+        }
+    }
+
+    pub async fn draw_hud(&self, ctx: &mut TickContext<'_>) {
+        match self {
+            PlayerWeapon::Shotgun(shotgun) => shotgun.draw_hud(ctx).await,
+            PlayerWeapon::Pistol(pistol) => pistol.draw_hud(ctx).await,
         }
     }
 }
@@ -306,6 +315,21 @@ impl Player {
         }
     }
 
+    pub fn upright(&mut self, space: &mut Space, ctx: &mut TickContext) {
+        
+        let body = space.sync_rigid_body_set.get_sync_mut(self.body.body_handle).unwrap();
+
+        // dont try to upright if we aren't knocked over
+        if body.rotation().angle().abs() < 0.5 {
+            return;
+        }
+
+        let joint = space.sync_impulse_joint_set.get_sync_mut(self.head_joint_handle.unwrap()).unwrap();
+
+        joint.data.as_revolute_mut().unwrap().set_motor_position(0., 1000., 2.);
+
+        //println!("{:?}", joint.data.as_revolute().unwrap().motor())
+    }
 
     pub fn update_mouse_pos(&mut self, camera_rect: &Rect) {
         self.mouse_pos = rapier_mouse_world_pos(camera_rect);
@@ -325,6 +349,8 @@ impl Player {
         blood: &mut HashSet<Blood>
     ) {
         //self.launch_brick(level, ctx);
+        self.unlock_rotations(space);
+        //self.upright(space, ctx);
         self.change_weapon(space, ctx.textures);
         self.control(space, ctx);
         self.move_camera(ctx.camera_rect, space);
@@ -372,6 +398,23 @@ impl Player {
 
         self.head.tick(space, ctx);
         self.body.tick(space, ctx);
+    }
+
+    pub fn unlock_rotations(&mut self, space: &mut Space) {
+        if is_key_released(KeyCode::F) {
+
+            let body = space.sync_rigid_body_set.get_sync_mut(self.body.body_handle).unwrap();
+
+            let currently_locked = body.is_rotation_locked();
+
+            // if we are re-locking rotations, we want to ensure the player is upright
+            if !currently_locked {
+                body.set_rotation(Rotation::new(0.), true);
+            }
+            
+
+            body.lock_rotations(!currently_locked, true);
+        }
     }
 
     pub fn tick(
@@ -543,6 +586,18 @@ impl Player {
             let head_joint = space.sync_impulse_joint_set.remove_sync(head_joint_handle, true);
 
             self.head_joint_handle = None;
+
+            let new_interaction_groups = InteractionGroups::none()
+                .with_memberships(DETACHED_BODY_PART_GROUP)
+                .with_filter(
+                    Group::ALL
+                        .difference(DETACHED_BODY_PART_GROUP)
+                        .difference(BODY_PART_GROUP)
+                );
+
+            
+            space.sync_collider_set.get_sync_mut(self.head.collider_handle).unwrap().set_collision_groups(new_interaction_groups);
+            space.sync_collider_set.get_sync_mut(self.body.collider_handle).unwrap().set_collision_groups(new_interaction_groups);
         }
     }
 
@@ -872,6 +927,11 @@ impl Player {
 
     }
 
+    pub async fn draw_hud(&self, ctx: &mut TickContext<'_>) {
+        if let Some(weapon) = &self.weapon {
+            weapon.draw_hud(ctx).await
+        }
+    }
     pub async fn draw(&self, space: &Space, textures: &mut TextureLoader, _camera_rect: &Rect) {
 
         //draw_hitbox(space, self.rigid_body, self.collider);
@@ -901,7 +961,8 @@ impl Player {
        
         if let Some(weapon) = &self.weapon {
 
-            weapon.draw(space, textures, flip_x, false).await
+            weapon.draw(space, textures, flip_x, false).await;
+            
         }
 
         let head_pos = {

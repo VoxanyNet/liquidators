@@ -2,7 +2,7 @@ use std::{collections::HashSet, time::{Duration, Instant}};
 
 use diff::Diff;
 use gamelibrary::{get_angle_to_mouse, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::SoundHandle, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, time::Time, traits::{draw_texture_onto_physics_body, HasPhysics}};
-use macroquad::{color::{RED, WHITE}, input::is_mouse_button_released, math::{vec2, Vec2}, miniquad::TextureParams, shapes::{draw_circle, draw_rectangle}, texture::{draw_texture_ex, DrawTextureParams}};
+use macroquad::{color::{RED, WHITE}, input::{is_key_released, is_mouse_button_released}, math::{vec2, Vec2}, miniquad::TextureParams, shapes::{draw_circle, draw_rectangle}, text::{draw_text_ex, TextParams}, texture::{draw_texture, draw_texture_ex, DrawTextureParams}, window::screen_height};
 use nalgebra::{point, vector, Const, OPoint};
 use parry2d::{query::Ray, shape::Shape};
 use rapier2d::prelude::{ColliderHandle, InteractionGroups, QueryFilter, RevoluteJointBuilder, RigidBodyBuilder, RigidBodyHandle};
@@ -40,7 +40,16 @@ pub struct Weapon {
     pub shell_sprite: Option<String>, // should this be generic i dont knowwwww
     pub bullet_casings: HashSet<BulletCasing>,
     pub player_joint_handle: Option<SyncImpulseJointHandle>,
-
+    #[serde(default)]
+    last_reload: Time,
+    #[serde(default)]
+    rounds: u32,
+    #[serde(default)]
+    capacity: u32,
+    #[serde(default)]
+    reserve_capacity: u32,
+    #[serde(default)]
+    reload_duration: u32, // reload duration in millis
 }
 
 impl Grabbable for Weapon {
@@ -69,6 +78,10 @@ impl Weapon {
         shell_sprite_path: Option<String>,
         texture_size: Vec2,
         facing: Facing,
+        reload_duration: u32,
+        rounds: u32,
+        capacity: u32,
+        reserve_capacity: u32
         
 
     ) -> Self {
@@ -151,10 +164,48 @@ impl Weapon {
             y_screen_shake_intensity,
             shell_sprite: shell_sprite_path,
             bullet_casings: HashSet::new(),
-            player_joint_handle: player_joint_handle
+            player_joint_handle: player_joint_handle,
+            last_reload: Time::new(0),
+            rounds,
+            capacity,
+            reserve_capacity,
+            reload_duration,
+            
             
             
         }
+    }
+
+    pub fn reload(&mut self, ctx: &mut TickContext) {
+        // dont reload while already reloading
+        if self.last_reload.elapsed().num_milliseconds() < self.reload_duration.into() {
+            
+            return;
+        }
+
+        // dont reload if we already have a full mag
+        if self.rounds == self.capacity {
+            return;
+        }
+
+        let rounds_needed_to_fill = self.capacity - self.rounds;
+
+        // dont use rounds than are available in reserve
+        let actual_rounds_available = rounds_needed_to_fill.min(self.reserve_capacity);
+
+        ctx.console.log(format!("actual rounds available: {:?}", actual_rounds_available));
+
+        if actual_rounds_available == 0 {
+            // play a sound here to indicate that we cant reload
+    
+            return;
+        }
+
+        self.reserve_capacity -= actual_rounds_available;
+
+        self.rounds += actual_rounds_available;
+
+        self.last_reload = Time::now();
     }
 
     pub fn owner_tick(
@@ -170,6 +221,10 @@ impl Weapon {
     ) {
         ctx.owned_rigid_bodies.push(self.rigid_body);
         ctx.owned_colliders.push(self.collider);
+
+        if is_key_released(macroquad::input::KeyCode::R) {
+            self.reload(ctx);
+        }
         
     }
 
@@ -284,6 +339,35 @@ impl Weapon {
         blood: &mut HashSet<Blood>,
         ctx: &mut TickContext
     ) {
+
+        
+        // dont shoot while reloading
+        if self.last_reload.elapsed().num_milliseconds() < self.reload_duration.into() {
+
+            let mut sound = SoundHandle::new("assets/sounds/pistol_dry_fire.wav", [0., 0., 0.]);
+            sound.play();
+
+            self.sounds.push(sound);
+
+            
+            return;
+        }
+
+        
+        self.rounds -= 1;
+
+        // automatically reload if zero bullets
+        if self.rounds == 0 {
+            self.reload(ctx);
+
+            // also play dry fire sound if no bullets
+            let mut sound = SoundHandle::new("assets/sounds/pistol_dry_fire.wav", [0., 0., 0.]);
+            sound.play();
+
+            self.sounds.push(sound);
+
+            return;
+        }
 
         self.muzzle_flash.flash();
         
@@ -415,9 +499,9 @@ impl Weapon {
 
                     enemy.health -= damage;
 
-                    for _ in 0..20 {
-                        blood.insert(Blood::new(enemy_position, space, Some(enemy_velocity), self.owner.clone()));
-                    }   
+                    // for _ in 0..20 {
+                    //     blood.insert(Blood::new(enemy_position, space, Some(enemy_velocity), self.owner.clone()));
+                    // }   
                     let damage_number = DamageNumber::new(space, damage, damage_number_position, Some(40), Some(RED));
                     
                     // temporary workaround to make damage number move with player when shot
@@ -439,9 +523,9 @@ impl Weapon {
 
                     enemy.health -= damage;
 
-                    for _ in 0..20 {
-                        blood.insert(Blood::new(enemy_position, space, Some(enemy_velocity), self.owner.clone()));
-                    }   
+                    // for _ in 0..20 {
+                    //     blood.insert(Blood::new(enemy_position, space, Some(enemy_velocity), self.owner.clone()));
+                    // }   
                     
 
                     let damage_number = DamageNumber::new(space, damage, damage_number_position, Some(45), Some(RED));
@@ -560,6 +644,32 @@ impl Weapon {
 
         self.update_grab_velocity(space);
 
+    }
+
+    pub async fn draw_hud(&self, ctx: &mut TickContext<'_>) {
+
+        let texture = ctx.textures.get(&self.sprite).await;
+
+        let font = ctx.font_loader.get("assets/fonts/CutePixel.ttf").await;
+
+        let mut draw_params = DrawTextureParams::default();
+
+        draw_params.dest_size = Some(Vec2::new(texture.width() * 2., texture.height() * 2.));
+
+        let sprite_draw_pos = Vec2::new(
+            10., 
+            (
+                screen_height() - texture.height() * 2.
+            ) - 10.
+        );
+
+        draw_texture_ex(texture, sprite_draw_pos.x, sprite_draw_pos.y, WHITE, draw_params);
+
+        let mut text_params = TextParams::default();
+        text_params.font = Some(font);
+        text_params.font_size = 28;
+
+        draw_text_ex(format!("{}/{}", self.rounds, self.capacity), sprite_draw_pos.x, sprite_draw_pos.y - 14., text_params);
     }
 
     pub async fn draw(&self, space: &Space, textures: &mut TextureLoader, flip_x: bool, flip_y: bool) {

@@ -24,6 +24,8 @@ impl Shotgun {
         self.weapon.rigid_body
     }
 
+
+
     pub fn aim_angle_offset(&self) -> f32 {
         self.weapon.aim_angle_offset
     }
@@ -68,6 +70,11 @@ impl Shotgun {
                 None,
                 Vec2::new(50., 11.),
                 facing,
+                700,
+                2,
+                2,
+                24
+
             ),
         }
         
@@ -161,6 +168,10 @@ impl Shotgun {
 
         self.weapon.draw(space, textures, flip_x, flip_y).await
 
+    }
+
+    pub async fn draw_hud(&self, ctx: &mut TickContext<'_>) {
+        self.weapon.draw_hud(ctx).await
     }
 }
 

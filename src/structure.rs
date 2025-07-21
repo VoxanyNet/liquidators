@@ -1,7 +1,9 @@
+use std::error::Error;
+
 use diff::Diff;
 use futures::executor::block_on;
 use gamelibrary::{log, menu::Menu, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{camera::Camera2D, color::{Color, DARKGRAY, RED, WHITE}, input::{self, is_key_down, is_mouse_button_pressed, is_mouse_button_released, KeyCode}, math::{Rect, Vec2}, miniquad::gl::GL_SCISSOR_TEST, shapes::{draw_circle, draw_rectangle, draw_rectangle_ex}, text::draw_text, texture::{draw_texture_ex, DrawTextureParams}, window::get_internal_gl};
+use macroquad::{camera::Camera2D, color::{Color, DARKGRAY, RED, WHITE}, input::{self, is_key_down, is_mouse_button_pressed, is_mouse_button_released, KeyCode}, math::{Rect, Vec2}, miniquad::gl::GL_SCISSOR_TEST, prelude::{gl_use_default_material, gl_use_material, load_material, Material, MaterialParams}, shapes::{draw_circle, draw_rectangle, draw_rectangle_ex}, text::draw_text, texture::{draw_texture_ex, DrawTextureParams}, window::get_internal_gl};
 use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
@@ -318,7 +320,6 @@ impl Structure {
 
     pub async fn draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader, camera: &Camera2D) {
 
-        
         self.draw_texture(space, texture_path, textures, false, false, 0.).await;
 
         // let rapier_position = space.sync_rigid_body_set.get_sync(self.rigid_body_handle).unwrap().translation();

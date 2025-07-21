@@ -12,13 +12,7 @@ use crate::{blood::Blood, bullet_trail::BulletTrail, damage_number::DamageNumber
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct Pistol {
-    weapon: Weapon,
-    last_reload: Time,
-    rounds: u32,
-    capacity: u32,
-    reserve_capacity: u32,
-    reload_duration: u32, // reload duration in millis
-    sounds: Vec<SoundHandle>
+    weapon: Weapon
 }
 
 impl Pistol {
@@ -47,54 +41,17 @@ impl Pistol {
                 0.,
                 Some("assets/weapons/pistol/casing.png".to_string()),
                 Vec2::new(32., 22.),
-                facing
-            ),
-            last_reload: Time::new(0),
-            reload_duration: 2200,
-            rounds: 12,
-            capacity: 12,
-            reserve_capacity: 24,
-            sounds: Vec::new()
+                facing,
+                2200,
+                12,
+                12,
+                24,
+            )
         }
     }
 
-    pub fn reload(&mut self, ctx: &mut TickContext) {
-        // dont reload while already reloading
-        if self.last_reload.elapsed().num_milliseconds() < self.reload_duration.into() {
-            
-            return;
-        }
-
-        // dont reload if we already have a full mag
-        if self.rounds == self.capacity {
-            return;
-        }
-
-        let rounds_needed_to_fill = self.capacity - self.rounds;
-
-        // dont use rounds than are available in reserve
-        let actual_rounds_available = rounds_needed_to_fill.min(self.reserve_capacity);
-
-        ctx.console.log(format!("actual rounds available: {:?}", actual_rounds_available));
-
-        if actual_rounds_available == 0 {
-            // play a sound here to indicate that we cant reload
-    
-            return;
-        }
-
-        self.reserve_capacity -= actual_rounds_available;
-
-        self.rounds += actual_rounds_available;
-
-        self.last_reload = Time::now();
-    }
 
     pub async fn sync_sound(&mut self, ctx: &mut TickContext<'_>) {
-
-        for sound in &mut self.sounds {
-            ctx.sounds.sync_sound(sound).await
-        }
         
         self.weapon.sync_sound(ctx).await
     }
@@ -105,6 +62,10 @@ impl Pistol {
 
     pub async fn draw(&self, space: &Space, textures: &mut TextureLoader, flip_x: bool, flip_y: bool) {
         self.weapon.draw(space, textures, flip_x, flip_y).await
+    }
+
+    pub async fn draw_hud(&self, ctx: &mut TickContext<'_>) {
+        self.weapon.draw_hud(ctx).await
     }
 
     pub fn collider(&self) -> SyncColliderHandle {
@@ -134,10 +95,6 @@ impl Pistol {
         self.weapon.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood);
 
         self.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx);
-
-        if is_key_released(macroquad::input::KeyCode::R) {
-            self.reload(ctx);
-        }
     }
 
     pub fn set_facing(&mut self, facing: Facing) {
@@ -159,31 +116,7 @@ impl Pistol {
         if !is_mouse_button_released(macroquad::input::MouseButton::Left) {
             return;
         }
-
-        ctx.console.log(format!("rounds: {}", self.rounds));
-        ctx.console.log(format!("reserve: {}", self.reserve_capacity));
         
-        // dont shoot while reloading
-        if self.last_reload.elapsed().num_milliseconds() < self.reload_duration.into() {
-
-            let mut sound = SoundHandle::new("assets/sounds/pistol_dry_fire.wav", [0., 0., 0.]);
-            sound.play();
-
-            self.sounds.push(sound);
-
-            
-            return;
-        }
-
-        // automatically reload if zero bullets
-        if self.rounds == 0 {
-            self.reload(ctx);
-
-            return;
-        }
-
-        
-        self.rounds -= 1;
 
         self.weapon.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx);
     }

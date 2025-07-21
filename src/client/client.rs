@@ -341,8 +341,10 @@ impl Client {
 
  
     pub async fn draw(&mut self) {
+
         
         let then =web_time::Instant::now();
+
         
         //draw_text(format!("uuid: {}", self.uuid).as_str(), screen_width() - 120., 25., 30., WHITE);
         
@@ -406,6 +408,27 @@ impl Client {
 
         set_default_camera();
 
+        let mut tick_context = TickContext {
+            is_host: &mut self.is_host,
+            textures: &mut self.textures,
+            uuid: &self.uuid,
+            camera_offset: &mut self.camera_offset,
+            last_tick: &self.last_tick,
+            camera_rect: &mut self.camera_rect,
+            active_gamepad: &self.active_gamepad,
+            console: &mut self.console,
+            owned_rigid_bodies: &mut vec![],
+            owned_colliders: &mut vec![],
+            owned_impulse_joints: &mut vec![],
+            sounds: &mut self.sounds,
+            last_tick_mouse_world_pos: &mut self.last_tick_mouse_world_pos,
+            font_loader: &mut self.font_loader,
+            screen_shake: &mut self.screen_shake,
+            last_tick_duration: self.last_tick_duration
+        };
+
+        self.game_state.draw_hud(&mut tick_context).await;
+
         self.console.draw().await;
 
         self.game_state.chat.draw().await;
@@ -425,6 +448,7 @@ impl Client {
         
         let mut textures = TextureLoader::new();
         let mut sound_manager = SelectedSoundManager::new();
+        let mut font_loader = FontLoader::new();
 
         // preload assets
         for asset_path in ASSET_PATHS {
@@ -437,6 +461,10 @@ impl Client {
             
             if asset_path.ends_with(".wav") {
                 sound_manager.load_sound(asset_path).await;
+            }
+
+            if asset_path.ends_with(".ttf") {
+                font_loader.load(&asset_path).await;
             }
 
             next_frame().await
@@ -500,6 +528,9 @@ impl Client {
             }
         }
 
+        // if we are the only player when connecting we are the host
+        let is_host = game_state.level.players.len() == 0;
+
         Player::spawn(&mut game_state.level.players, &mut game_state.level.space, uuid.clone(), &vec2(100., 300.), &mut textures);
 
         //let gilrs = Gilrs::new().unwrap();
@@ -514,7 +545,7 @@ impl Client {
         
         Self {
             game_state,
-            is_host: true,
+            is_host,
             textures, 
             animations: AnimationLoader::new(),
             last_tick:web_time::Instant::now(),

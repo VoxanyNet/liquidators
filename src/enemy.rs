@@ -6,10 +6,10 @@ use gamelibrary::{space::{Space, SyncImpulseJointHandle}, sync_arena::{Index, Sy
 use macroquad::{input::{is_key_down, KeyCode}, math::Vec2};
 use nalgebra::{vector};
 use parry2d::math::Vector;
-use rapier2d::prelude::RevoluteJointBuilder;
+use rapier2d::prelude::{Group, InteractionGroups, RevoluteJointBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::{player::{self, body_part::BodyPart, player::{Facing, Player}}, TickContext};
+use crate::{collider_groups::{BODY_PART_GROUP, DETACHED_BODY_PART_GROUP}, player::{self, body_part::BodyPart, player::{Facing, Player}}, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -111,6 +111,18 @@ impl Enemy {
             space.sync_impulse_joint_set.remove_sync(head_joint_handle, true);
 
             self.head_body_joint = None;
+
+            let new_interaction_groups = InteractionGroups::none()
+                .with_memberships(DETACHED_BODY_PART_GROUP)
+                .with_filter(
+                    Group::ALL
+                        .difference(DETACHED_BODY_PART_GROUP)
+                        .difference(BODY_PART_GROUP)
+                );
+
+            
+            space.sync_collider_set.get_sync_mut(self.head.collider_handle).unwrap().set_collision_groups(new_interaction_groups);
+            space.sync_collider_set.get_sync_mut(self.body.collider_handle).unwrap().set_collision_groups(new_interaction_groups);
         }
     }
 
@@ -130,7 +142,7 @@ impl Enemy {
 
         enemy_body.set_linvel(
             vector![
-                (enemy_body.linvel().x) + (10. * target_vector.x), 
+                (enemy_body.linvel().x) + (15. * target_vector.x), 
                 enemy_body.linvel().y
             ], 
             true
