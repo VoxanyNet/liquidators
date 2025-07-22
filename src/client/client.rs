@@ -120,7 +120,7 @@ impl Client {
                 next_frame().await;
 
                 // connect locally if running natively
-                let ip = "ws://127.0.0.1:5556";
+                let ip = "ws://127.0.0.1:6969";
 
                 #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
                 let ip = "wss://liquidators.voxany.net/ws/";
