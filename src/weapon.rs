@@ -9,9 +9,17 @@ use rapier2d::prelude::{ColliderHandle, InteractionGroups, QueryFilter, Revolute
 use serde::{Deserialize, Serialize};
 use gamelibrary::sound::soundmanager::SoundManager;
 
-use crate::{blood::Blood, bullet_casing::BulletCasing, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::{self, player::{Facing, Player}}, Grabbable, TickContext};
+use crate::{blood::Blood, bullet_casing::BulletCasing, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::{self, player::{Facing, Player}}, structure::Structure, Grabbable, TickContext};
 
-
+#[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
+#[diff(attr(
+    #[derive(Serialize, Deserialize)]
+))]
+pub struct Hitscan {
+    intersecting_colliders: Vec<SyncColliderHandle>,
+    origin: Vec2,
+    // might want to add an id
+}
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
@@ -332,12 +340,13 @@ impl Weapon {
         &mut self, 
         space: &mut Space, 
         players: &mut SyncArena<Player>,
-        enemies: &mut SyncArena<Enemy>, 
+        enemies: &mut SyncArena<Enemy>,
         hit_markers: &mut Vec<Vec2>, 
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
         blood: &mut HashSet<Blood>,
-        ctx: &mut TickContext
+        ctx: &mut TickContext,
+        hitscans: &mut SyncArena<Hitscan>,
     ) {
 
         
@@ -449,6 +458,7 @@ impl Weapon {
 
         let mut hit_rigid_bodies: Vec<RigidBodyHandle> = Vec::new();
         let mut intersections: Vec<ColliderHandle> = Vec::new();
+        let mut sync_intersections: Vec<SyncColliderHandle> = Vec::new();
         
         // get a vector with all the intersections
         space.query_pipeline.intersections_with_ray(&space.sync_rigid_body_set.rigid_body_set, &space.sync_collider_set.collider_set, &ray, max_toi, solid, filter, 
@@ -459,12 +469,27 @@ impl Weapon {
                 return true;
             };
 
+            let sync_handle = space.sync_collider_set.get_sync_handle(handle);
+
+            sync_intersections.push(sync_handle);
+
             intersections.push(handle);
 
             true
 
         });
 
+        hitscans.insert(
+            Hitscan {
+                intersecting_colliders: sync_intersections,
+                origin: Vec2::new(shotgun_pos.x, shotgun_pos.y),
+            }
+        );
+
+        // apply knockback to any rigid body hit
+        self.knockback_generic_rigid_bodies(hit_rigid_bodies, space, ctx, rapier_angle_bullet_vector);
+
+        return;
         for handle in intersections {
             let collider = space.sync_collider_set.get_local(handle).unwrap();
 
@@ -539,6 +564,8 @@ impl Weapon {
                 }
             }
 
+            
+
             // PLAYERS
             for (_, player) in &mut *players {
 
@@ -588,8 +615,6 @@ impl Weapon {
             }
 
         }
-        // apply knockback to any rigid body hit
-        self.knockback_generic_rigid_bodies(hit_rigid_bodies, space, ctx, rapier_angle_bullet_vector);
 
 
 
@@ -729,4 +754,10 @@ impl HasPhysics for Weapon {
     fn drag_offset(&mut self) -> &mut Option<macroquad::prelude::Vec2> {
         &mut self.drag_offset
     }
+}
+
+#[derive(Clone)]
+pub struct BulletImpactData {
+    pub shooter_pos: Vec2,
+    pub travel_distance: Vec2
 }

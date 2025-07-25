@@ -4,7 +4,7 @@ use futures::{executor::block_on, future::Select};
 use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, font_loader::FontLoader, log, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics, uuid_string};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, editor_client::EditorClient, editor_server::EditorServer, game_state::GameState, level::Level, main_menu::MainMenu, player::player::Player, server::Server, vec_remove_iter::IntoVecRemoveIter, ScreenShakeParameters, TickContext};
-use macroquad::{audio::set_sound_volume, camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::{camera::mouse, gl_use_default_material, gl_use_material, load_material, MaterialParams, PipelineParams, ShaderSource, UniformDesc, UniformType}, text::draw_text, time::get_fps, window::{next_frame, request_new_screen_size, screen_height, screen_width}};
+use macroquad::{audio::set_sound_volume, camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::{camera::mouse, gl_use_default_material, gl_use_material, load_material, MaterialParams, PipelineParams, ShaderSource, UniformDesc, UniformType}, text::{draw_text, draw_text_ex, TextParams}, time::get_fps, window::{next_frame, request_new_screen_size, screen_height, screen_width}};
 use noise::{NoiseFn, Perlin};
 use tungstenite::http::request;
 
@@ -450,10 +450,20 @@ impl Client {
         let mut sound_manager = SelectedSoundManager::new();
         let mut font_loader = FontLoader::new();
 
-        // preload assets
-        for asset_path in ASSET_PATHS {
+        
+        let font = font_loader.get("assets/fonts/CutePixel.ttf").await.clone();
+        let mut text_params = TextParams::default();
+        text_params.font = Some(&font);
+        text_params.font_size = 40;
 
-            draw_text(asset_path, 0., 50., 20., WHITE);
+        // preload assets
+        for (index, asset_path) in ASSET_PATHS.iter().enumerate() {
+
+            println!("{}", asset_path);
+
+            let text = format!("Loading: %{}", ((index as f32 / ASSET_PATHS.len() as f32) * 100.) as u32);
+
+            draw_text_ex(&text, (screen_width() / 2.) - 110., screen_height() / 2., text_params.clone());
 
             if asset_path.ends_with(".png") {
                 textures.get(&asset_path.to_string()).await;

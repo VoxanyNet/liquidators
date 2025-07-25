@@ -8,7 +8,7 @@ use parry2d::{query::Ray, shape::Shape};
 use rapier2d::prelude::{ColliderHandle, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{blood::Blood, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::player::{Facing, Player, PlayerWeapon}, weapon::Weapon, Grabbable, TickContext};
+use crate::{blood::Blood, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::player::{Facing, Player, PlayerWeapon}, weapon::{Hitscan, Weapon}, Grabbable, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -89,7 +89,8 @@ impl Shotgun {
         enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
-        blood: &mut HashSet<Blood>
+        blood: &mut HashSet<Blood>,
+        hitscans: &mut SyncArena<Hitscan>
     ) {
         self.weapon.owner_tick(players, hit_markers, space, ctx, enemies, damage_numbers, bullet_trails, blood);
         
@@ -108,12 +109,13 @@ impl Shotgun {
         enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
-        blood: &mut HashSet<Blood>
+        blood: &mut HashSet<Blood>,
+        hitscans: &mut SyncArena<Hitscan>
     ) {
 
         self.weapon.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood);
 
-        self.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx);
+        self.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx, hitscans);
     
         
     }   
@@ -127,13 +129,14 @@ impl Shotgun {
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
         blood: &mut HashSet<Blood>,
-        ctx: &mut TickContext
+        ctx: &mut TickContext,
+        hitscans: &mut SyncArena<Hitscan>
     ) {
         if !is_mouse_button_released(macroquad::input::MouseButton::Left) {
             return;
         }
         
-        self.weapon.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx);
+        self.weapon.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx, hitscans);
     }
 
     pub async fn sync_sound(&mut self, ctx: &mut TickContext<'_>) {

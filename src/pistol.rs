@@ -5,7 +5,7 @@ use gamelibrary::{sound::soundmanager::{SoundHandle, SoundManager}, space::{Spac
 use macroquad::{input::{is_key_released, is_mouse_button_released}, math::Vec2};
 use serde::{Deserialize, Serialize};
 
-use crate::{blood::Blood, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, player::{self, player::{Facing, Player}}, weapon::Weapon, TickContext};
+use crate::{blood::Blood, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, player::{self, player::{Facing, Player}}, weapon::{Hitscan, Weapon}, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -89,12 +89,13 @@ impl Pistol {
         enemies: &mut SyncArena<Enemy>, 
         damage_numbers: &mut HashSet<DamageNumber>, 
         bullet_trails: &mut SyncArena<BulletTrail>,
-        blood: &mut HashSet<Blood>
+        blood: &mut HashSet<Blood>,
+        hitscans: &mut SyncArena<Hitscan>
     ) 
     {
         self.weapon.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood);
 
-        self.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx);
+        self.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx, hitscans);
     }
 
     pub fn set_facing(&mut self, facing: Facing) {
@@ -110,7 +111,8 @@ impl Pistol {
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
         blood: &mut HashSet<Blood>,
-        ctx: &mut TickContext
+        ctx: &mut TickContext,
+        hitscans: &mut SyncArena<Hitscan>
     ) {
 
         if !is_mouse_button_released(macroquad::input::MouseButton::Left) {
@@ -118,7 +120,7 @@ impl Pistol {
         }
         
 
-        self.weapon.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx);
+        self.weapon.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx, hitscans);
     }
 
 }

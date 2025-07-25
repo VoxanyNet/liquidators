@@ -132,12 +132,13 @@ impl MainMenu {
         text_params.font = Some(&self.font);
         text_params.font_size = 100;
 
-        draw_text_ex(
-            "Liquidators",
-             50., 
-             100., 
-             text_params
-        );
+        // airplane mode
+        // draw_text_ex(
+        //     "Liquidators",
+        //      50., 
+        //      100., 
+        //      text_params
+        // );
 
         //self.head.draw(textures, &self.space, false).await;
         

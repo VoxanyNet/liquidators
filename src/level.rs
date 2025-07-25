@@ -7,7 +7,7 @@ use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::{blood::Blood, brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, grenade::Grenade, pixel::Pixel, player::{self, body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::{self, Shotgun}, sky::Sky, structure::Structure, teleporter::Teleporter, TickContext};
+use crate::{blood::Blood, brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, grenade::Grenade, pixel::Pixel, player::{self, body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::{self, Shotgun}, sky::Sky, structure::Structure, teleporter::Teleporter, weapon::Hitscan, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -33,7 +33,9 @@ pub struct Level {
     #[serde(default)]
     pub bullet_trails: SyncArena<BulletTrail>,
     #[serde(default)]
-    pub blood: HashSet<Blood>
+    pub blood: HashSet<Blood>,
+    #[serde(default)]
+    pub hitscans: SyncArena<Hitscan>
 }
 
 impl Level {
@@ -56,7 +58,8 @@ impl Level {
             pixels: HashSet::new(),
             damage_numbers: HashSet::new(),
             bullet_trails: SyncArena::new(),
-            blood: HashSet::new()
+            blood: HashSet::new(),
+            hitscans: SyncArena::new()
         };
     
         level.space.gravity.y = -980.;
@@ -181,7 +184,7 @@ impl Level {
         }
         for shotgun in &mut self.shotguns {
 
-            shotgun.tick(&mut self.players, &mut self.space, &mut self.hit_markers, ctx, &mut self.enemies, &mut self.damage_numbers, &mut self.bullet_trails, &mut self.blood);
+            shotgun.tick(&mut self.players, &mut self.space, &mut self.hit_markers, ctx, &mut self.enemies, &mut self.damage_numbers, &mut self.bullet_trails, &mut self.blood, &mut self.hitscans);
 
         }
 
@@ -201,7 +204,8 @@ impl Level {
                 &mut self.enemies,
                 &mut self.damage_numbers,
                 &mut self.bullet_trails,
-                &mut self.blood
+                &mut self.blood,
+                &mut self.hitscans
             );
                 
 
@@ -255,12 +259,16 @@ impl Level {
         self.editor_spawn_brick(camera_rect, uuid);
         self.editor_spawn_radio(camera_rect, uuid);
 
-        for structure_index in 0..self.structures.len() {
-            let mut structure = self.structures.remove(structure_index);
+        let mut structures_iter = SwapIter::new(&mut self.structures);
 
-            structure.tick_editor(self, camera_rect, uuid);
+        while structures_iter.not_done() {
+            let (_, structure) = structures_iter.next();
 
-            self.structures.insert(structure_index, structure);
+            let new_structure = structure.tick_editor(&mut self.space, camera_rect, uuid);
+
+            if let Some(new_structure) = new_structure {
+                structures_iter.restore(new_structure);
+            }
 
         }
 
@@ -356,7 +364,9 @@ impl Level {
                 last_ownership_change: 0,
                 particles: vec![],
                 joint_test: None.into(),
-                stupid: Rect::new(0., 0., 50., 50.)
+                stupid: Rect::new(0., 0., 50., 50.),
+                joint_handle: None,
+                ..Default::default()
             };
             
             self.structures.push(new_structure);
@@ -414,7 +424,9 @@ impl Level {
                 last_ownership_change: 0,
                 particles: vec![],
                 joint_test: None.into(),
-                stupid: Rect::new(0., 0., 50., 50.)
+                stupid: Rect::new(0., 0., 50., 50.),
+                joint_handle: None,
+                ..Default::default()
             };
             
             self.structures.push(new_structure);

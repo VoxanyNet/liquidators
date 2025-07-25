@@ -9,7 +9,7 @@ use parry2d::math::Vector;
 use rapier2d::prelude::{Group, InteractionGroups, RevoluteJointBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::{collider_groups::{BODY_PART_GROUP, DETACHED_BODY_PART_GROUP}, player::{self, body_part::BodyPart, player::{Facing, Player}}, TickContext};
+use crate::{collider_groups::{BODY_PART_GROUP, DETACHED_BODY_PART_GROUP}, player::{self, body_part::BodyPart, player::{Facing, Player}}, weapon::Hitscan, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -73,6 +73,17 @@ impl Enemy {
             head_body_joint: Some(head_body_joint),
             last_jump: Time::new(0),
             player_target: None
+        }
+    }
+
+    pub fn handle_hitscans(&mut self, hitscans: &SyncArena<Hitscan>) {
+
+        if self.health <= 0 {
+            return;
+        }
+
+        for (_, hitscan) in hitscans {
+            
         }
     }
 

@@ -2,15 +2,15 @@ use std::error::Error;
 
 use diff::Diff;
 use futures::executor::block_on;
-use gamelibrary::{log, menu::Menu, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{camera::Camera2D, color::{Color, DARKGRAY, RED, WHITE}, input::{self, is_key_down, is_mouse_button_pressed, is_mouse_button_released, KeyCode}, math::{Rect, Vec2}, miniquad::gl::GL_SCISSOR_TEST, prelude::{gl_use_default_material, gl_use_material, load_material, Material, MaterialParams}, shapes::{draw_circle, draw_rectangle, draw_rectangle_ex}, text::draw_text, texture::{draw_texture_ex, DrawTextureParams}, window::get_internal_gl};
+use gamelibrary::{log, menu::Menu, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
+use macroquad::{camera::Camera2D, color::{Color, DARKGRAY, RED, WHITE}, input::{self, is_key_down, is_key_released, is_mouse_button_pressed, is_mouse_button_released, KeyCode}, math::{Rect, Vec2}, miniquad::gl::GL_SCISSOR_TEST, prelude::{gl_use_default_material, gl_use_material, load_material, Material, MaterialParams}, shapes::{draw_circle, draw_rectangle, draw_rectangle_ex}, text::draw_text, texture::{draw_texture_ex, DrawTextureParams}, window::get_internal_gl};
 use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
 
-use crate::{level::Level, player::{self, player::Player}, Grabbable, TickContext};
+use crate::{level::Level, player::{self, player::Player}, weapon::BulletImpactData, Grabbable, TickContext};
 
-#[derive(Serialize, serde::Deserialize, Diff, PartialEq, Clone)]
+#[derive(Serialize, serde::Deserialize, Diff, PartialEq, Clone, Debug, Default)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]
@@ -30,7 +30,11 @@ pub struct Structure {
     pub particles: Vec<Vec2>,
     pub joint_test: Box<Option<Structure>>,
     #[serde(default)]
-    pub stupid: Rect
+    pub stupid: Rect,
+    #[serde(default)]
+    pub joint_handle: Option<SyncImpulseJointHandle>,
+    #[serde(default)]
+    pub max_impulse: f32
 }
 
 impl Grabbable for Structure {
@@ -39,6 +43,33 @@ impl Grabbable for Structure {
     }
 }
 impl Structure {
+
+    pub fn break_joint(&mut self, space: &mut Space) {
+        let joint = match &self.joint_handle {
+            Some(joint_handle) => {
+                space.sync_impulse_joint_set.get_sync_mut(*joint_handle).unwrap()
+            },
+            None => return,
+        };
+
+        if joint.impulses.magnitude() > self.max_impulse {
+            self.max_impulse = joint.impulses.magnitude();
+        }
+
+        dbg!(self.max_impulse);
+
+
+    }
+
+    pub fn handle_bullet(&mut self, impact_data: &BulletImpactData, space: &mut Space) {
+
+        if let Some(joint_handle) = self.joint_handle {
+            space.sync_impulse_joint_set.remove(joint_handle);
+
+            self.joint_handle = None;
+        }
+
+    }
 
     pub fn despawn(self, space: &mut Space) {
         // removes the body AND the collider!
@@ -86,7 +117,9 @@ impl Structure {
             grabbing: false,
             particles: vec![],
             joint_test: None.into(),
-            stupid: Rect::new(0., 0., 50., 50.)
+            stupid: Rect::new(0., 0., 50., 50.),
+            joint_handle: None,
+            ..Default::default()
         }
     }
 
@@ -96,8 +129,6 @@ impl Structure {
         if !is_mouse_button_released(input::MouseButton::Right) {
             return;
         }
-
-        println!("yes");
 
         let mouse_pos = mouse_world_pos(camera_rect);
         let mouse_rapier_coords = rapier_mouse_world_pos(camera_rect);
@@ -184,6 +215,9 @@ impl Structure {
         }
 
         if *ctx.uuid == self.owner.clone().unwrap() {
+
+            self.break_joint(space);
+
             // we need to have a more efficient way of finding the currently controlled player
             for (_, player) in players {
                 if player.owner == *ctx.uuid {
@@ -247,9 +281,10 @@ impl Structure {
         self.editor_owner = editor_uuid.clone();
     }
 
-    pub fn tick_editor(&mut self, level: &mut Level, camera_rect: &Rect, editor_uuid: &String) {
+    pub fn tick_editor(mut self, space: &mut Space, camera_rect: &Rect, editor_uuid: &String) -> Option<Self> {
 
-        self.update_editor_owner(editor_uuid, &mut level.space, camera_rect);
+        self.update_editor_owner(editor_uuid, space, camera_rect);
+
 
         if self.editor_owner == *editor_uuid {
 
@@ -258,13 +293,19 @@ impl Structure {
                 None => {}
             }
 
-            self.editor_resize(&mut level.space);
-            self.spawn_menu(&mut level.space, camera_rect);
-            self.update_selected(&mut level.space, camera_rect);
-            self.update_is_dragging(&mut level.space, camera_rect);
-            self.update_drag(&mut level.space, camera_rect);
-            self.editor_rotate(&mut level.space);
+            self.editor_resize(space);
+            self.spawn_menu(space, camera_rect);
+            self.update_selected(space, camera_rect);
+            self.update_is_dragging(space, camera_rect);
+            self.update_drag(space, camera_rect);
+            self.editor_rotate(space);
+
+            if self.selected && is_key_released(KeyCode::Delete) {
+                return None
+            }
         }
+
+        Some(self)
 
 
     }
@@ -309,7 +350,11 @@ impl Structure {
     }
 
     pub async fn debug_draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader) {
-        self.draw_outline(space, 10.).await;
+
+        if self.selected {
+            self.draw_outline(space, 10.);
+        }
+        
         self.draw_texture(space, texture_path, textures, false, false, 0.).await;
 
         match &self.menu {

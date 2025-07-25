@@ -16,7 +16,7 @@ use gamelibrary::sound::backends::ears::EarsSoundManager as SelectedSoundManager
 #[cfg(not(feature = "3d-audio"))]
 use gamelibrary::sound::backends::macroquad::MacroquadSoundManager as SelectedSoundManager;
 
-use crate::{blood::Blood, brick::Brick, bullet_trail::BulletTrail, collider_groups::{BODY_PART_GROUP, DETACHED_BODY_PART_GROUP}, damage_number::DamageNumber, enemy::Enemy, level::Level, pistol::Pistol, player, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, TickContext};
+use crate::{blood::Blood, brick::Brick, bullet_trail::BulletTrail, collider_groups::{BODY_PART_GROUP, DETACHED_BODY_PART_GROUP}, damage_number::DamageNumber, enemy::Enemy, level::Level, pistol::Pistol, player, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, weapon::Hitscan, TickContext};
 
 use super::body_part::BodyPart;
 
@@ -48,11 +48,12 @@ impl PlayerWeapon {
         enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
-        blood: &mut HashSet<Blood>
+        blood: &mut HashSet<Blood>,
+        hitscans: &mut SyncArena<Hitscan>
     ) {
         match self {
-            PlayerWeapon::Shotgun(shotgun) => shotgun.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood),
-            PlayerWeapon::Pistol(pistol) => pistol.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood),
+            PlayerWeapon::Shotgun(shotgun) => shotgun.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood, hitscans),
+            PlayerWeapon::Pistol(pistol) => pistol.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood, hitscans),
         }
     } 
 
@@ -346,7 +347,8 @@ impl Player {
         enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
-        blood: &mut HashSet<Blood>
+        blood: &mut HashSet<Blood>,
+        hitscans: &mut SyncArena<Hitscan>
     ) {
         //self.launch_brick(level, ctx);
         self.unlock_rotations(space);
@@ -382,7 +384,8 @@ impl Player {
                 enemies,
                 damage_numbers,
                 bullet_trails,
-                blood
+                blood,
+                hitscans
             );
         }  
 
@@ -429,11 +432,12 @@ impl Player {
         enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
-        blood: &mut HashSet<Blood>
+        blood: &mut HashSet<Blood>,
+        hitscans: &mut SyncArena<Hitscan>
     ) {
         
         if self.owner == *ctx.uuid {
-            self.owner_tick(space, structures, bricks, teleporters, hit_markers, ctx, players, enemies, damage_numbers, bullet_trails, blood);
+            self.owner_tick(space, structures, bricks, teleporters, hit_markers, ctx, players, enemies, damage_numbers, bullet_trails, blood, hitscans);
         }
 
         self.all_tick(space, ctx);
