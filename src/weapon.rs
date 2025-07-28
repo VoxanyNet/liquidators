@@ -4,22 +4,22 @@ use diff::Diff;
 use gamelibrary::{get_angle_to_mouse, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::SoundHandle, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, time::Time, traits::{draw_texture_onto_physics_body, HasPhysics}};
 use macroquad::{color::{RED, WHITE}, input::{is_key_released, is_mouse_button_released}, math::{vec2, Vec2}, miniquad::TextureParams, shapes::{draw_circle, draw_rectangle}, text::{draw_text_ex, TextParams}, texture::{draw_texture, draw_texture_ex, DrawTextureParams}, window::screen_height};
 use nalgebra::{point, vector, Const, OPoint};
-use parry2d::{query::Ray, shape::Shape};
+use parry2d::{math::{Translation, Vector}, query::Ray, shape::Shape};
 use rapier2d::prelude::{ColliderHandle, InteractionGroups, QueryFilter, RevoluteJointBuilder, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 use gamelibrary::sound::soundmanager::SoundManager;
 
-use crate::{blood::Blood, bullet_casing::BulletCasing, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::{self, player::{Facing, Player}}, structure::Structure, Grabbable, TickContext};
+use crate::{blood::Blood, bullet_casing::BulletCasing, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::{self, player::{Facing, Player, PlayerWeapon, WeaponTickParameters}}, structure::Structure, Grabbable, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]
-pub struct Hitscan {
+pub struct WeaponFireEvent {
     intersecting_colliders: Vec<SyncColliderHandle>,
     origin: Vec2,
-    // might want to add an id
 }
+
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
@@ -218,14 +218,13 @@ impl Weapon {
 
     pub fn owner_tick(
         &mut self, 
-        players: &mut SyncArena<Player>, 
         hit_markers: &mut Vec<Vec2>, 
         space: &mut Space, 
         ctx: &mut TickContext,
-        enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
-        blood: &mut HashSet<Blood>
+        blood: &mut HashSet<Blood>, 
+        weapon_tick_parameter: &mut WeaponTickParameters,
     ) {
         ctx.owned_rigid_bodies.push(self.rigid_body);
         ctx.owned_colliders.push(self.collider);
@@ -236,27 +235,26 @@ impl Weapon {
         
     }
 
-    pub fn all_tick(&mut self, players: &mut SyncArena<Player>, space: &mut Space, ctx: &mut TickContext) {
-        self.grab(players, space, ctx);
+    pub fn all_tick(&mut self, space: &mut Space, ctx: &mut TickContext, weapon_tick_parameters: &mut WeaponTickParameters) {
+        self.grab(weapon_tick_parameters.players, space, ctx);
     }
 
     pub fn tick(
         &mut self, 
-        players: &mut SyncArena<Player>, 
         space: &mut Space, 
         hit_markers: &mut Vec<Vec2>, 
         ctx: &mut TickContext,
-        enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
-        blood: &mut HashSet<Blood>
+        blood: &mut HashSet<Blood>,
+        weapon_tick_parameters: &mut WeaponTickParameters,
     ) {
 
         if *ctx.uuid == self.owner {
-            self.owner_tick(players, hit_markers, space, ctx, enemies, damage_numbers, bullet_trails, blood);
+            self.owner_tick(hit_markers, space, ctx, damage_numbers, bullet_trails, blood, weapon_tick_parameters);
         }
 
-        self.all_tick(players, space, ctx);
+        self.all_tick(space, ctx, weapon_tick_parameters);
         
         
 
@@ -339,14 +337,13 @@ impl Weapon {
     pub fn fire(
         &mut self, 
         space: &mut Space, 
-        players: &mut SyncArena<Player>,
-        enemies: &mut SyncArena<Enemy>,
         hit_markers: &mut Vec<Vec2>, 
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
         blood: &mut HashSet<Blood>,
         ctx: &mut TickContext,
-        hitscans: &mut SyncArena<Hitscan>,
+        weapon_tick_parameters: &mut WeaponTickParameters
+        
     ) {
 
         
@@ -479,17 +476,77 @@ impl Weapon {
 
         });
 
-        hitscans.insert(
-            Hitscan {
-                intersecting_colliders: sync_intersections,
-                origin: Vec2::new(shotgun_pos.x, shotgun_pos.y),
+        // everything from here on needs to be cleaned up we are iterating way too many times
+        // we probably need to invert these loops
+
+        
+        // STRUCTURES
+        for (_, structure) in &mut *weapon_tick_parameters.structures {
+
+            if sync_intersections.contains(&structure.collider_handle) {
+
+                let bullet_impact_data = BulletImpactData{ 
+                    shooter_pos: shotgun_pos, 
+                    impacted_collider: structure.collider_handle.clone() 
+                };
+
+                structure.handle_bullet(&bullet_impact_data, space);
+                
+                continue 
+                
             }
-        );
+                
+        }
 
-        // apply knockback to any rigid body hit
-        self.knockback_generic_rigid_bodies(hit_rigid_bodies, space, ctx, rapier_angle_bullet_vector);
+        // ENEMIES
+        for (_, enemy) in &mut *weapon_tick_parameters.enemies {
 
-        return;
+            if sync_intersections.contains(&enemy.body.collider_handle) {
+                let bullet_impact_data = BulletImpactData{ 
+                    shooter_pos: shotgun_pos, 
+                    impacted_collider: enemy.body.collider_handle.clone() 
+                };
+
+                enemy.handle_bullet_impact(space, bullet_impact_data);
+            }
+            
+            else if sync_intersections.contains(&enemy.head.collider_handle)  {
+
+                let bullet_impact_data = BulletImpactData{ 
+                    shooter_pos: shotgun_pos, 
+                    impacted_collider: enemy.head.collider_handle.clone() 
+                };
+
+                enemy.handle_bullet_impact(space, bullet_impact_data);
+            }
+
+        }
+        
+        // PLAYERS
+        for (_, player) in &mut *weapon_tick_parameters.players {
+
+            if sync_intersections.contains(&player.body.collider_handle) {
+                let bullet_impact_data = BulletImpactData{ 
+                    shooter_pos: shotgun_pos, 
+                    impacted_collider: player.collider_handle().clone() 
+                };
+
+                player.handle_bullet_impact(space, bullet_impact_data);
+
+            }
+
+            if sync_intersections.contains(&player.head.collider_handle) {
+                let bullet_impact_data = BulletImpactData{ 
+                    shooter_pos: shotgun_pos, 
+                    impacted_collider: player.collider_handle().clone() 
+                };
+
+                player.handle_bullet_impact(space, bullet_impact_data);
+
+            }
+            
+        }
+
         for handle in intersections {
             let collider = space.sync_collider_set.get_local(handle).unwrap();
 
@@ -497,124 +554,11 @@ impl Weapon {
             
             hit_rigid_bodies.push(collider.parent().unwrap());
 
-            let fall_off_multiplier = (-0.01 * distance.norm()).exp();
-
-            // ENEMIES
-            for (_, enemy) in &mut *enemies {
-
-                if enemy.health <= 0 {
-                    continue;
-                }
-
-                let mut enemy_hit = false;
-
-                let enemy_velocity = space.sync_rigid_body_set.get_sync(enemy.head.body_handle).unwrap().linvel().clone_owned();
-                let enemy_position = space.sync_rigid_body_set.get_sync(enemy.head.body_handle).unwrap().position().clone();
-                let enemy_position_macroquad = rapier_to_macroquad(&vec2(enemy_position.translation.x, enemy_position.translation.y));
-
-                
-                let damage_number_position = Vec2 {
-                    x: enemy_position_macroquad.x,
-                    y: enemy_position_macroquad.y - 120.,
-                };
-
-                if space.sync_collider_set.get_local_handle(enemy.body.collider_handle) == handle {
-
-                    let damage = (50.0 * fall_off_multiplier).round() as i32;
-
-                    enemy.health -= damage;
-
-                    // for _ in 0..20 {
-                    //     blood.insert(Blood::new(enemy_position, space, Some(enemy_velocity), self.owner.clone()));
-                    // }   
-                    let damage_number = DamageNumber::new(space, damage, damage_number_position, Some(40), Some(RED));
-                    
-                    // temporary workaround to make damage number move with player when shot
-                    hit_rigid_bodies.push(space.sync_rigid_body_set.get_local_handle(damage_number.rigid_body_handle));
-
-                    damage_numbers.insert(
-                        damage_number
-                    );
-
-                    enemy_hit = true;
-
-                }
-
-
-                if space.sync_collider_set.get_local_handle(enemy.head.collider_handle) == handle && enemy_hit == false {
-
-                    
-                    let damage = (100.0 * fall_off_multiplier).round() as i32;
-
-                    enemy.health -= damage;
-
-                    // for _ in 0..20 {
-                    //     blood.insert(Blood::new(enemy_position, space, Some(enemy_velocity), self.owner.clone()));
-                    // }   
-                    
-
-                    let damage_number = DamageNumber::new(space, damage, damage_number_position, Some(45), Some(RED));
-                    
-                    // temporary workaround to make damage number move with player when shot
-                    hit_rigid_bodies.push(space.sync_rigid_body_set.get_local_handle(damage_number.rigid_body_handle));
-
-                    damage_numbers.insert(
-                        damage_number
-                    );
-                }
-            }
-
-            
-
-            // PLAYERS
-            for (_, player) in &mut *players {
-
-                let local_player_head_collider_handle = space.sync_collider_set.get_local_handle(player.head.collider_handle);
-
-                if local_player_head_collider_handle == handle {
-
-                    let body = space.sync_rigid_body_set.get_sync(*player.rigid_body_handle()).unwrap();
-                    let pos = body.position();
-                    let velocity = body.linvel();
-
-                    
-            
-                    if player.health <= 10 {
-                        player.health = 0;
-
-                        continue;
-                    }
-
-                    player.health -= 10;
-
-                    blood.insert(Blood::new(*pos, space, Some(*velocity), self.owner.clone()));
-
-                    continue;
-                }
-
-                if space.sync_collider_set.get_local_handle(player.body.collider_handle) == handle {
-
-                    let body = space.sync_rigid_body_set.get_sync(player.body.body_handle).unwrap();
-                    let pos = body.position();
-                    let velocity = body.linvel();
-
-
-
-                    if player.health <= 5 {
-                        player.health = 0;
-
-                        continue;
-                    }
-                    
-                    player.health -= 5;
-
-                    blood.insert(Blood::new(*pos, space, Some(*velocity), self.owner.clone()));
-
-                    
-                }
-            }
-
         }
+        
+
+        // apply knockback to any rigid body hit
+        self.knockback_generic_rigid_bodies(&mut hit_rigid_bodies, space, ctx, rapier_angle_bullet_vector);
 
 
 
@@ -622,7 +566,7 @@ impl Weapon {
 
     pub fn knockback_generic_rigid_bodies(
         &self, 
-        hit_rigid_bodies: Vec<RigidBodyHandle>, 
+        hit_rigid_bodies: &mut Vec<RigidBodyHandle>, 
         space: &mut Space, 
         ctx: &mut TickContext,
         bullet_vector: Vec2
@@ -631,9 +575,9 @@ impl Weapon {
 
             
             // own this rigid body for this frame so we can update its velocity
-            ctx.owned_rigid_bodies.push(space.sync_rigid_body_set.get_sync_handle(rigid_body_handle));
+            ctx.owned_rigid_bodies.push(space.sync_rigid_body_set.get_sync_handle(*rigid_body_handle));
 
-            let rigid_body = space.sync_rigid_body_set.get_local_mut(rigid_body_handle).unwrap();
+            let rigid_body = space.sync_rigid_body_set.get_local_mut(*rigid_body_handle).unwrap();
 
             let mut new_velocity = rigid_body.linvel().clone();
 
@@ -758,6 +702,6 @@ impl HasPhysics for Weapon {
 
 #[derive(Clone)]
 pub struct BulletImpactData {
-    pub shooter_pos: Vec2,
-    pub travel_distance: Vec2
+    pub shooter_pos: Translation<f32>,
+    pub impacted_collider: SyncColliderHandle
 }

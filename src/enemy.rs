@@ -9,7 +9,7 @@ use parry2d::math::Vector;
 use rapier2d::prelude::{Group, InteractionGroups, RevoluteJointBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::{collider_groups::{BODY_PART_GROUP, DETACHED_BODY_PART_GROUP}, player::{self, body_part::BodyPart, player::{Facing, Player}}, weapon::Hitscan, TickContext};
+use crate::{collider_groups::{BODY_PART_GROUP, DETACHED_BODY_PART_GROUP}, player::{self, body_part::BodyPart, player::{Facing, Player}}, weapon::BulletImpactData, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -76,17 +76,35 @@ impl Enemy {
         }
     }
 
-    pub fn handle_hitscans(&mut self, hitscans: &SyncArena<Hitscan>) {
+    #[inline]
+    pub fn handle_bullet_impact(&mut self, space: &mut Space, bullet_impact: BulletImpactData) {
 
         if self.health <= 0 {
             return;
         }
 
-        for (_, hitscan) in hitscans {
-            
+        let our_pos = space.sync_collider_set.get_sync(bullet_impact.impacted_collider).unwrap().position().translation;
+
+        let distance = our_pos.vector - bullet_impact.shooter_pos.vector;
+
+        let fall_off_multiplier = (-0.01 * distance.norm()).exp();
+
+        // body shot
+        if bullet_impact.impacted_collider == self.body.collider_handle {
+            let damage = (50.0 * fall_off_multiplier).round() as i32;
+
+            self.health -= damage;
+
+        }
+        // head shot
+        else if bullet_impact.impacted_collider == self.head.collider_handle {
+
+            let damage = (100.0 * fall_off_multiplier).round() as i32;
+
+            self.health -= damage;
+
         }
     }
-
 
     pub fn tick(&mut self, space: &mut Space, ctx: &mut TickContext, players: &SyncArena<Player>) {
 

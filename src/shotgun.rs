@@ -8,7 +8,7 @@ use parry2d::{query::Ray, shape::Shape};
 use rapier2d::prelude::{ColliderHandle, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
 use serde::{Deserialize, Serialize};
 
-use crate::{blood::Blood, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::player::{Facing, Player, PlayerWeapon}, weapon::{Hitscan, Weapon}, Grabbable, TickContext};
+use crate::{blood::Blood, bullet_trail::BulletTrail, collider_from_texture_size, damage_number::{self, DamageNumber}, enemy::Enemy, muzzle_flash::MuzzleFlash, player::player::{Facing, Player, PlayerWeapon, WeaponTickParameters}, weapon::Weapon, Grabbable, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -82,40 +82,36 @@ impl Shotgun {
 
     pub fn owner_tick(
         &mut self, 
-        players: &mut SyncArena<Player>, 
         hit_markers: &mut Vec<Vec2>, 
         space: &mut Space, 
         ctx: &mut TickContext,
-        enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
         blood: &mut HashSet<Blood>,
-        hitscans: &mut SyncArena<Hitscan>
+        weapon_tick_parameters: &mut WeaponTickParameters
     ) {
-        self.weapon.owner_tick(players, hit_markers, space, ctx, enemies, damage_numbers, bullet_trails, blood);
+        self.weapon.owner_tick(hit_markers, space, ctx, damage_numbers, bullet_trails, blood, weapon_tick_parameters);
         
     }
 
-    pub fn all_tick(&mut self, players: &mut SyncArena<Player>, space: &mut Space, ctx: &mut TickContext) {
-        self.weapon.all_tick(players, space, ctx);
+    pub fn all_tick(&mut self, players: &mut SyncArena<Player>, space: &mut Space, ctx: &mut TickContext, weapon_tick_parameters: &mut WeaponTickParameters) {
+        self.weapon.all_tick(space, ctx, weapon_tick_parameters);
     }
 
     pub fn tick(
         &mut self, 
-        players: &mut SyncArena<Player>, 
         space: &mut Space, 
         hit_markers: &mut Vec<Vec2>, 
         ctx: &mut TickContext,
-        enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
         blood: &mut HashSet<Blood>,
-        hitscans: &mut SyncArena<Hitscan>
+        weapon_tick_parameters: &mut WeaponTickParameters,
     ) {
 
-        self.weapon.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood);
+        self.weapon.tick(space, hit_markers, ctx, damage_numbers, bullet_trails, blood,weapon_tick_parameters);
 
-        self.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx, hitscans);
+        self.fire(space, hit_markers, damage_numbers, bullet_trails, blood, ctx, weapon_tick_parameters);
     
         
     }   
@@ -123,20 +119,18 @@ impl Shotgun {
     pub fn fire(
         &mut self, 
         space: &mut Space, 
-        players: &mut SyncArena<Player>,
-        enemies: &mut SyncArena<Enemy>, 
         hit_markers: &mut Vec<Vec2>, 
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
         blood: &mut HashSet<Blood>,
         ctx: &mut TickContext,
-        hitscans: &mut SyncArena<Hitscan>
+        weapon_tick_parameters: &mut WeaponTickParameters
     ) {
         if !is_mouse_button_released(macroquad::input::MouseButton::Left) {
             return;
         }
         
-        self.weapon.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx, hitscans);
+        self.weapon.fire(space, hit_markers, damage_numbers, bullet_trails, blood, ctx, weapon_tick_parameters);
     }
 
     pub async fn sync_sound(&mut self, ctx: &mut TickContext<'_>) {

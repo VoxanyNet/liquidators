@@ -1,7 +1,7 @@
 use std::{f32::consts::PI, time::Instant};
 
 use futures::executor::block_on;
-use gamelibrary::{get_angle_to_mouse, macroquad_to_rapier, menu::Button, space::{Space, SyncImpulseJointHandle, SyncRigidBodyHandle}, texture_loader::TextureLoader};
+use gamelibrary::{font_loader::FontLoader, get_angle_to_mouse, macroquad_to_rapier, menu::Button, space::{Space, SyncImpulseJointHandle, SyncRigidBodyHandle}, texture_loader::TextureLoader};
 use macroquad::{color::{Color, BLACK, DARKGRAY}, math::{Rect, Vec2}, miniquad::window::request_quit, text::{draw_text_ex, load_ttf_font, Font, TextParams}, window::clear_background};
 use nalgebra::vector;
 use rapier2d::prelude::{RevoluteJointBuilder, RigidBodyBuilder};
@@ -123,22 +123,23 @@ impl MainMenu {
         return;
 
     }
-    pub async fn draw(&self, textures: &mut TextureLoader) {
+    pub async fn draw(&self, textures: &mut TextureLoader, fonts: &mut FontLoader) {
 
         clear_background(BLACK);
         
         let mut text_params = TextParams::default();
 
-        text_params.font = Some(&self.font);
+        text_params.font = Some(fonts.get("assets/fonts/FuturaHeavy.ttf").await);
+        text_params.color = Color::from_hex(0x990b0f);
         text_params.font_size = 100;
 
         // airplane mode
-        // draw_text_ex(
-        //     "Liquidators",
-        //      50., 
-        //      100., 
-        //      text_params
-        // );
+        draw_text_ex(
+            "LIQUIDATORS",
+             50., 
+             100., 
+             text_params
+        );
 
         //self.head.draw(textures, &self.space, false).await;
         

@@ -3,7 +3,7 @@ use std::error::Error;
 use diff::Diff;
 use futures::executor::block_on;
 use gamelibrary::{log, menu::Menu, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{camera::Camera2D, color::{Color, DARKGRAY, RED, WHITE}, input::{self, is_key_down, is_key_released, is_mouse_button_pressed, is_mouse_button_released, KeyCode}, math::{Rect, Vec2}, miniquad::gl::GL_SCISSOR_TEST, prelude::{gl_use_default_material, gl_use_material, load_material, Material, MaterialParams}, shapes::{draw_circle, draw_rectangle, draw_rectangle_ex}, text::draw_text, texture::{draw_texture_ex, DrawTextureParams}, window::get_internal_gl};
+use macroquad::{camera::Camera2D, color::{Color, DARKGRAY, RED, WHITE}, input::{self, is_key_down, is_key_released, is_mouse_button_pressed, is_mouse_button_released, KeyCode}, math::{Rect, Vec2}, miniquad::{self, gl::GL_SCISSOR_TEST}, prelude::{gl_use_default_material, gl_use_material, load_material, Material, MaterialParams}, shapes::{draw_circle, draw_line, draw_rectangle, draw_rectangle_ex}, text::draw_text, texture::{draw_texture, draw_texture_ex, load_texture, DrawTextureParams}, window::get_internal_gl};
 use nalgebra::vector;
 use rapier2d::{dynamics::RigidBodyHandle, geometry::ColliderHandle, prelude::{ColliderBuilder, RigidBodyBuilder}};
 use serde::{Serialize, Deserialize};
@@ -61,6 +61,7 @@ impl Structure {
 
     }
 
+
     pub fn handle_bullet(&mut self, impact_data: &BulletImpactData, space: &mut Space) {
 
         if let Some(joint_handle) = self.joint_handle {
@@ -72,6 +73,7 @@ impl Structure {
     }
 
     pub fn despawn(self, space: &mut Space) {
+
         // removes the body AND the collider!
         space.sync_rigid_body_set.remove_sync(
             self.rigid_body_handle, 
@@ -361,11 +363,34 @@ impl Structure {
             Some(menu) => menu.draw().await,
             None => {},
         }
+
+        if let Some(joint_handle) = self.joint_handle {
+            let joint = space.sync_impulse_joint_set.get_sync(joint_handle).unwrap();
+
+            let pos_1 = space.sync_rigid_body_set.get_local(joint.body1).unwrap().translation();
+            let pos_2 = space.sync_rigid_body_set.get_local(joint.body2).unwrap().translation();
+
+            let pos_1_macroquad = rapier_to_macroquad(&Vec2::new(pos_1.x, pos_1.y));
+            let pos_2_macroquad = rapier_to_macroquad(&Vec2::new(pos_2.x, pos_2.y));
+
+            draw_line(pos_1_macroquad.x, pos_1_macroquad.y, pos_2_macroquad.x, pos_2_macroquad.y, 4., WHITE);
+
+
+        }
     }
 
     pub async fn draw(&self, space: &Space, texture_path: &String, textures: &mut TextureLoader, camera: &Camera2D) {
 
         self.draw_texture(space, texture_path, textures, false, false, 0.).await;
+
+
+        let texture = textures.get(&"assets/structure/brick_block.png".to_string()).await;
+
+        let gl = unsafe {
+            get_internal_gl()
+        };
+
+        gl.quad_context.texture_set_wrap(texture.raw_miniquad_id(), miniquad::TextureWrap::Repeat, miniquad::TextureWrap::Repeat);
 
         // let rapier_position = space.sync_rigid_body_set.get_sync(self.rigid_body_handle).unwrap().translation();
 

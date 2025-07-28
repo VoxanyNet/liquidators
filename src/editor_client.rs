@@ -1,10 +1,10 @@
 use std::{fs, time::{Duration, Instant}};
 
-use gamelibrary::{log, menu::Button, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncRigidBodyHandle}, swapiter::SwapIter, sync::client::SyncClient, texture_loader::TextureLoader, uuid_string};
+use gamelibrary::{arenaiter::SyncArenaIterator, log, menu::Button, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncRigidBodyHandle}, swapiter::SwapIter, sync::client::SyncClient, sync_arena::SyncArena, texture_loader::TextureLoader, uuid_string};
 use nalgebra::vector;
 use parry2d::math::{Isometry, Vector};
 use rapier2d::prelude::{ColliderBuilder, Cuboid, FixedJoint, FixedJointBuilder, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
-use crate::{level::Level, structure::{self, Structure}};
+use crate::{level::Level, structure::{self, Structure}, TickContext};
 use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, WHITE}, input::{self, is_key_down, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel, KeyCode}, math::{Rect, Vec2}, shapes::{draw_rectangle, draw_rectangle_lines}, text::draw_text, time::get_fps, window::{screen_height, screen_width}};
 use gamelibrary::traits::HasPhysics;
 
@@ -23,7 +23,7 @@ pub struct EditorClient {
     pub first_point: Option<Vec2>,
     pub second_point: Option<Vec2>,
     pub released: bool,
-    clipboard: Vec<Structure>, // we need to make this generic somehow
+    clipboard: SyncArena<Structure>, // we need to make this generic somehow
     copy_mouse_position: Vec2, // the position of the mouse when we copied the structures
     pasted: bool
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
@@ -73,7 +73,7 @@ impl EditorClient {
             first_point: None,
             second_point: None,
             released: true,
-            clipboard: Vec::default(),
+            clipboard: SyncArena::default(),
             copy_mouse_position: Vec2::ZERO,
             pasted: false
 
@@ -100,7 +100,7 @@ impl EditorClient {
                 owned_rigid_bodies.push(shotgun.rigid_body())
             }
 
-            for structure in &self.level.structures {
+            for (_, structure) in &self.level.structures {
                 owned_rigid_bodies.push(structure.rigid_body_handle);
                 owned_colliders.push(structure.collider_handle);
             }
@@ -231,7 +231,7 @@ impl EditorClient {
 
             let joint_handle = self.level.space.sync_impulse_joint_set.insert_sync(body_handle, next_body_handle, joint, true);
 
-            for structure in &mut self.level.structures {
+            for (_, structure) in &mut self.level.structures {
                 if *structure.rigid_body_handle() == sync_body_handle {
                     structure.joint_handle = Some(joint_handle);
                 }
@@ -293,7 +293,7 @@ impl EditorClient {
     }
 
     pub fn highlight_selected_physics_objects(&self) {
-        for structure in &self.level.structures {
+        for (_, structure) in &self.level.structures {
             
             let local_handle = self.level.space.sync_rigid_body_set.get_local_handle(structure.rigid_body_handle);
             if self.selected_physics_objects.contains(&local_handle) {
@@ -308,10 +308,9 @@ impl EditorClient {
             return;
         }
 
-        let mut structure_iter = SwapIter::new(&mut self.level.structures);
+        let mut structure_iter = SyncArenaIterator::new(&mut self.level.structures);
 
-        while structure_iter.not_done() {
-            let (_, structure) = structure_iter.next();
+        while let Some((structure, structures)) = structure_iter.next() {
 
             if self.selected_physics_objects.contains(
                 &self.level.space.sync_rigid_body_set.get_local_handle(structure.rigid_body_handle)
@@ -332,14 +331,14 @@ impl EditorClient {
 
         self.copy_mouse_position = self.first_point.unwrap();
 
-        let mut copied_structures = Vec::new();
+        let mut copied_structures = SyncArena::new();
 
-        for structure in &self.level.structures {
+        for (_, structure) in &self.level.structures {
             if self.selected_physics_objects.contains(
                 &self.level.space.sync_rigid_body_set.get_local_handle(structure.rigid_body_handle)
             ) {
 
-                copied_structures.push(structure.clone());
+                copied_structures.insert(structure.clone());
             }
         }
 
@@ -365,7 +364,7 @@ impl EditorClient {
 
         let mut pasted_structures = self.clipboard.clone();
 
-        for structure in &mut pasted_structures {
+        for (_, structure) in &mut pasted_structures {
 
             let structure_body = self.level.space.sync_rigid_body_set.get_sync(structure.rigid_body_handle).unwrap();
             let structure_collider = self.level.space.sync_collider_set.get_sync(structure.collider_handle).unwrap();
@@ -396,7 +395,7 @@ impl EditorClient {
         }
 
         for structure in pasted_structures {
-            self.level.structures.push(structure);
+            self.level.structures.insert(structure);
         }
     }
 
@@ -439,36 +438,22 @@ impl EditorClient {
     pub fn handle_menus(&mut self) {
         // this needs to be a function on the editor struct because structures cannot delete themselves
 
-        let mut structure_index = 0;
-        let mut structures_length = self.level.structures.len();
+        let mut structurs_iter = SyncArenaIterator::new(&mut self.level.structures);
 
-        loop {
+        while let Some((structure, structures)) = structurs_iter.next() {
 
-            if structure_index >= structures_length {
-                break;
-            }
 
-            if self.level.structures[structure_index].editor_owner != self.uuid {
-                structure_index += 1;
+            if structure.editor_owner != self.uuid {
+                structurs_iter.restore(structure);
+
                 continue;
             }
 
-            let structure = self.level.structures.remove(structure_index);
-
             let result = structure.handle_menu(&mut self.level.space);
 
-            match result {
-                Some(structure) => {
-                    self.level.structures.insert(structure_index, structure);
-
-                    structure_index += 1;
-                },
-                None => {
-                    structures_length -= 1; 
-
-                    // we dont increment the index
-                },
-            };
+            if let Some(structure) = result {
+                structurs_iter.restore(structure);
+            }
             
         }
     
@@ -482,9 +467,8 @@ impl EditorClient {
         set_camera(
             &camera
         );
-
-
-        self.level.editor_draw(&mut self.textures).await;
+        
+        self.level.editor_draw(&mut self.textures, &self.camera_rect).await;
         self.draw_selection();
 
         set_default_camera();
@@ -493,7 +477,7 @@ impl EditorClient {
 
         self.save_button.draw().await;
         self.load_button.draw().await;
-
+        
         
 
     }

@@ -5,7 +5,7 @@ use gamelibrary::{sound::soundmanager::{SoundHandle, SoundManager}, space::{Spac
 use macroquad::{input::{is_key_released, is_mouse_button_released}, math::Vec2};
 use serde::{Deserialize, Serialize};
 
-use crate::{blood::Blood, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, player::{self, player::{Facing, Player}}, weapon::{Hitscan, Weapon}, TickContext};
+use crate::{blood::Blood, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, player::{self, player::{Facing, Player, WeaponTickParameters}}, weapon::Weapon, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
@@ -82,20 +82,18 @@ impl Pistol {
 
     pub fn tick(
         &mut self, 
-        players: &mut SyncArena<Player>, 
         space: &mut Space, 
         hit_markers: &mut Vec<Vec2>, 
         ctx: &mut TickContext, 
-        enemies: &mut SyncArena<Enemy>, 
         damage_numbers: &mut HashSet<DamageNumber>, 
         bullet_trails: &mut SyncArena<BulletTrail>,
         blood: &mut HashSet<Blood>,
-        hitscans: &mut SyncArena<Hitscan>
+        weapon_tick_parameters: &mut WeaponTickParameters,
     ) 
     {
-        self.weapon.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood);
+        self.weapon.tick(space, hit_markers, ctx, damage_numbers, bullet_trails, blood, weapon_tick_parameters);
 
-        self.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx, hitscans);
+        self.fire(space, hit_markers, damage_numbers, bullet_trails, blood, ctx, weapon_tick_parameters);
     }
 
     pub fn set_facing(&mut self, facing: Facing) {
@@ -105,14 +103,12 @@ impl Pistol {
     pub fn fire(
         &mut self, 
         space: &mut Space, 
-        players: &mut SyncArena<Player>,
-        enemies: &mut SyncArena<Enemy>, 
         hit_markers: &mut Vec<Vec2>, 
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
         blood: &mut HashSet<Blood>,
         ctx: &mut TickContext,
-        hitscans: &mut SyncArena<Hitscan>
+        weapon_tick_parameters: &mut WeaponTickParameters,
     ) {
 
         if !is_mouse_button_released(macroquad::input::MouseButton::Left) {
@@ -120,7 +116,7 @@ impl Pistol {
         }
         
 
-        self.weapon.fire(space, players, enemies, hit_markers, damage_numbers, bullet_trails, blood, ctx, hitscans);
+        self.weapon.fire(space, hit_markers, damage_numbers, bullet_trails, blood, ctx, weapon_tick_parameters);
     }
 
 }

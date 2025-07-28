@@ -1,10 +1,12 @@
 
+use std::collections::HashSet;
+
 use diff::Diff;
-use gamelibrary::{arenaiter::SyncArenaIterator, font_loader::FontLoader, log, rapier_mouse_world_pos, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{arenaiter::SyncArenaIterator, font_loader::FontLoader, log, rapier_mouse_world_pos, sync_arena::Index, texture_loader::TextureLoader, time::Time, traits::HasPhysics};
 use macroquad::{camera::Camera2D, input::is_key_released, math::{Rect, Vec2}};
 use serde::{Deserialize, Serialize};
 
-use crate::{chat::Chat, level::Level, player::player::Player, structure::Structure, TickContext};
+use crate::{chat::Chat, events::{self, Event}, level::Level, player::player::Player, structure::Structure, TickContext};
 
 
 // THIS IS A GOOD IDEA, JUST FIGURE OUT THE TYPE STUFF
@@ -39,13 +41,29 @@ use crate::{chat::Chat, level::Level, player::player::Player, structure::Structu
 //     }
 // }
 
-#[derive(Serialize, Deserialize, Diff, Clone, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Diff, Clone, PartialEq)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]
 pub enum Mode {
     Deathmatch,
-    Sandbox
+    Sandbox,
+    WaveSurvival(WaveSurvivalData)
+}
+
+#[derive(Serialize, Deserialize, Diff, Clone, PartialEq)]
+#[diff(attr(
+    #[derive(Serialize, Deserialize)]
+))]
+pub struct WaveSurvivalData {
+    
+    pub wave: u32,
+    pub last_wave_end: Time,
+    pub ready: HashSet<Index>
+}
+
+pub struct DeathmatchData {
+    
 }
 
 impl Mode {
@@ -53,19 +71,26 @@ impl Mode {
     // these methods dont really need to be in this enum
     pub fn tick(state: &mut GameState, ctx: &mut TickContext) {
 
-        log(&format!("mode: {:?}", state.mode));
-        match state.mode {
+        match &mut state.mode.clone() {
             Mode::Deathmatch => {
 
-                log(&format!("matched deathmatch"));
                 Mode::deathmatch_tick(state, ctx);
-            },
-            Mode::Sandbox => {
 
             },
+
+            Mode::WaveSurvival(data) => {
+
+                Mode::wave_survival_tick(data, state, ctx);
+            },
+            _ => {
+
+            }
         }
     }
 
+    pub fn wave_survival_tick(data: &mut WaveSurvivalData, state: &mut GameState, ctx: &mut TickContext) {
+        
+    }
     pub fn deathmatch_tick(state: &mut GameState, ctx: &mut TickContext) {
         
         // only the host should manage gamemode stuff
@@ -117,6 +142,7 @@ impl Mode {
     }
 }
 
+
 #[derive(Serialize, Deserialize, Diff, Clone, PartialEq)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
@@ -137,7 +163,7 @@ impl GameState {
             game_started: false,
             chat: Chat::new(),
             living_players: 0,
-            mode: Mode::Deathmatch
+            mode: Mode::Deathmatch,
         }
     }
 
@@ -152,11 +178,16 @@ impl GameState {
 
             let new_structure = Structure::new(pos, &mut self.level.space, ctx.uuid.clone());
             
-            self.level.structures.push(new_structure);
+            self.level.structures.insert(new_structure);
         }
     }
 
 
+    pub fn wave_survival_tick(&mut self) {
+        if let Mode::WaveSurvival(data) = &mut self.mode {
+            
+        }
+    }
 
     pub fn tick(
         &mut self,

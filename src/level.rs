@@ -1,20 +1,33 @@
 use std::{collections::{HashMap, HashSet}, fs};
 
 use diff::Diff;
-use gamelibrary::{arenaiter::SyncArenaIterator, font_loader::FontLoader, log, macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, sync_arena::SyncArena, texture_loader::TextureLoader, traits::HasPhysics};
-use macroquad::{camera::Camera2D, color::{RED, WHITE}, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}, prelude::camera::mouse::Camera, shapes::{draw_rectangle, draw_rectangle_ex, DrawRectangleParams}, text::draw_text_ex, texture::{draw_texture_ex, DrawTextureParams}};
+use gamelibrary::{arenaiter::SyncArenaIterator, font_loader::FontLoader, log, macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics};
+use macroquad::{camera::Camera2D, color::{RED, WHITE}, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}, prelude::camera::mouse::{self, Camera}, shapes::{draw_rectangle, draw_rectangle_ex, draw_rectangle_lines, DrawRectangleParams}, text::draw_text_ex, texture::{draw_texture_ex, DrawTextureParams}};
 use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::{blood::Blood, brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, grenade::Grenade, pixel::Pixel, player::{self, body_part::BodyPart, player::Player}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::{self, Shotgun}, sky::Sky, structure::Structure, teleporter::Teleporter, weapon::Hitscan, TickContext};
+use crate::{blood::Blood, brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, grenade::Grenade, pixel::Pixel, player::{self, body_part::BodyPart, player::{Player, WeaponTickParameters}}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::{self, Shotgun}, sky::Sky, structure::Structure, teleporter::Teleporter, weapon::Weapon, TickContext};
 
+pub struct Players {
+    arena: SyncArena<Player>
+}
+
+pub struct PlayerIndex(Index)
+
+impl Players {
+    pub fn insert(&mut self, player: Player) -> {
+        PlayerIndex(self.arena.insert(player))
+    }
+
+    pub fn remove()
+}
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]
 pub struct Level {
-    pub structures: Vec<Structure>,
+    pub structures: SyncArena<Structure>,
     pub players: SyncArena<Player>,
     pub space: Space,
     pub bricks: Vec<Brick>,
@@ -34,15 +47,13 @@ pub struct Level {
     pub bullet_trails: SyncArena<BulletTrail>,
     #[serde(default)]
     pub blood: HashSet<Blood>,
-    #[serde(default)]
-    pub hitscans: SyncArena<Hitscan>
 }
 
 impl Level {
     pub fn empty() -> Self {
         let mut level = Level { 
             bricks: vec![],
-            structures: vec![],
+            structures: SyncArena::new(),
             players: SyncArena::new(),
             space: Space::new(),
             radios: vec![],
@@ -58,8 +69,7 @@ impl Level {
             pixels: HashSet::new(),
             damage_numbers: HashSet::new(),
             bullet_trails: SyncArena::new(),
-            blood: HashSet::new(),
-            hitscans: SyncArena::new()
+            blood: HashSet::new()
         };
     
         level.space.gravity.y = -980.;
@@ -67,6 +77,7 @@ impl Level {
         level
     }
 
+    
     pub async fn sync_sounds(&mut self, ctx: &mut TickContext<'_>) {
         for (_, player) in &mut self.players {
             player.sync_sound(ctx).await;
@@ -182,9 +193,17 @@ impl Level {
         for teleporter in &mut self.teleporters {
             teleporter.tick(ctx, &mut self.space, &mut self.players);
         }
+
+        let mut weapon_tick_parameters = WeaponTickParameters {
+            players: &mut self.players,
+            enemies: &mut self.enemies,
+            structures: &mut self.structures
+            
+        };
+
         for shotgun in &mut self.shotguns {
 
-            shotgun.tick(&mut self.players, &mut self.space, &mut self.hit_markers, ctx, &mut self.enemies, &mut self.damage_numbers, &mut self.bullet_trails, &mut self.blood, &mut self.hitscans);
+            shotgun.tick(&mut self.space, &mut self.hit_markers, ctx, &mut self.damage_numbers, &mut self.bullet_trails, &mut self.blood, &mut weapon_tick_parameters);
 
         }
 
@@ -204,8 +223,7 @@ impl Level {
                 &mut self.enemies,
                 &mut self.damage_numbers,
                 &mut self.bullet_trails,
-                &mut self.blood,
-                &mut self.hitscans
+                &mut self.blood
             );
                 
 
@@ -213,25 +231,7 @@ impl Level {
 
         }
 
-        let mut structure_iter = SwapIter::new(&mut self.structures);
-
-        while structure_iter.not_done() {
-            let (structures, mut structure) = structure_iter.next();
-
-            structure.tick(ctx, &mut self.space, &self.players);
-
-            if structure.contains_point(&mut self.space, rapier_mouse_world_pos(ctx.camera_rect)) && is_key_down(KeyCode::F) {
-
-                ctx.owned_rigid_bodies.push(structure.rigid_body_handle);
-                ctx.owned_colliders.push(structure.collider_handle);
-                
-                structure.despawn(&mut self.space);
-
-                continue;
-            }
-
-            structure_iter.restore(structure);
-        }
+        let mut structure_iter = SyncArenaIterator::new(&mut self.structures);
 
         for brick in &mut self.bricks {
 
@@ -259,10 +259,9 @@ impl Level {
         self.editor_spawn_brick(camera_rect, uuid);
         self.editor_spawn_radio(camera_rect, uuid);
 
-        let mut structures_iter = SwapIter::new(&mut self.structures);
+        let mut structures_iter = SyncArenaIterator::new(&mut self.structures);
 
-        while structures_iter.not_done() {
-            let (_, structure) = structures_iter.next();
+        while let Some((structure, structures)) = structures_iter.next() {
 
             let new_structure = structure.tick_editor(&mut self.space, camera_rect, uuid);
 
@@ -369,28 +368,29 @@ impl Level {
                 ..Default::default()
             };
             
-            self.structures.push(new_structure);
+            self.structures.insert(new_structure);
 
         }
     }
 
     pub fn editor_spawn_structure(&mut self, camera_rect: &Rect, uuid: &String) {
 
+        let mouse_world_pos = mouse_world_pos(camera_rect);
+
+        let rapier_mouse_world_pos = macroquad_to_rapier(&mouse_world_pos);
+
+
         if is_key_released(input::KeyCode::E) {
 
-            let mouse_world_pos = mouse_world_pos(camera_rect);
-
-            let rapier_mouse_world_pos = macroquad_to_rapier(&mouse_world_pos);
+            
             
             let new_structure = Structure::new(rapier_mouse_world_pos, &mut self.space, uuid.clone());
             
-            self.structures.push(new_structure);
+            self.structures.insert(new_structure);
 
         }
 
         if is_key_released(input::KeyCode::Q) {
-
-            let mouse_world_pos = mouse_world_pos(camera_rect);
 
             let rapier_mouse_world_pos = macroquad_to_rapier(&mouse_world_pos);
 
@@ -429,13 +429,13 @@ impl Level {
                 ..Default::default()
             };
             
-            self.structures.push(new_structure);
+            self.structures.insert(new_structure);
 
         }
     }
 
-    pub async fn editor_draw(&self, textures: &mut TextureLoader) {
-        for structure in &self.structures {
+    pub async fn editor_draw(&self, textures: &mut TextureLoader, camera_rect: &Rect) {
+        for (_, structure) in &self.structures {
 
             let texture_path = structure.sprite_path.clone() ;
             structure.debug_draw(&self.space, &texture_path, textures).await;
@@ -452,6 +452,10 @@ impl Level {
         for brick in &self.bricks {
             brick.editor_draw(&self.space, textures).await
         }
+
+        let mouse_world_pos = mouse_world_pos(camera_rect);
+        // draw structure cursor
+        draw_rectangle_lines(mouse_world_pos.x - 20., mouse_world_pos.y - 20., 40., 40., 4., WHITE);
     }
 
     pub async fn draw_hud(&self, ctx: &mut TickContext<'_>) {
@@ -507,7 +511,7 @@ impl Level {
             grenade.draw(&self.space, textures).await
         }
 
-        for structure in self.structures.iter() {
+        for (_, structure) in self.structures.iter() {
 
             let texture_path = structure.sprite_path.clone();
 

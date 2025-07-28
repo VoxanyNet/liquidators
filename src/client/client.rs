@@ -1,10 +1,10 @@
 use std::{fs, net::SocketAddr, str::FromStr, sync::{mpsc, Arc, Mutex}, thread::Thread, time::{Duration, Instant}};
 
 use futures::{executor::block_on, future::Select};
-use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, font_loader::FontLoader, log, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics, uuid_string};
+use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, font_loader::FontLoader, log, mouse_world_pos, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics, uuid_string};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, editor_client::EditorClient, editor_server::EditorServer, game_state::GameState, level::Level, main_menu::MainMenu, player::player::Player, server::Server, vec_remove_iter::IntoVecRemoveIter, ScreenShakeParameters, TickContext};
-use macroquad::{audio::set_sound_volume, camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::{camera::mouse, gl_use_default_material, gl_use_material, load_material, MaterialParams, PipelineParams, ShaderSource, UniformDesc, UniformType}, text::{draw_text, draw_text_ex, TextParams}, time::get_fps, window::{next_frame, request_new_screen_size, screen_height, screen_width}};
+use macroquad::{audio::set_sound_volume, camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::{camera::mouse, gl_use_default_material, gl_use_material, load_material, MaterialParams, PipelineParams, ShaderSource, UniformDesc, UniformType}, text::{draw_text, draw_text_ex, TextParams}, time::get_fps, window::{next_frame, request_new_screen_size, screen_height, screen_width}};
 use noise::{NoiseFn, Perlin};
 use tungstenite::http::request;
 
@@ -108,6 +108,7 @@ impl Client {
 
                 std::mem::swap(&mut client.textures, &mut self.textures);
                 std::mem::swap(&mut client.sounds, &mut self.sounds);
+                std::mem::swap(&mut client.font_loader, &mut self.font_loader);
 
                 *self = client;
 
@@ -130,6 +131,7 @@ impl Client {
                 // sneaky sneaky. need to transfer the existing preloaded assests to the new client but borrow checker doesnt like that
                 std::mem::swap(&mut client.textures, &mut self.textures);
                 std::mem::swap(&mut client.sounds, &mut self.sounds);
+                std::mem::swap(&mut client.font_loader, &mut self.font_loader);
 
                 *self = client;
             }
@@ -238,7 +240,7 @@ impl Client {
 
         self.game_state.level = reset_level;
 
-        for structure in self.game_state.level.structures.iter_mut() {
+        for (_, structure) in self.game_state.level.structures.iter_mut() {
             structure.owner = Some(self.uuid.clone())
         }
 
@@ -434,12 +436,22 @@ impl Client {
         self.game_state.chat.draw().await;
 
         if let Some(main_menu) = &self.main_menu {
-            main_menu.draw(&mut self.textures).await
+            main_menu.draw(&mut self.textures, &mut self.font_loader).await
         }
 
         //println!("draw: {:?}", then.elapsed());
         
         draw_text(format!("fps: {}", get_fps()).as_str(), screen_width() - 120., 25., 30., WHITE);
+
+        if is_key_down(KeyCode::LeftAlt) {
+            let macroquad_screen_mouse_pos = mouse_position();
+            let macroquad_world_mouse_pos = mouse_world_pos(&self.camera_rect);
+            let rapier_world_mouse_pos = rapier_mouse_world_pos(&self.camera_rect);
+
+            draw_text(format!("screen: {}, {}", macroquad_screen_mouse_pos.0, macroquad_screen_mouse_pos.1), macroquad_screen_mouse_pos.0, macroquad_screen_mouse_pos.1 + 15., 20., WHITE);
+            draw_text(format!("macroquad world: {}, {}", macroquad_world_mouse_pos.x, macroquad_world_mouse_pos.y ), macroquad_screen_mouse_pos.0, macroquad_screen_mouse_pos.1 + 30., 20., WHITE);
+            draw_text(format!("rapier world: {}, {}", rapier_world_mouse_pos.x, rapier_world_mouse_pos.y), macroquad_screen_mouse_pos.0, macroquad_screen_mouse_pos.1 + 45., 20., WHITE);
+        }
         
         macroquad::window::next_frame().await;
     }
@@ -475,6 +487,7 @@ impl Client {
 
             if asset_path.ends_with(".ttf") {
                 font_loader.load(&asset_path).await;
+
             }
 
             next_frame().await
@@ -502,7 +515,7 @@ impl Client {
             sounds: sound_manager,
             last_tick_mouse_world_pos: rapier_mouse_world_pos(&Rect::new(0., 200., 1280., 720.)),
             main_menu: Some(main_menu),
-            font_loader: FontLoader::new(),
+            font_loader: font_loader,
             start:web_time::Instant::now(),
             screen_shake: ScreenShakeParameters::default(None, None),
             last_tick_duration: web_time::Duration::new(0, 500)
@@ -525,7 +538,7 @@ impl Client {
 
         // if we are the first player to join, we take ownership of everything
         if game_state.level.players.len() == 0 {
-            for structure in game_state.level.structures.iter_mut() {
+            for (_, structure) in game_state.level.structures.iter_mut() {
                 structure.owner = Some(uuid.clone())
             }
 

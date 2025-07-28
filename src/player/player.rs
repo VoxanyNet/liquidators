@@ -2,7 +2,7 @@ use std::{collections::HashSet, f32::consts::PI, time::Instant};
 
 use chrono::TimeDelta;
 use diff::Diff;
-use gamelibrary::{animation::TrackedFrames, collider_top_left_pos, current_unix_millis, get_angle_between_rapier_points, get_angle_to_mouse, log, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::{SoundHandle, SoundManager}, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics, uuid_u32};
+use gamelibrary::{animation::TrackedFrames, arenaiter::SyncArenaIterator, collider_top_left_pos, current_unix_millis, get_angle_between_rapier_points, get_angle_to_mouse, log, rapier_mouse_world_pos, rapier_to_macroquad, sound::soundmanager::{SoundHandle, SoundManager}, space::{Space, SyncColliderHandle, SyncImpulseJointHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics, uuid_u32};
 use gilrs::Gamepad;
 use macroquad::{color::{GREEN, WHITE}, input::{is_key_down, is_key_released, is_mouse_button_down, is_mouse_button_released, KeyCode}, math::{vec2, Rect, Vec2}, shapes::draw_rectangle, time::get_frame_time};
 use nalgebra::vector;
@@ -16,7 +16,7 @@ use gamelibrary::sound::backends::ears::EarsSoundManager as SelectedSoundManager
 #[cfg(not(feature = "3d-audio"))]
 use gamelibrary::sound::backends::macroquad::MacroquadSoundManager as SelectedSoundManager;
 
-use crate::{blood::Blood, brick::Brick, bullet_trail::BulletTrail, collider_groups::{BODY_PART_GROUP, DETACHED_BODY_PART_GROUP}, damage_number::DamageNumber, enemy::Enemy, level::Level, pistol::Pistol, player, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, weapon::Hitscan, TickContext};
+use crate::{blood::Blood, brick::Brick, bullet_trail::BulletTrail, collider_groups::{BODY_PART_GROUP, DETACHED_BODY_PART_GROUP}, damage_number::DamageNumber, enemy::Enemy, level::Level, pistol::Pistol, player, portal_bullet::PortalBullet, shotgun::Shotgun, structure::Structure, teleporter::Teleporter, weapon::BulletImpactData, TickContext};
 
 use super::body_part::BodyPart;
 
@@ -38,22 +38,27 @@ pub enum PlayerWeapon {
     Pistol(Pistol)
 }
 
+// hopefully this will reduce the amount of refactoring i need to do!!!!!
+pub struct WeaponTickParameters<'a> {
+    pub players: &'a mut SyncArena<Player>,
+    pub enemies: &'a mut SyncArena<Enemy>,
+    pub structures: &'a mut SyncArena<Structure>
+}
+
 impl PlayerWeapon {
     pub fn tick(
         &mut self, 
-        players: &mut SyncArena<Player>, 
         space: &mut Space, 
         hit_markers: &mut Vec<Vec2>, 
         ctx: &mut TickContext,
-        enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
         blood: &mut HashSet<Blood>,
-        hitscans: &mut SyncArena<Hitscan>
+        weapon_tick_parameters: &mut WeaponTickParameters,
     ) {
         match self {
-            PlayerWeapon::Shotgun(shotgun) => shotgun.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood, hitscans),
-            PlayerWeapon::Pistol(pistol) => pistol.tick(players, space, hit_markers, ctx, enemies, damage_numbers, bullet_trails, blood, hitscans),
+            PlayerWeapon::Shotgun(shotgun) => shotgun.tick(space, hit_markers, ctx, damage_numbers, bullet_trails, blood, weapon_tick_parameters),
+            PlayerWeapon::Pistol(pistol) => pistol.tick(space, hit_markers, ctx, damage_numbers, bullet_trails, blood, weapon_tick_parameters),
         }
     } 
 
@@ -338,7 +343,7 @@ impl Player {
     pub fn owner_tick(
         &mut self, 
         space: &mut Space, 
-        structures: &mut Vec<Structure>, 
+        structures: &mut SyncArena<Structure>, 
         bricks: &mut Vec<Brick>, 
         teleporters: &mut Vec<Teleporter>, 
         hit_markers: &mut Vec<Vec2>, 
@@ -347,8 +352,7 @@ impl Player {
         enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
-        blood: &mut HashSet<Blood>,
-        hitscans: &mut SyncArena<Hitscan>
+        blood: &mut HashSet<Blood>
     ) {
         //self.launch_brick(level, ctx);
         self.unlock_rotations(space);
@@ -375,17 +379,21 @@ impl Player {
         
         self.detach_head_if_dead(space);
 
+        let mut weapon_tick_parameters = WeaponTickParameters {
+            players, 
+            enemies,
+            structures
+        };
+
         if let Some(weapon) = &mut self.weapon {
             weapon.tick(
-                players, 
                 space, 
                 hit_markers, 
                 ctx,
-                enemies,
                 damage_numbers,
                 bullet_trails,
                 blood,
-                hitscans
+                &mut weapon_tick_parameters
             );
         }  
 
@@ -420,10 +428,35 @@ impl Player {
         }
     }
 
+    #[inline]
+    pub fn handle_bullet_impact(&mut self, space: &Space, bullet_impact: BulletImpactData) {
+
+        let our_pos = space.sync_collider_set.get_sync(bullet_impact.impacted_collider).unwrap().position().translation;
+
+        let distance = our_pos.vector - bullet_impact.shooter_pos.vector;
+
+        let fall_off_multiplier = (-0.01 * distance.norm()).exp();
+
+        if bullet_impact.impacted_collider == self.body.collider_handle {
+
+            let damage = (50.0 * fall_off_multiplier).round() as u32;
+
+            self.health = self.health.saturating_sub(damage);
+        }
+
+        // headshot
+        if bullet_impact.impacted_collider == self.head.collider_handle {
+
+            let damage = (100.0 * fall_off_multiplier).round() as u32;
+
+            self.health = self.health.saturating_sub(damage);
+        }
+    }
+
     pub fn tick(
         &mut self, 
         space: &mut Space, 
-        structures: &mut Vec<Structure>, 
+        structures: &mut SyncArena<Structure>, 
         bricks: &mut Vec<Brick>, 
         teleporters: &mut Vec<Teleporter>, 
         hit_markers: &mut Vec<Vec2>, 
@@ -432,12 +465,11 @@ impl Player {
         enemies: &mut SyncArena<Enemy>,
         damage_numbers: &mut HashSet<DamageNumber>,
         bullet_trails: &mut SyncArena<BulletTrail>,
-        blood: &mut HashSet<Blood>,
-        hitscans: &mut SyncArena<Hitscan>
+        blood: &mut HashSet<Blood>
     ) {
         
         if self.owner == *ctx.uuid {
-            self.owner_tick(space, structures, bricks, teleporters, hit_markers, ctx, players, enemies, damage_numbers, bullet_trails, blood, hitscans);
+            self.owner_tick(space, structures, bricks, teleporters, hit_markers, ctx, players, enemies, damage_numbers, bullet_trails, blood);
         }
 
         self.all_tick(space, ctx);
@@ -467,16 +499,15 @@ impl Player {
         
     }
 
-    pub fn delete_structure(&mut self, structures: &mut Vec<Structure>, space: &mut Space, ctx: &mut TickContext) {
+    pub fn delete_structure(&mut self, structures: &mut SyncArena<Structure>, space: &mut Space, ctx: &mut TickContext) {
         if !is_key_released(KeyCode::Backspace) {
             return
         }
 
-        let mut structures_iter = SwapIter::new(structures);
+        let mut structures_iter = SyncArenaIterator::new(structures);
 
         let then =web_time::Instant::now();
-        while structures_iter.not_done() {
-            let (_structures, mut structure) = structures_iter.next();
+        while let Some((mut structure, structures)) = structures_iter.next() {
 
             if structure.contains_point(space, rapier_mouse_world_pos(ctx.camera_rect)) {
                 structure.despawn(space);
@@ -587,21 +618,22 @@ impl Player {
         };
 
         if self.health <= 0 {
-            let head_joint = space.sync_impulse_joint_set.remove_sync(head_joint_handle, true);
 
-            self.head_joint_handle = None;
+            //let head_joint = space.sync_impulse_joint_set.remove_sync(head_joint_handle, true);
 
-            let new_interaction_groups = InteractionGroups::none()
-                .with_memberships(DETACHED_BODY_PART_GROUP)
-                .with_filter(
-                    Group::ALL
-                        .difference(DETACHED_BODY_PART_GROUP)
-                        .difference(BODY_PART_GROUP)
-                );
+            //self.head_joint_handle = None;
+
+            // let new_interaction_groups = InteractionGroups::none()
+            //     .with_memberships(DETACHED_BODY_PART_GROUP)
+            //     .with_filter(
+            //         Group::ALL
+            //             .difference(DETACHED_BODY_PART_GROUP)
+            //             .difference(BODY_PART_GROUP)
+            //     );
 
             
-            space.sync_collider_set.get_sync_mut(self.head.collider_handle).unwrap().set_collision_groups(new_interaction_groups);
-            space.sync_collider_set.get_sync_mut(self.body.collider_handle).unwrap().set_collision_groups(new_interaction_groups);
+            //space.sync_collider_set.get_sync_mut(self.head.collider_handle).unwrap().set_collision_groups(new_interaction_groups);
+            //space.sync_collider_set.get_sync_mut(self.body.collider_handle).unwrap().set_collision_groups(new_interaction_groups);
         }
     }
 
@@ -726,11 +758,13 @@ impl Player {
     //     }
         
     // }
-    pub fn own_nearby_structures(&mut self, space: &mut Space, structures: &mut Vec<Structure>, ctx: &mut TickContext, other_players: &mut SyncArena<Player>) {
+
+    
+    pub fn own_nearby_structures(&mut self, space: &mut Space, structures: &mut SyncArena<Structure>, ctx: &mut TickContext, other_players: &mut SyncArena<Player>) {
         // take ownership of nearby structures to avoid network physics delay
 
 
-        for structure in structures {
+        for (_, structure) in structures {
 
             let structure_body = space.sync_rigid_body_set.get_sync(structure.rigid_body_handle).unwrap();
 
