@@ -1,11 +1,11 @@
 use std::{fs, time::{Duration, Instant}};
 
-use gamelibrary::{arenaiter::SyncArenaIterator, log, menu::Button, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncRigidBodyHandle}, swapiter::SwapIter, sync::client::SyncClient, sync_arena::SyncArena, texture_loader::TextureLoader, uuid_string};
+use gamelibrary::{arenaiter::SyncArenaIterator, log, menu::Button, mouse_world_pos, rapier_mouse_world_pos, rapier_to_macroquad, space::{Space, SyncRigidBodyHandle}, swapiter::SwapIter, sync::client::SyncClient, sync_arena::SyncArena, texture_loader::TextureLoader, uuid_string};
 use nalgebra::vector;
 use parry2d::math::{Isometry, Vector};
 use rapier2d::prelude::{ColliderBuilder, Cuboid, FixedJoint, FixedJointBuilder, QueryFilter, RigidBodyBuilder, RigidBodyHandle};
 use crate::{level::Level, structure::{self, Structure}, TickContext};
-use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, WHITE}, input::{self, is_key_down, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_wheel, KeyCode}, math::{Rect, Vec2}, shapes::{draw_rectangle, draw_rectangle_lines}, text::draw_text, time::get_fps, window::{screen_height, screen_width}};
+use macroquad::{camera::{set_camera, set_default_camera, Camera2D}, color::{DARKGRAY, WHITE}, input::{self, is_key_down, is_key_released, is_mouse_button_down, mouse_delta_position, mouse_position, mouse_wheel, KeyCode}, math::{Rect, Vec2}, shapes::{draw_rectangle, draw_rectangle_lines}, text::draw_text, time::get_fps, window::{screen_height, screen_width}};
 use gamelibrary::traits::HasPhysics;
 
 pub struct EditorClient {
@@ -358,8 +358,6 @@ impl EditorClient {
 
         self.pasted = true;
 
-        println!("pasting");
-
         let copy_offset = rapier_mouse_world_pos(&self.camera_rect) - self.copy_mouse_position;
 
         let mut pasted_structures = self.clipboard.clone();
@@ -477,6 +475,16 @@ impl EditorClient {
 
         self.save_button.draw().await;
         self.load_button.draw().await;
+
+        if is_key_down(KeyCode::LeftAlt) {
+            let macroquad_screen_mouse_pos = mouse_position();
+            let macroquad_world_mouse_pos = mouse_world_pos(&self.camera_rect);
+            let rapier_world_mouse_pos = rapier_mouse_world_pos(&self.camera_rect);
+
+            draw_text(format!("screen: {}, {}", macroquad_screen_mouse_pos.0, macroquad_screen_mouse_pos.1), macroquad_screen_mouse_pos.0, macroquad_screen_mouse_pos.1 + 15., 20., WHITE);
+            draw_text(format!("macroquad world: {}, {}", macroquad_world_mouse_pos.x, macroquad_world_mouse_pos.y ), macroquad_screen_mouse_pos.0, macroquad_screen_mouse_pos.1 + 30., 20., WHITE);
+            draw_text(format!("rapier world: {}, {}", rapier_world_mouse_pos.x, rapier_world_mouse_pos.y), macroquad_screen_mouse_pos.0, macroquad_screen_mouse_pos.1 + 45., 20., WHITE);
+        }
         
         
 

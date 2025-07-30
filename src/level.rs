@@ -1,7 +1,7 @@
 use std::{collections::{HashMap, HashSet}, fs};
 
 use diff::Diff;
-use gamelibrary::{arenaiter::SyncArenaIterator, font_loader::FontLoader, log, macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::Space, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics};
+use gamelibrary::{arenaiter::SyncArenaIterator, font_loader::FontLoader, log, macroquad_to_rapier, mouse_world_pos, rapier_mouse_world_pos, space::{Space, SyncColliderHandle, SyncRigidBodyHandle}, swapiter::SwapIter, sync_arena::{Index, SyncArena}, texture_loader::TextureLoader, traits::HasPhysics};
 use macroquad::{camera::Camera2D, color::{RED, WHITE}, input::{self, is_key_down, is_key_pressed, is_key_released, KeyCode}, math::{Rect, Vec2}, prelude::camera::mouse::{self, Camera}, shapes::{draw_rectangle, draw_rectangle_ex, draw_rectangle_lines, DrawRectangleParams}, text::draw_text_ex, texture::{draw_texture_ex, DrawTextureParams}};
 use nalgebra::vector;
 use rapier2d::prelude::{ColliderBuilder, RigidBodyBuilder};
@@ -9,19 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{blood::Blood, brick::Brick, bullet_trail::BulletTrail, damage_number::DamageNumber, enemy::Enemy, grenade::Grenade, pixel::Pixel, player::{self, body_part::BodyPart, player::{Player, WeaponTickParameters}}, portal::Portal, portal_bullet::PortalBullet, radio::{Radio, RadioBuilder}, shotgun::{self, Shotgun}, sky::Sky, structure::Structure, teleporter::Teleporter, weapon::Weapon, TickContext};
 
-pub struct Players {
-    arena: SyncArena<Player>
-}
 
-pub struct PlayerIndex(Index)
-
-impl Players {
-    pub fn insert(&mut self, player: Player) -> {
-        PlayerIndex(self.arena.insert(player))
-    }
-
-    pub fn remove()
-}
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
@@ -50,7 +38,11 @@ pub struct Level {
 }
 
 impl Level {
-    pub fn empty() -> Self {
+    pub fn empty() -> Self {   
+
+        let mut space = Space::new();
+
+        //let ground_rigid_body = 
         let mut level = Level { 
             bricks: vec![],
             structures: SyncArena::new(),

@@ -1,10 +1,10 @@
-use std::{fs, net::SocketAddr, str::FromStr, sync::{mpsc, Arc, Mutex}, thread::Thread, time::{Duration, Instant}};
+use std::{fs, net::SocketAddr, str::FromStr, sync::{mpsc, Arc, Mutex}, thread::{sleep, Thread}, time::{Duration, Instant}};
 
 use futures::{executor::block_on, future::Select};
 use gamelibrary::{animation_loader::AnimationLoader, arenaiter::SyncArenaIterator, font_loader::FontLoader, log, mouse_world_pos, rapier_mouse_world_pos, sound::soundmanager::SoundManager, sync::client::SyncClient, texture_loader::TextureLoader, time::Time, traits::HasPhysics, uuid_string};
 use gilrs::GamepadId;
 use liquidators_lib::{console::Console, editor_client::EditorClient, editor_server::EditorServer, game_state::GameState, level::Level, main_menu::MainMenu, player::player::Player, server::Server, vec_remove_iter::IntoVecRemoveIter, ScreenShakeParameters, TickContext};
-use macroquad::{audio::set_sound_volume, camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::{camera::mouse, gl_use_default_material, gl_use_material, load_material, MaterialParams, PipelineParams, ShaderSource, UniformDesc, UniformType}, text::{draw_text, draw_text_ex, TextParams}, time::get_fps, window::{next_frame, request_new_screen_size, screen_height, screen_width}};
+use macroquad::{audio::set_sound_volume, camera::{set_camera, set_default_camera, Camera2D}, color::WHITE, input::{self, is_key_down, is_key_released, is_mouse_button_down, is_quit_requested, mouse_delta_position, mouse_position, mouse_wheel, prevent_quit, KeyCode}, math::{vec2, Rect, Vec2}, prelude::{camera::mouse, gl_use_default_material, gl_use_material, load_material, MaterialParams, PipelineParams, ShaderSource, UniformDesc, UniformType}, text::{draw_text, draw_text_ex, TextParams}, texture::{draw_texture_ex, DrawTextureParams}, time::get_fps, window::{next_frame, request_new_screen_size, screen_height, screen_width}};
 use noise::{NoiseFn, Perlin};
 use tungstenite::http::request;
 
@@ -46,6 +46,11 @@ impl Client {
     }
 
     pub async fn tick(&mut self) {
+
+        // set ourselves as host if we are the only player connected
+        if self.game_state.level.players.len() == 1 {
+            self.is_host = true;
+        }
 
         self.resize_camera();
 
@@ -232,6 +237,7 @@ impl Client {
         self.sync_client.as_mut().unwrap().sync(&mut self.game_state);
 
         self.sync_client.as_mut().unwrap().disconnect();
+
     }
 
     pub fn reset_level(&mut self) {
@@ -277,6 +283,10 @@ impl Client {
 
             if is_quit_requested() {
                 self.disconnect();
+
+
+
+                
 
                 break;
             }
@@ -453,6 +463,33 @@ impl Client {
             draw_text(format!("rapier world: {}, {}", rapier_world_mouse_pos.x, rapier_world_mouse_pos.y), macroquad_screen_mouse_pos.0, macroquad_screen_mouse_pos.1 + 45., 20., WHITE);
         }
         
+        let epic = self.textures.get(&"assets/structure/brick_block.png".to_string()).await;
+
+        // let tile_size = 64.0; // Size of the texture tile
+        // let rect_width = 256.0;
+        // let rect_height = 256.0;
+
+        // let tiles_x = rect_width / tile_size;
+        // let tiles_y = rect_height / tile_size;
+
+        
+        // draw_texture_ex(
+        //     epic,
+        //     100.0, // x
+        //     100.0, // y
+        //     WHITE,
+        //     DrawTextureParams {
+        //         dest_size: Some(Vec2::new(rect_width, rect_height)),
+        //         source: Some(Rect::new(
+        //             0.0,
+        //             0.0,
+        //             (epic.width() * tiles_x) - 20.,
+        //             (epic.height() * tiles_y) - 20.,
+        //         )),
+        //         ..Default::default()
+        //     },
+        // );
+
         macroquad::window::next_frame().await;
     }
 
@@ -470,8 +507,6 @@ impl Client {
 
         // preload assets
         for (index, asset_path) in ASSET_PATHS.iter().enumerate() {
-
-            println!("{}", asset_path);
 
             let text = format!("Loading: %{}", ((index as f32 / ASSET_PATHS.len() as f32) * 100.) as u32);
 
@@ -588,11 +623,6 @@ impl Client {
             screen_shake: ScreenShakeParameters::default(None, None),
             last_tick_duration: web_time::Duration::new(0, 500)
         }
-    }
-
-
-    pub fn connect_as_master() {
-
     }
 
     fn save_state(&mut self) {

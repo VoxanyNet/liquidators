@@ -803,7 +803,6 @@ impl Player {
 
             if structure.owner.clone().unwrap() != closest_owner {
                 
-                println!("updating owner!");
 
                 structure.owner = Some(closest_owner);
 

@@ -72,15 +72,15 @@ space:
                 - 1.0
                 - 0.0
                 translation:
-                - 264.00006
-                - 76.00012
+                - 0.0
+                - 0.0
               next_position:
                 rotation:
                 - 1.0
                 - 0.0
                 translation:
-                - 264.00006
-                - 76.00012
+                - 0.0
+                - 0.0
             mprops:
               flags: ''
               local_mprops:

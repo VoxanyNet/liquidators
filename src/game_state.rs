@@ -6,40 +6,7 @@ use gamelibrary::{arenaiter::SyncArenaIterator, font_loader::FontLoader, log, ra
 use macroquad::{camera::Camera2D, input::is_key_released, math::{Rect, Vec2}};
 use serde::{Deserialize, Serialize};
 
-use crate::{chat::Chat, events::{self, Event}, level::Level, player::player::Player, structure::Structure, TickContext};
-
-
-// THIS IS A GOOD IDEA, JUST FIGURE OUT THE TYPE STUFF
-// pub trait Gamemode {
-//     fn tick(state: &mut GameState, ctx: &mut TickContext);
-// }
-
-// #[derive(Serialize, Deserialize, Diff, Clone, PartialEq)]
-// #[diff(attr(
-//     #[derive(Serialize, Deserialize)]
-// ))]
-// pub struct Deathmatch {
-//     game_start: bool,
-//     living_players: u16
-// }
-
-// impl Deathmatch {
-//     pub fn determine_living_players(&mut self, state: &mut GameState) {
-
-//         let mut living_players: u32 = 0;
-//         for (_, player) in &state.level.players {
-//             if player.health > 0 {
-//                 living_players += 1;
-//             }
-//         }
-//     }
-// }
-
-// impl Gamemode for Deathmatch {
-//     fn tick(state: &mut GameState, ctx: &mut TickContext) {
-        
-//     }
-// }
+use crate::{chat::Chat, enemy::Enemy, events::{self, Event}, level::Level, player::player::Player, structure::Structure, TickContext};
 
 #[derive(Serialize, Deserialize, Diff, Clone, PartialEq)]
 #[diff(attr(
@@ -55,93 +22,38 @@ pub enum Mode {
 #[diff(attr(
     #[derive(Serialize, Deserialize)]
 ))]
-pub struct WaveSurvivalData {
+pub struct  WaveSurvivalData {
     
     pub wave: u32,
     pub last_wave_end: Time,
-    pub ready: HashSet<Index>
+    pub ready: HashSet<Index>,
+    pub wave_active: bool,
+    pub enemy_reserve: u32, // the total number of remaining enemies that will spawn this wave
+    pub batch_spawn_rate: u32, // the number of ms to wait between wave batches
+    pub batch_size: u32, // the number of enemies that will spawn in each batch,
+    pub last_batch_spawn: Time, 
+}
+
+impl WaveSurvivalData {
+
+    /// Create new wave survival data starting at wave 1
+    pub fn new() -> Self {
+        Self {
+            wave: 1,
+            last_wave_end: Time::new(0),
+            ready: HashSet::new(),
+            wave_active: false,
+            enemy_reserve: 10,
+            batch_spawn_rate: 5000,
+            batch_size: 1,
+            last_batch_spawn: Time::new(0),
+        }
+    }
 }
 
 pub struct DeathmatchData {
     
 }
-
-impl Mode {
-
-    // these methods dont really need to be in this enum
-    pub fn tick(state: &mut GameState, ctx: &mut TickContext) {
-
-        match &mut state.mode.clone() {
-            Mode::Deathmatch => {
-
-                Mode::deathmatch_tick(state, ctx);
-
-            },
-
-            Mode::WaveSurvival(data) => {
-
-                Mode::wave_survival_tick(data, state, ctx);
-            },
-            _ => {
-
-            }
-        }
-    }
-
-    pub fn wave_survival_tick(data: &mut WaveSurvivalData, state: &mut GameState, ctx: &mut TickContext) {
-        
-    }
-    pub fn deathmatch_tick(state: &mut GameState, ctx: &mut TickContext) {
-        
-        // only the host should manage gamemode stuff
-        if !*ctx.is_host {
-            return;
-        }
-
-        log(&format!("DEATHMATCH TICKING: {}", ctx.is_host));
-
-        // start the game if more than one player is connected
-        if state.level.players.len() > 1 {
-            state.game_started = true;
-        }
-
-        if state.level.players.len() < 2 {
-            state.game_started = false
-        }
-
-        if !state.game_started {
-            return;
-        }
-
-        let mut living_player_count: u32 = 0;
-
-        for (_, player) in &state.level.players {
-            if player.health > 0 {
-                living_player_count += 1;
-
-            }
-        }
-
-        if living_player_count < 2 {
-
-            let mut players = SyncArenaIterator::new(&mut state.level.players);
-
-            while let Some((player, arena)) = players.next() {
-
-                let owner = player.owner.clone();
-                let position = {
-                    state.level.space.sync_rigid_body_set.get_sync(*player.rigid_body_handle()).unwrap().position().translation.clone()
-                };
-
-                // respawn the player with the same position and owner
-                Player::spawn(arena, &mut state.level.space, owner, &Vec2::new(position.x, position.y), ctx.textures);
-
-                player.despawn(&mut state.level.space);
-            }
-        }
-    }
-}
-
 
 #[derive(Serialize, Deserialize, Diff, Clone, PartialEq)]
 #[diff(attr(
@@ -180,11 +92,105 @@ impl GameState {
             
             self.level.structures.insert(new_structure);
         }
+    }   
+
+    pub fn deathmatch_tick(state: &mut GameState, ctx: &mut TickContext) {
+        
+        if !*ctx.is_host {
+            return;
+        }
+
+        if let Mode::Deathmatch = state.mode {
+            // start the game if more than one player is connected
+            if state.level.players.len() > 1 {
+                state.game_started = true;
+            }
+
+            if state.level.players.len() < 2 {
+                state.game_started = false
+            }
+
+            if !state.game_started {
+                return;
+            }
+
+            let mut living_player_count: u32 = 0;
+
+            for (_, player) in &state.level.players {
+                if player.health > 0 {
+                    living_player_count += 1;
+
+                }
+            }
+
+            if living_player_count < 2 {
+
+                let mut players = SyncArenaIterator::new(&mut state.level.players);
+
+                while let Some((player, arena)) = players.next() {
+
+                    let owner = player.owner.clone();
+                    let position = {
+                        state.level.space.sync_rigid_body_set.get_sync(*player.rigid_body_handle()).unwrap().position().translation.clone()
+                    };
+
+                    // respawn the player with the same position and owner
+                    Player::spawn(arena, &mut state.level.space, owner, &Vec2::new(position.x, position.y), ctx.textures);
+
+                    player.despawn(&mut state.level.space);
+                }
+            }
+        }
+        else {
+            return;
+        }
+
     }
 
 
-    pub fn wave_survival_tick(&mut self) {
+    pub fn wave_survival_tick(&mut self, ctx: &mut TickContext) {
+
+        if !*ctx.is_host {
+            return;
+        }
         if let Mode::WaveSurvival(data) = &mut self.mode {
+
+            // start next wave logic
+            if data.wave_active == false {
+                let mut ready = true;
+
+                for (player_index, _) in &self.level.players {
+                    if !data.ready.contains(&player_index) {
+                        ready = false
+                    }
+                }
+
+                if ready {
+                    data.wave += 1;
+
+                    data.wave_active = true;
+                }
+            }
+
+            if data.wave_active == false {
+                return;
+            }
+
+            for i in 0..data.batch_size {
+
+                let spawn_location = Vec2::new(-500. + (i as f32 * 60.) , 0.);
+
+                self.level.enemies.insert(
+                    Enemy::new(spawn_location, ctx.uuid.clone(), &mut self.level.space, ctx.textures)
+                );
+            }
+            
+
+
+
+            
+
+
             
         }
     }
@@ -193,10 +199,6 @@ impl GameState {
         &mut self,
         ctx: &mut TickContext
     ) { 
-
-        log(&format!("is host: {}", ctx.is_host));
-
-        Mode::tick(self, ctx);
 
         self.level.tick(ctx);
 
