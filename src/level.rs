@@ -97,6 +97,10 @@ impl Level {
         let level: Self = serde_yaml::from_slice(&bytes).unwrap();
         
         level
+    }   
+
+    pub fn server_tick(&mut self) {
+
     }
 
     pub fn tick(

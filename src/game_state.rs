@@ -184,15 +184,11 @@ impl GameState {
                     Enemy::new(spawn_location, ctx.uuid.clone(), &mut self.level.space, ctx.textures)
                 );
             }
-            
-
-
-
-            
-
-
-            
         }
+    }
+
+    pub fn server_tick(&mut self) {
+        self.level.server_tick();
     }
 
     pub fn tick(

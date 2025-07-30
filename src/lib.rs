@@ -51,6 +51,7 @@ pub mod bullet_casing;
 pub mod collider_groups;
 pub mod blood;
 pub mod events;
+pub mod updates;
 
 
 #[derive(Serialize, Deserialize, Diff, PartialEq, Clone)]
